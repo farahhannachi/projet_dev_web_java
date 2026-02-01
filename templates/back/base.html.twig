@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin - CuraVita Pharmacie{% endblock %}</title>
+    <link rel="stylesheet" href="{{ asset('css/back.css') }}">
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="{{ path('back_dashboard') }}" class="navbar-brand">
+                <img src="{{ asset('images/logo-complet.svg') }}" alt="CuraVita Logo" class="logo-complet">
+                <span class="admin-badge">Admin</span>
+            </a>
+            <ul class="navbar-menu">
+                <li><a href="{{ path('back_dashboard') }}">📊 Dashboard</a></li>
+                <li><a href="{{ path('back_ordonnance_index') }}">📋 Ordonnances</a></li>
+                <li><a href="{{ path('back_traitement_index') }}">💊 Traitements</a></li>
+                <li><a href="{{ path('front_home') }}">🏠 Frontoffice</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        {% block body %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 CuraVita Pharmacie - Backoffice Administration</p>
+    </footer>
+
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

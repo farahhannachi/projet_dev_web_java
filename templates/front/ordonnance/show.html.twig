@@ -1,0 +1,195 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Détails Ordonnance{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="page-header">
+        <h1>📋 Détails de l'ordonnance</h1>
+        <a href="{{ path('front_ordonnance_index') }}" class="btn btn-secondary">← Retour</a>
+    </div>
+
+    <div class="ordonnance-detail">
+        <div class="detail-section">
+            <h2>Informations générales</h2>
+            <table class="info-table">
+                <tr>
+                    <td><strong>Fichier :</strong></td>
+                    <td>{{ ordonnance.fileName }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Statut :</strong></td>
+                    <td>
+                        <span class="status status-{{ ordonnance.status }}">
+                            {% if ordonnance.status == 'pending_validation' %}
+                                🟡 En attente de validation
+                            {% elseif ordonnance.status == 'validated' %}
+                                ✅ Validée
+                            {% else %}
+                                ❌ Rejetée
+                            {% endif %}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Date de téléversement :</strong></td>
+                    <td>{{ ordonnance.uploadedAt|date('d/m/Y à H:i:s') }}</td>
+                </tr>
+                {% if ordonnance.validatedAt %}
+                <tr>
+                    <td><strong>Date de validation :</strong></td>
+                    <td>{{ ordonnance.validatedAt|date('d/m/Y à H:i:s') }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td><strong>Client ID :</strong></td>
+                    <td>{{ ordonnance.clientId }}</td>
+                </tr>
+                {% if ordonnance.validatedById %}
+                <tr>
+                    <td><strong>Validée par (Pharmacien ID) :</strong></td>
+                    <td>{{ ordonnance.validatedById }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        {% if ordonnance.rejectionReason %}
+        <div class="detail-section rejection-section">
+            <h2>❌ Raison du rejet</h2>
+            <p>{{ ordonnance.rejectionReason }}</p>
+        </div>
+        {% endif %}
+
+        {% if ordonnance.status == 'validated' %}
+        <div class="detail-section">
+            <h2>💊 Traitements associés ({{ ordonnance.traitements|length }})</h2>
+            {% if ordonnance.traitements|length > 0 %}
+                <div class="traitements-list">
+                    {% for traitement in ordonnance.traitements %}
+                        <div class="traitement-item">
+                            <div class="traitement-header">
+                                <h4>Traitement #{{ traitement.id }}</h4>
+                                <span class="badge {{ traitement.isActive ? 'badge-active' : 'badge-inactive' }}">
+                                    {{ traitement.isActive ? '✓ Actif' : '✗ Inactif' }}
+                                </span>
+                            </div>
+                            <p><strong>Dosage :</strong> {{ traitement.dosage }}</p>
+                            <p><strong>Fréquence :</strong> {{ traitement.frequency }}</p>
+                            <p><strong>Durée :</strong> {{ traitement.durationDays }} jours</p>
+                            <p><strong>Période :</strong> {{ traitement.startDate|date('d/m/Y') }} → {{ traitement.endDate|date('d/m/Y') }}</p>
+                            {% if traitement.notes %}
+                                <p><strong>Notes :</strong> {{ traitement.notes }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <a href="{{ path('front_ordonnance_traitements', {id: ordonnance.id}) }}" class="btn btn-primary">Voir tous les traitements</a>
+            {% else %}
+                <p class="text-muted">Aucun traitement n'a encore été créé pour cette ordonnance.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.ordonnance-detail {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.detail-section {
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.detail-section:last-child {
+    border-bottom: none;
+}
+
+.detail-section h2 {
+    color: #2ecc71;
+    margin-bottom: 20px;
+}
+
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.info-table tr {
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.info-table td {
+    padding: 12px 0;
+}
+
+.info-table td:first-child {
+    width: 250px;
+    color: #7f8c8d;
+}
+
+.rejection-section {
+    background: #f8d7da;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.rejection-section p {
+    color: #721c24;
+    margin: 0;
+}
+
+.traitements-list {
+    display: grid;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.traitement-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #2ecc71;
+}
+
+.traitement-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.traitement-header h4 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.badge {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+
+.badge-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-inactive {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.text-muted {
+    color: #6c757d;
+    font-style: italic;
+}
+</style>
+{% endblock %}

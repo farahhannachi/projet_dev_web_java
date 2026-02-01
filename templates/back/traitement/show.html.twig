@@ -1,0 +1,160 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Traitement #{{ traitement.id }} - Backoffice{% endblock %}
+
+{% block body %}
+<div class="container fade-in">
+    <div class="page-header">
+        <h1>💊 Traitement #{{ traitement.id }}</h1>
+        <div>
+            <a href="{{ path('back_traitement_edit', {id: traitement.id}) }}" class="btn btn-primary">
+                ✏️ Modifier
+            </a>
+            <a href="{{ path('back_traitement_index') }}" class="btn btn-secondary">
+                ← Retour à la liste
+            </a>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            ✅ {{ message }}
+        </div>
+    {% endfor %}
+
+    <div class="card">
+        <div class="card-header">
+            <h2>📋 Informations du Traitement</h2>
+            <div>
+                {% if traitement.isActive %}
+                    <span class="status status-validated">✅ Actif</span>
+                {% elseif traitement.isCompleted %}
+                    <span class="status status-rejected">🏁 Complété</span>
+                {% else %}
+                    <span class="status status-pending_validation">⏸️ Inactif</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 24px;">
+            <!-- Informations Générales -->
+            <div class="card">
+                <h3 style="color: var(--primary-green); margin-bottom: 16px; font-size: 1.25rem;">
+                    📊 Informations Générales
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <strong style="color: var(--text-light);">ID Traitement:</strong><br>
+                        <span style="font-size: 1.5rem; color: var(--primary-green);">#{{ traitement.id }}</span>
+                    </div>
+                    <div>
+                        <strong style="color: var(--text-light);">Client:</strong><br>
+                        <span style="font-size: 1.25rem;">Client #{{ traitement.clientId }}</span>
+                    </div>
+                    <div>
+                        <strong style="color: var(--text-light);">Ordonnance:</strong><br>
+                        <a href="{{ path('back_ordonnance_show', {id: traitement.ordonnance.id}) }}" class="btn btn-sm btn-primary">
+                            📋 Ordonnance #{{ traitement.ordonnance.id }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posologie -->
+            <div class="card">
+                <h3 style="color: var(--primary-green); margin-bottom: 16px; font-size: 1.25rem;">
+                    💊 Posologie
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <strong style="color: var(--text-light);">Dosage:</strong><br>
+                        <span style="font-size: 1.25rem; color: var(--dark-green);">{{ traitement.dosage }}</span>
+                    </div>
+                    <div>
+                        <strong style="color: var(--text-light);">Fréquence:</strong><br>
+                        <span style="font-size: 1.25rem;">{{ traitement.frequency }}</span>
+                    </div>
+                    <div>
+                        <strong style="color: var(--text-light);">Durée:</strong><br>
+                        <span style="font-size: 1.25rem;">{{ traitement.durationDays }} jours</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dates -->
+            <div class="card">
+                <h3 style="color: var(--primary-green); margin-bottom: 16px; font-size: 1.25rem;">
+                    📅 Dates
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <strong style="color: var(--text-light);">Date de début:</strong><br>
+                        <span style="font-size: 1.25rem;">{{ traitement.startDate|date('d/m/Y') }}</span>
+                    </div>
+                    <div>
+                        <strong style="color: var(--text-light);">Date de fin:</strong><br>
+                        <span style="font-size: 1.25rem;">{{ traitement.endDate|date('d/m/Y') }}</span>
+                    </div>
+                    <div>
+                        <strong style="color: var(--text-light);">Jours restants:</strong><br>
+                        {% set daysLeft = date(traitement.endDate).diff(date()).days %}
+                        {% if daysLeft > 0 %}
+                            <span style="font-size: 1.25rem; color: var(--primary-green);">{{ daysLeft }} jours</span>
+                        {% else %}
+                            <span style="font-size: 1.25rem; color: var(--red);">Terminé</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        {% if traitement.notes %}
+        <div class="card mt-20">
+            <h3 style="color: var(--primary-green); margin-bottom: 16px; font-size: 1.25rem;">
+                📝 Notes
+            </h3>
+            <p style="background: var(--light-gray); padding: 16px; border-radius: 12px; line-height: 1.8;">
+                {{ traitement.notes }}
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="mt-20" style="display: flex; gap: 12px; flex-wrap: wrap;">
+            {% if traitement.isActive %}
+                <form method="post" action="{{ path('back_traitement_complete', {id: traitement.id}) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-success" onclick="return confirm('Marquer ce traitement comme complété ?')">
+                        ✅ Marquer comme Complété
+                    </button>
+                </form>
+            {% elseif traitement.isCompleted %}
+                <form method="post" action="{{ path('back_traitement_activate', {id: traitement.id}) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-primary" onclick="return confirm('Réactiver ce traitement ?')">
+                        🔄 Réactiver le Traitement
+                    </button>
+                </form>
+            {% endif %}
+            
+            <a href="{{ path('back_ordonnance_show', {id: traitement.ordonnance.id}) }}" class="btn btn-secondary">
+                📋 Voir l'Ordonnance
+            </a>
+        </div>
+    </div>
+
+    <!-- Bouton de suppression -->
+    <div class="card mt-20" style="border-left: 4px solid var(--red);">
+        <h3 style="color: var(--red); margin-bottom: 16px;">⚠️ Zone Dangereuse</h3>
+        <p style="margin-bottom: 16px; color: var(--text-light);">
+            La suppression d'un traitement est irréversible. Toutes les données associées seront perdues.
+        </p>
+        <form method="post" action="{{ path('back_traitement_delete', {id: traitement.id}) }}" 
+              onsubmit="return confirm('⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer ce traitement ? Cette action est irréversible.');">
+            <button type="submit" class="btn btn-danger">
+                🗑️ Supprimer le Traitement
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

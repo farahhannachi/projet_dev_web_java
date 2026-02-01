@@ -1,0 +1,4 @@
+# Load routes from annotations
+app_routes:
+    resource: routes/annotations.yaml
+
