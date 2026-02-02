@@ -1,4 +1,0 @@
-# Load routes from controller annotations/attributes
-controllers:
-    resource: ../../src/Controller/
-    type: attribute
