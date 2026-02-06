@@ -1,0 +1,84 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Envoyer mon Ordonnance - Curavita{% endblock %}
+
+{% block main %}
+<div class="bg-light py-12" style="background-color: var(--bg-page); min-height: 80vh;">
+    <div class="container">
+        <div class="text-center max-w-2xl mx-auto mb-10">
+            <span class="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4" style="background: var(--primary-light); color: var(--primary-color);">🔒 100% Sécurisé & Confidentiel</span>
+            <h1 class="mb-4">Envoyez votre ordonnance</h1>
+            <p class="text-muted-foreground text-lg">Nos pharmaciens préparent votre commande immédiatement. Gagnez du temps en évitant la file d'attente en pharmacie.</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8 items-start">
+            <div class="md:col-span-2">
+                <form id="ordonnance-form" class="bg-white shadow-md p-8 rounded-xl border border-gray-100 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-primary"></div>
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2"><span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm">1</span>Vos informations</h2>
+                    <div class="grid md:grid-cols-2 gap-4 mb-6">
+                        <div><label class="text-sm font-medium mb-1">Nom</label><input type="text" class="input" placeholder="Votre nom" required></div>
+                        <div><label class="text-sm font-medium mb-1">Prénom</label><input type="text" class="input" placeholder="Votre prénom" required></div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4 mb-8">
+                        <div><label class="text-sm font-medium mb-1">Téléphone</label><input type="tel" class="input" placeholder="06..." required></div>
+                        <div><label class="text-sm font-medium mb-1">Email</label><input type="email" class="input" placeholder="votre@email.com" required></div>
+                    </div>
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2"><span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm">2</span>Votre Ordonnance</h2>
+                    <div class="upload-zone mb-6" id="drop-zone">
+                        <input type="file" id="file-input" class="hidden" accept="image/*,.pdf" multiple>
+                        <div class="flex flex-col items-center justify-center py-8 px-4 text-center cursor-pointer" onclick="document.getElementById('file-input').click()">
+                            <div class="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center mb-4 text-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            </div>
+                            <h4 class="font-semibold text-primary mb-1">Cliquez pour ajouter un fichier</h4>
+                            <p class="text-sm text-muted-foreground mb-4">ou glissez-déposez ici</p>
+                            <p class="text-xs text-muted-foreground opacity-70">JPG, PNG ou PDF. Max 5 Mo.</p>
+                        </div>
+                        <div id="file-preview" class="hidden mt-4 p-3 bg-gray-50 rounded border border-gray-200 flex items-center justify-between"><span id="filename" class="text-sm font-medium truncate"></span><button type="button" id="remove-file" class="text-red-500 hover:text-red-700 text-sm">Supprimer</button></div>
+                    </div>
+                    <div class="mb-8"><label class="text-sm font-medium mb-1">Message pour le pharmacien (Optionnel)</label><textarea class="input h-24" placeholder="Précisez un dosage, une allergie..."></textarea></div>
+                    <button type="submit" class="btn btn-accent w-full py-4 text-lg shadow-lg">Envoyer mon ordonnance</button>
+                    <p class="text-center text-xs text-muted-foreground mt-4">En envoyant ce formulaire, j'accepte que mes données soient traitées par Curavita dans le cadre strict de la délivrance de médicaments.</p>
+                </form>
+            </div>
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                    <h3 class="font-bold mb-4">Comment ça marche ?</h3>
+                    <ul class="space-y-6 relative"><div class="absolute left-3 top-2 bottom-2 w-0.5 bg-gray-100"></div>
+                        <li class="relative pl-10"><div class="absolute left-0 top-0 w-6 h-6 rounded-full bg-white border-2 border-primary"></div><h5 class="font-semibold text-sm">1. Envoi</h5><p class="text-xs text-muted-foreground">Vous envoyez la photo de votre ordonnance.</p></li>
+                        <li class="relative pl-10"><div class="absolute left-0 top-0 w-6 h-6 rounded-full bg-white border-2 border-primary"></div><h5 class="font-semibold text-sm">2. Préparation</h5><p class="text-xs text-muted-foreground">Un pharmacien vérifie et prépare votre commande.</p></li>
+                        <li class="relative pl-10"><div class="absolute left-0 top-0 w-6 h-6 rounded-full bg-white border-2 border-primary"></div><h5 class="font-semibold text-sm">3. Retrait / Livraison</h5><p class="text-xs text-muted-foreground">Vous recevez une notification quand c'est prêt !</p></li>
+                    </ul>
+                </div>
+                <div class="bg-primary text-white p-6 rounded-xl shadow-md text-center">
+                    <div class="mb-4 text-4xl">👨‍⚕️</div>
+                    <h3 class="font-bold mb-2">Vérifié par un Pharmacien</h3>
+                    <p class="text-sm opacity-90">Chaque ordonnance est contrôlée par notre équipe diplômée avant délivrance.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm text-center">
+                    <h3 class="font-bold mb-2 text-accent">Besoin d'aide ?</h3>
+                    <p class="text-sm text-muted-foreground mb-4">Notre équipe vous répond.</p>
+                    <a href="tel:0123456789" class="btn btn-primary btn-sm w-full">📞 01 23 45 67 89</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+(function(){
+    var dropZone=document.getElementById('drop-zone'),fileInput=document.getElementById('file-input'),filePreview=document.getElementById('file-preview'),filenameSpan=document.getElementById('filename'),removeBtn=document.getElementById('remove-file');
+    fileInput.addEventListener('change',function(){if(fileInput.files.length>0) showFile(fileInput.files[0].name);});
+    dropZone.addEventListener('dragover',function(e){e.preventDefault();dropZone.style.borderColor='var(--primary-color)';dropZone.style.backgroundColor='var(--primary-light)';});
+    dropZone.addEventListener('dragleave',function(e){e.preventDefault();dropZone.style.borderColor='';dropZone.style.backgroundColor='';});
+    dropZone.addEventListener('drop',function(e){e.preventDefault();dropZone.style.borderColor='';dropZone.style.backgroundColor='';if(e.dataTransfer.files.length>0){fileInput.files=e.dataTransfer.files;showFile(e.dataTransfer.files[0].name);}});
+    function showFile(n){filenameSpan.textContent='📄 '+n;filePreview.classList.remove('hidden');}
+    removeBtn.addEventListener('click',function(){fileInput.value='';filePreview.classList.add('hidden');});
+    document.getElementById('ordonnance-form').addEventListener('submit',function(e){e.preventDefault();if(!fileInput.files.length){alert("Veuillez ajouter une ordonnance.");return;}var btn=e.target.querySelector('button[type="submit"]'),ot=btn.textContent;btn.textContent="Envoi en cours...";btn.disabled=true;setTimeout(function(){alert("✅ Ordonnance envoyée avec succès !");e.target.reset();filePreview.classList.add('hidden');btn.textContent=ot;btn.disabled=false;},1500);});
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Gestion des Commandes{% endblock %}
+{% block page_subtitle %}Liste des commandes clients{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    {% for message in app.flashes('success') %}
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    <div class="page-header">
+        <h1><i class="fas fa-shopping-cart"></i> Gestion des Commandes</h1>
+        <a href="{{ path('admin_commande_new') }}" class="btn-primary">
+            <i class="fas fa-plus"></i> Ajouter une Commande
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Client</th>
+                    <th>Total</th>
+                    <th>Mode de paiement</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for commande in commandes %}
+                <tr>
+                    <td>{{ commande.id }}</td>
+                    <td>{{ commande.dateCommande|date('d/m/Y H:i') }}</td>
+                    <td>{{ commande.adresseLivraison }}</td>
+                    <td>{{ commande.total }} €</td>
+                    <td>{{ commande.modePaiement }}</td>
+                    <td>
+                        <span class="status-badge {{ commande.statut == 'livrée' ? 'status-active' : commande.statut == 'annulée' ? 'status-danger' : 'status-warning' }}">
+                            {{ commande.statut }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ path('admin_commande_edit', {id: commande.id}) }}" class="btn-edit" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="{{ path('admin_commande_delete', {id: commande.id}) }}" method="POST" style="display: inline;">
+                                <button type="submit" class="btn-delete" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette commande ?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center">Aucune commande trouvée</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

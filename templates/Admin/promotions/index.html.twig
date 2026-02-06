@@ -1,0 +1,51 @@
+{% extends 'admin/_base.html.twig' %}
+
+{% block page_title %}Promotions{% endblock %}
+{% block page_subtitle %}Gérer les promotions{% endblock %}
+
+{% block main %}
+<div class="page-content">
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success" style="background: var(--success); color: white; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem;">{{ message }}</div>
+    {% endfor %}
+
+    <div style="margin-bottom: 1.5rem;">
+        <a href="{{ path('app_admin_promotion_new') }}" class="btn btn-primary">+ Ajouter une promotion</a>
+    </div>
+
+    <div class="stat-card" style="overflow-x: auto;">
+        {% if promotions|length > 0 %}
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <th style="text-align: left; padding: 0.75rem;">Description</th>
+                        <th style="text-align: left; padding: 0.75rem;">Réduction %</th>
+                        <th style="text-align: left; padding: 0.75rem;">Date début</th>
+                        <th style="text-align: left; padding: 0.75rem;">Date fin</th>
+                        <th style="text-align: right; padding: 0.75rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for promo in promotions %}
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 0.75rem;">{{ promo.description }}</td>
+                        <td style="padding: 0.75rem;">{{ promo.reduction }}</td>
+                        <td style="padding: 0.75rem;">{{ promo.dateDebut|date('d/m/Y') }}</td>
+                        <td style="padding: 0.75rem;">{{ promo.dateFin|date('d/m/Y') }}</td>
+                        <td style="padding: 0.75rem; text-align: right;">
+                            <a href="{{ path('app_admin_promotion_edit', {id: promo.idPromotion}) }}" class="btn btn-sm btn-outline">Modifier</a>
+                            <form method="post" action="{{ path('app_admin_promotion_delete', {id: promo.idPromotion}) }}" style="display: inline;" onsubmit="return confirm('Supprimer cette promotion ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ promo.idPromotion) }}">
+                                <button type="submit" class="btn btn-sm" style="color: var(--destructive);">Supprimer</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="color: var(--muted-foreground);">Aucune promotion. <a href="{{ path('app_admin_promotion_new') }}">Ajouter une promotion</a></p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

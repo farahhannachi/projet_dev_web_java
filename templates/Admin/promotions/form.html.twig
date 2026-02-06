@@ -1,0 +1,33 @@
+{% extends 'admin/_base.html.twig' %}
+
+{% block page_title %}{{ promotion.idPromotion ? 'Modifier' : 'Nouvelle' }} promotion{% endblock %}
+{% block page_subtitle %}{{ promotion.idPromotion ? 'Modifier la promotion' : 'Créer une nouvelle promotion' }}{% endblock %}
+
+{% block main %}
+<div class="page-content">
+    <div class="stat-card" style="max-width: 500px;">
+        <form method="post">
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-weight: 600; margin-bottom: 0.25rem;">Description</label>
+                <input type="text" name="description" value="{{ promotion.description }}" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-weight: 600; margin-bottom: 0.25rem;">Réduction (%)</label>
+                <input type="number" name="reduction" value="{{ promotion.reduction }}" step="0.01" min="0" max="100" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-weight: 600; margin-bottom: 0.25rem;">Date début</label>
+                <input type="date" name="date_debut" value="{{ promotion.dateDebut ? promotion.dateDebut|date('Y-m-d') : '' }}" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-weight: 600; margin-bottom: 0.25rem;">Date fin</label>
+                <input type="date" name="date_fin" value="{{ promotion.dateFin ? promotion.dateFin|date('Y-m-d') : '' }}" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px;">
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <a href="{{ path('app_admin_promotions') }}" class="btn btn-outline" style="margin-left: 0.5rem;">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
