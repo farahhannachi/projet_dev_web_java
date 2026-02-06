@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class OrdonnanceController extends AbstractController
 {
     #[Route('/admin/ordonnances', name: 'admin_ordonnances')]
-    public function index(Request $request, OrdonnanceRepository $ordonnanceRepository): Response
+    public function index(Request $request, OrdonnanceRepository $ordonnanceRepository, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
         
@@ -48,8 +48,19 @@ class OrdonnanceController extends AbstractController
         
         $ordonnances = $queryBuilder->getQuery()->getResult();
         
+        // Récupérer les traitements pour chaque ordonnance
+        $traitementRepository = $entityManager->getRepository(\App\Entity\Traitement::class);
+        $traitementsByOrdonnance = [];
+        foreach ($ordonnances as $ordonnance) {
+            $traitementsByOrdonnance[$ordonnance->getId()] = $traitementRepository->findBy(
+                ['ordonnance' => $ordonnance],
+                ['id' => 'ASC']
+            );
+        }
+        
         return $this->render('Admin/ordonnances/index.html.twig', [
             'ordonnances' => $ordonnances,
+            'traitementsByOrdonnance' => $traitementsByOrdonnance,
             'filterDate' => $filterDate,
             'filterClient' => $filterClient,
             'filterStatut' => $filterStatut
@@ -94,7 +105,17 @@ class OrdonnanceController extends AbstractController
             $entityManager->persist($ordonnance);
             $entityManager->flush();
             
-            $this->addFlash('success', 'Ordonnance créée avec succès (statut: en attente)');
+            // Créer automatiquement un traitement vide associé à cette ordonnance
+            $traitement = new \App\Entity\Traitement();
+            $traitement->setOrdonnance($ordonnance);
+            $traitement->setUtilisateur($ordonnance->getUtilisateur());
+            $traitement->setStatus('en attente');
+            $traitement->setNotes('Traitement créé automatiquement - À compléter par l\'administrateur');
+            
+            $entityManager->persist($traitement);
+            $entityManager->flush();
+            
+            $this->addFlash('success', 'Ordonnance créée avec succès (statut: en attente). Un traitement a été créé automatiquement.');
             return $this->redirectToRoute('admin_ordonnances');
         }
 
@@ -108,6 +129,9 @@ class OrdonnanceController extends AbstractController
     public function edit(Ordonnance $ordonnance, Request $request, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        
+        // Sauvegarder l'ancien statut pour détecter les changements
+        $ancienStatut = $ordonnance->getStatut();
         
         $form = $this->createForm(OrdonnanceType::class, $ordonnance, [
             'is_edit' => true
@@ -127,8 +151,34 @@ class OrdonnanceController extends AbstractController
                 ]);
             }
             
+            // Si l'ordonnance passe à "validé", valider automatiquement tous les traitements associés
+            $nouveauStatut = $ordonnance->getStatut();
+            if ($ancienStatut !== 'validé' && $nouveauStatut === 'validé') {
+                $traitementRepository = $entityManager->getRepository(\App\Entity\Traitement::class);
+                $traitements = $traitementRepository->findBy(['ordonnance' => $ordonnance]);
+                
+                foreach ($traitements as $traitement) {
+                    $traitement->setStatus('validé');
+                    $entityManager->persist($traitement);
+                }
+                
+                $this->addFlash('success', 'Ordonnance validée avec succès. ' . count($traitements) . ' traitement(s) associé(s) ont été validés automatiquement.');
+            } elseif ($ancienStatut !== 'rejeté' && $nouveauStatut === 'rejeté') {
+                // Si l'ordonnance est rejetée, rejeter automatiquement tous les traitements associés
+                $traitementRepository = $entityManager->getRepository(\App\Entity\Traitement::class);
+                $traitements = $traitementRepository->findBy(['ordonnance' => $ordonnance]);
+                
+                foreach ($traitements as $traitement) {
+                    $traitement->setStatus('rejeté');
+                    $entityManager->persist($traitement);
+                }
+                
+                $this->addFlash('success', 'Ordonnance rejetée. ' . count($traitements) . ' traitement(s) associé(s) ont été rejetés automatiquement.');
+            } else {
+                $this->addFlash('success', 'Ordonnance modifiée avec succès');
+            }
+            
             $entityManager->flush();
-            $this->addFlash('success', 'Ordonnance modifiée avec succès');
 
             return $this->redirectToRoute('admin_ordonnances');
         }
@@ -144,9 +194,19 @@ class OrdonnanceController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
+        // Supprimer d'abord tous les traitements associés à cette ordonnance
+        $traitementRepository = $entityManager->getRepository(\App\Entity\Traitement::class);
+        $traitements = $traitementRepository->findBy(['ordonnance' => $ordonnance]);
+        
+        foreach ($traitements as $traitement) {
+            $entityManager->remove($traitement);
+        }
+        
+        // Ensuite supprimer l'ordonnance
         $entityManager->remove($ordonnance);
         $entityManager->flush();
-        $this->addFlash('success', 'Ordonnance supprimée avec succès');
+        
+        $this->addFlash('success', 'Ordonnance et ' . count($traitements) . ' traitement(s) associé(s) supprimés avec succès');
 
         return $this->redirectToRoute('admin_ordonnances');
     }

@@ -45,18 +45,22 @@
 
             {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-                <div>
-                    {{ form_label(form.ordonnance, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
-                    {{ form_widget(form.ordonnance, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
-                    {{ form_errors(form.ordonnance) }}
-                </div>
+            <div style="margin-bottom: 1.5rem;">
+                {{ form_label(form.ordonnance, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                {{ form_widget(form.ordonnance, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                {{ form_errors(form.ordonnance) }}
+            </div>
 
-                <div>
-                    {{ form_label(form.utilisateur, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
-                    {{ form_widget(form.utilisateur, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
-                    {{ form_errors(form.utilisateur) }}
-                </div>
+            <div style="margin-bottom: 1.5rem;">
+                {{ form_label(form.produit, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                {{ form_widget(form.produit, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                {{ form_errors(form.produit) }}
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                {{ form_label(form.utilisateur, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                {{ form_widget(form.utilisateur, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                {{ form_errors(form.utilisateur) }}
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">

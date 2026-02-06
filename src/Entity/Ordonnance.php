@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\OrdonnanceRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: OrdonnanceRepository::class)]
@@ -32,6 +34,14 @@ class Ordonnance
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(name: 'id_utilisateur', referencedColumnName: 'id_utilisateur', nullable: false)]
     private ?Utilisateur $utilisateur = null;
+
+    #[ORM\OneToMany(targetEntity: Traitement::class, mappedBy: 'ordonnance', cascade: ['persist', 'remove'])]
+    private Collection $traitements;
+
+    public function __construct()
+    {
+        $this->traitements = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -101,6 +111,36 @@ class Ordonnance
     public function setUtilisateur(?Utilisateur $utilisateur): static
     {
         $this->utilisateur = $utilisateur;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Traitement>
+     */
+    public function getTraitements(): Collection
+    {
+        return $this->traitements;
+    }
+
+    public function addTraitement(Traitement $traitement): static
+    {
+        if (!$this->traitements->contains($traitement)) {
+            $this->traitements->add($traitement);
+            $traitement->setOrdonnance($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTraitement(Traitement $traitement): static
+    {
+        if ($this->traitements->removeElement($traitement)) {
+            // set the owning side to null (unless already changed)
+            if ($traitement->getOrdonnance() === $this) {
+                $traitement->setOrdonnance(null);
+            }
+        }
+
         return $this;
     }
 }

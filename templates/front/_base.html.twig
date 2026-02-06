@@ -35,10 +35,10 @@
                         <a href="{{ path('front_stocks') }}" class="nav-link {{ app.request.get('_route') == 'front_stocks' ? 'active' : '' }}">Stocks</a>
                     {% endif %}
                     <div class="dropdown">
-                        <a href="{{ path('app_ordonnance') }}" class="nav-link {{ app.request.get('_route') == 'app_ordonnance' ? 'active' : '' }}">Ordonnance</a>
+                        <a href="{{ path('app_ordonnance') }}" class="nav-link nav-link-green {{ app.request.get('_route') == 'app_ordonnance' ? 'active' : '' }}">Ordonnance & Traitement</a>
                         <div class="dropdown-menu">
-                            <a href="{{ path('app_ordonnance') }}" class="dropdown-item">Créer une ordonnance</a>
                             <a href="{{ path('app_demande_traitement') }}" class="dropdown-item">Demande de traitement</a>
+                            <a href="{{ path('app_ordonnance') }}" class="dropdown-item">Créer une ordonnance</a>
                             <a href="{{ path('app_mes_traitements') }}" class="dropdown-item">Mes traitements</a>
                         </div>
                     </div>

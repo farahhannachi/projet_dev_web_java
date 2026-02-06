@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\Ordonnance;
 use App\Entity\Traitement;
 use App\Entity\Utilisateur;
+use App\Entity\Produit;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -31,6 +32,20 @@ class TraitementType extends AbstractType
                 },
                 'constraints' => [
                     new Assert\NotBlank(['message' => 'L\'ordonnance est obligatoire'])
+                ]
+            ])
+            ->add('produit', EntityType::class, [
+                'label' => 'Produit',
+                'class' => Produit::class,
+                'choice_label' => function(Produit $produit) {
+                    return $produit->getNom() . ' - ' . $produit->getCategorie() . ' (' . $produit->getPrix() . '€)';
+                },
+                'placeholder' => 'Sélectionner un produit',
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'Le produit est obligatoire'])
+                ],
+                'attr' => [
+                    'class' => 'form-control'
                 ]
             ])
             ->add('utilisateur', EntityType::class, [

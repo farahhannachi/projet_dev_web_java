@@ -6,8 +6,11 @@ use App\Entity\Depot;
 use App\Entity\Stock;
 use App\Entity\Ordonnance;
 use App\Entity\Traitement;
+use App\Entity\Produit;
+use App\Entity\Commande;
 use App\Form\OrdonnanceFrontType;
 use App\Form\TraitementFrontType;
+use App\Form\CommandeType;
 use App\Repository\DepotRepository;
 use App\Repository\StockRepository;
 use App\Repository\TraitementRepository;
@@ -49,13 +52,28 @@ class FrontController extends AbstractController
     #[Route('/ordonnance', name: 'app_ordonnance', methods: ['GET', 'POST'])]
     public function ordonnance(
         Request $request, 
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        TraitementRepository $traitementRepository
     ): Response
     {
         // Vérifier si l'utilisateur est connecté
         if (!$this->getUser()) {
             $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page');
             return $this->redirectToRoute('app_login');
+        }
+
+        // Récupérer les produits sélectionnés depuis l'URL
+        $produitsIds = $request->query->get('produits');
+        $produitsSelectionnes = [];
+        
+        if ($produitsIds) {
+            $idsArray = explode(',', $produitsIds);
+            foreach ($idsArray as $id) {
+                $produit = $entityManager->getRepository(Produit::class)->find($id);
+                if ($produit) {
+                    $produitsSelectionnes[] = $produit;
+                }
+            }
         }
 
         // Formulaire Ordonnance
@@ -86,19 +104,35 @@ class FrontController extends AbstractController
                 $entityManager->persist($ordonnance);
                 $entityManager->flush();
                 
+                // Créer un traitement pour chaque produit sélectionné
+                if (!empty($produitsSelectionnes)) {
+                    foreach ($produitsSelectionnes as $produit) {
+                        $traitement = new Traitement();
+                        $traitement->setOrdonnance($ordonnance);
+                        $traitement->setUtilisateur($this->getUser());
+                        $traitement->setProduit($produit);
+                        $traitement->setStatus('en attente');
+                        $traitement->setNotes('Demande de traitement pour: ' . $produit->getNom());
+                        
+                        $entityManager->persist($traitement);
+                    }
+                    $entityManager->flush();
+                }
+                
                 $this->addFlash('success', 'Votre ordonnance a été envoyée avec succès ! Un pharmacien va la vérifier.');
-                return $this->redirectToRoute('app_ordonnance');
+                return $this->redirectToRoute('app_mes_traitements');
             }
         }
 
         return $this->render('front/ordonnance.html.twig', [
-            'form' => $formOrdonnance->createView()
+            'form' => $formOrdonnance->createView(),
+            'produitsSelectionnes' => $produitsSelectionnes
         ]);
     }
 
     #[Route('/demande_de_traitement', name: 'app_demande_traitement', methods: ['GET', 'POST'])]
     public function demandeTraitement(
-        Request $request, 
+        Request $request,
         EntityManagerInterface $entityManager
     ): Response
     {
@@ -108,53 +142,28 @@ class FrontController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        // Créer une nouvelle demande de traitement
-        $traitement = new Traitement();
-        $traitement->setStatus('en attente');
-        $traitement->setUtilisateur($this->getUser());
-        
-        $form = $this->createForm(TraitementFrontType::class, $traitement, [
-            'user' => $this->getUser()
-        ]);
-        $form->handleRequest($request);
-        
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Vérifier que l'ordonnance est validée
-            $ordonnance = $traitement->getOrdonnance();
-            if ($ordonnance->getStatut() !== 'validé') {
-                $this->addFlash('error', 'Vous ne pouvez créer une demande de traitement que pour une ordonnance validée');
+        // Récupérer tous les produits disponibles
+        $produits = $entityManager->getRepository(Produit::class)->findBy(
+            ['statut' => 'disponible'],
+            ['nom' => 'ASC']
+        );
+
+        // Traiter la soumission du formulaire
+        if ($request->isMethod('POST')) {
+            $produitsSelectionnes = $request->request->all('produits');
+            
+            if (empty($produitsSelectionnes)) {
+                $this->addFlash('error', 'Veuillez sélectionner au moins un produit');
             } else {
-                // Validation supplémentaire côté serveur
-                $dateDebut = $traitement->getDateDebut();
-                $dateFin = $traitement->getDateFin();
-                $dureeJours = $traitement->getDureeJours();
-                
-                if ($dateFin <= $dateDebut) {
-                    $this->addFlash('error', 'La date de fin doit être postérieure à la date de début');
-                } else {
-                    // Vérifier la cohérence entre la durée et les dates
-                    $diff = $dateDebut->diff($dateFin);
-                    $joursCalcules = $diff->days;
-                    
-                    if (abs($joursCalcules - $dureeJours) > 1) {
-                        $this->addFlash('error', 'La durée en jours ne correspond pas à la période entre la date de début et la date de fin');
-                    } else {
-                        // Forcer le statut à "en attente"
-                        $traitement->setStatus('en attente');
-                        $traitement->setUtilisateur($this->getUser());
-                        
-                        $entityManager->persist($traitement);
-                        $entityManager->flush();
-                        
-                        $this->addFlash('success', 'Votre demande de traitement a été envoyée avec succès ! Un administrateur va la vérifier.');
-                        return $this->redirectToRoute('app_mes_traitements');
-                    }
-                }
+                // Rediriger vers la page ordonnance avec les produits sélectionnés
+                return $this->redirectToRoute('app_ordonnance', [
+                    'produits' => implode(',', $produitsSelectionnes)
+                ]);
             }
         }
 
         return $this->render('front/demande_traitement.html.twig', [
-            'form' => $form->createView()
+            'produits' => $produits
         ]);
     }
 
@@ -193,29 +202,27 @@ class FrontController extends AbstractController
             );
         }
 
-        // Récupérer les ordonnances validées du client
+        // Récupérer TOUTES les ordonnances du client (validées, en attente, rejetées)
         if ($searchTerm) {
             // Recherche dans les ordonnances
-            $ordonnancesValidees = $ordonnanceRepository->createQueryBuilder('o')
+            $ordonnances = $ordonnanceRepository->createQueryBuilder('o')
                 ->where('o.utilisateur = :user')
-                ->andWhere('o.statut = :statut')
-                ->andWhere('o.numeroOrdonnance LIKE :search OR o.noteMedical LIKE :search')
+                ->andWhere('o.numeroOrdonnance LIKE :search OR o.noteMedical LIKE :search OR o.statut LIKE :search')
                 ->setParameter('user', $this->getUser())
-                ->setParameter('statut', 'validé')
                 ->setParameter('search', '%' . $searchTerm . '%')
                 ->orderBy('o.dateOrdonnance', 'DESC')
                 ->getQuery()
                 ->getResult();
         } else {
-            $ordonnancesValidees = $ordonnanceRepository->findBy(
-                ['utilisateur' => $this->getUser(), 'statut' => 'validé'],
+            $ordonnances = $ordonnanceRepository->findBy(
+                ['utilisateur' => $this->getUser()],
                 ['dateOrdonnance' => 'DESC']
             );
         }
 
         return $this->render('front/mes_traitements.html.twig', [
             'traitements' => $traitements,
-            'ordonnancesValidees' => $ordonnancesValidees,
+            'ordonnances' => $ordonnances,
             'searchTerm' => $searchTerm
         ]);
     }
@@ -246,6 +253,40 @@ class FrontController extends AbstractController
 
         // Générer le nom du fichier
         $filename = 'Ordonnance_' . $ordonnance->getNumeroOrdonnance() . '_' . date('Y-m-d') . '.pdf';
+
+        // Retourner le PDF en téléchargement
+        return new Response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"'
+        ]);
+    }
+
+    #[Route('/ordonnance/{id}/complete-pdf', name: 'app_ordonnance_complete_pdf', methods: ['GET'])]
+    public function ordonnanceCompletePdf(Ordonnance $ordonnance): Response
+    {
+        // Vérifier que l'ordonnance appartient à l'utilisateur connecté
+        if (!$this->getUser() || $ordonnance->getUtilisateur() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas accès à cette ordonnance');
+        }
+
+        // Générer le HTML pour le PDF avec ordonnance et traitements
+        $html = $this->renderView('front/pdf/ordonnance_complete_pdf.html.twig', [
+            'ordonnance' => $ordonnance
+        ]);
+
+        // Configurer Dompdf
+        $options = new Options();
+        $options->set('defaultFont', 'Arial');
+        $options->set('isRemoteEnabled', true);
+        $options->set('isHtml5ParserEnabled', true);
+        
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        // Générer le nom du fichier
+        $filename = 'Ordonnance_Complete_' . $ordonnance->getNumeroOrdonnance() . '_' . date('Y-m-d') . '.pdf';
 
         // Retourner le PDF en téléchargement
         return new Response($dompdf->output(), 200, [
@@ -294,10 +335,28 @@ class FrontController extends AbstractController
         return $this->render('front/guide_sante.html.twig');
     }
 
-    #[Route('/commande', name: 'app_commande', methods: ['GET'])]
-    public function commande(): Response
+    #[Route('/commande', name: 'app_commande', methods: ['GET', 'POST'])]
+    public function commande(Request $request, EntityManagerInterface $entityManager): Response
     {
-        return $this->render('front/commande.html.twig');
+        $commande = new Commande();
+        $commande->setDateCommande(new \DateTime());
+        $commande->setStatut('en attente');
+        $commande->setTotal(0); // À calculer selon les produits
+        
+        $form = $this->createForm(CommandeType::class, $commande);
+        $form->handleRequest($request);
+        
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($commande);
+            $entityManager->flush();
+            
+            $this->addFlash('success', 'Votre commande a été enregistrée avec succès ! Nous vous contacterons bientôt.');
+            return $this->redirectToRoute('app_commande');
+        }
+        
+        return $this->render('front/commande.html.twig', [
+            'form' => $form->createView()
+        ]);
     }
 
     #[Route('/depots', name: 'front_depots')]
