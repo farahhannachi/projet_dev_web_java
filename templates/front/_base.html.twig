@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CURAVITA - Votre pharmacie en ligne{% endblock %}</title>
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/img/curavita-logo.png') }}">
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+    <header>
+        <div class="announcement-bar">Livraison gratuite dès 22,90€ d'achat</div>
+        <div class="container">
+            <div class="nav-container">
+                <a href="{{ path('app_home') }}" class="logo-link">
+                    <img src="{{ asset('assets/img/curavita-logo.png') }}" alt="Curavita Logo" class="logo">
+                </a>
+                <nav class="nav-menu">
+                    <a href="{{ path('app_home') }}" class="nav-link {{ app.request.get('_route') == 'app_home' ? 'active' : '' }}">Accueil</a>
+                    <div class="dropdown">
+                        <a href="{{ path('app_products') }}" class="nav-link {{ app.request.get('_route') == 'app_products' ? 'active' : '' }}">Produits</a>
+                        <div class="dropdown-menu">
+                            <a href="{{ path('app_products') }}#nutrition" class="dropdown-item">Nutrition</a>
+                            <a href="{{ path('app_products') }}#vitamines" class="dropdown-item">Vitamines & Minéraux</a>
+                            <a href="{{ path('app_products') }}#hygiene" class="dropdown-item">Hygiène & Soins</a>
+                            <a href="{{ path('app_products') }}#beaute" class="dropdown-item">Beauté</a>
+                            <a href="{{ path('app_products') }}#bebe" class="dropdown-item">Bébé & Maman</a>
+                            <a href="{{ path('app_products') }}#medical" class="dropdown-item">Matériel médical</a>
+                        </div>
+                    </div>
+                    <a href="{{ path('app_commande') }}" class="nav-link {{ app.request.get('_route') == 'app_commande' ? 'active' : '' }}">Commande</a>
+                    {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
+                        <a href="{{ path('front_depots') }}" class="nav-link {{ app.request.get('_route') == 'front_depots' ? 'active' : '' }}">Dépôts</a>
+                        <a href="{{ path('front_stocks') }}" class="nav-link {{ app.request.get('_route') == 'front_stocks' ? 'active' : '' }}">Stocks</a>
+                    {% endif %}
+                    <div class="dropdown">
+                        <a href="{{ path('app_ordonnance') }}" class="nav-link {{ app.request.get('_route') == 'app_ordonnance' ? 'active' : '' }}">Ordonnance</a>
+                        <div class="dropdown-menu">
+                            <a href="{{ path('app_ordonnance') }}" class="dropdown-item">Créer une ordonnance</a>
+                            <a href="{{ path('app_demande_traitement') }}" class="dropdown-item">Demande de traitement</a>
+                            <a href="{{ path('app_mes_traitements') }}" class="dropdown-item">Mes traitements</a>
+                        </div>
+                    </div>
+                    <a href="{{ path('app_guide_sante') }}" class="nav-link {{ app.request.get('_route') == 'app_guide_sante' ? 'active' : '' }}">Guide Santé</a>
+                    <a href="{{ path('app_about') }}" class="nav-link {{ app.request.get('_route') == 'app_about' ? 'active' : '' }}">À propos</a>
+                </nav>
+                <div class="flex items-center gap-4 hidden-mobile">
+                    {% if app.user %}
+                        <!-- User Profile Dropdown -->
+                        <div class="user-dropdown">
+                            <button class="user-dropdown-btn" onclick="toggleUserDropdown()">
+                                <div class="user-avatar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                    <span class="online-indicator"></span>
+                                </div>
+                                <span class="user-name">{{ app.user.nom }} {{ app.user.prenom }}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="dropdown-arrow">
+                                    <polyline points="6,9 12,15 18,9"></polyline>
+                                </svg>
+                            </button>
+                            
+                            <div class="user-dropdown-menu" id="userDropdown">
+                                <div class="user-dropdown-header">
+                                    <div class="user-info">
+                                        <div class="user-avatar large">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                <circle cx="12" cy="7" r="4"></circle>
+                                            </svg>
+                                            <span class="online-indicator large"></span>
+                                        </div>
+                                        <div class="user-details">
+                                            <div class="user-name-large">{{ app.user.nom }} {{ app.user.prenom }}</div>
+                                            <div class="user-email">{{ app.user.email }}</div>
+                                            <div class="user-role">
+                                                {% if is_granted('ROLE_ADMIN') %}
+                                                    <span class="role-badge admin">Administrateur</span>
+                                                {% else %}
+                                                    <span class="role-badge user">Client</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="user-dropdown-divider"></div>
+                                
+                                <div class="user-dropdown-actions">
+                                    {% if is_granted('ROLE_ADMIN') %}
+                                        <a href="{{ path('admin_dashboard') }}" class="dropdown-item">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                                <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                                            </svg>
+                                            Tableau de bord
+                                        </a>
+                                    {% endif %}
+                                    <a href="{{ path('app_logout') }}" class="dropdown-item logout">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                            <polyline points="16,17 21,12 16,7"></polyline>
+                                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                                        </svg>
+                                            Déconnexion
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="btn btn-sm btn-outline">Connexion</a>
+                        <a href="{{ path('app_register') }}" class="btn btn-sm btn-primary">Inscription</a>
+                    {% endif %}
+                    <div class="search-box relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500 cursor-pointer">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </div>
+                    <a href="#" class="icon-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                    </a>
+                </div>
+                <div class="burger-menu">☰</div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% block main %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <img src="{{ asset('assets/img/curavita-logo.png') }}" alt="Curavita Logo" class="footer-logo">
+                    <p>Votre santé, notre priorité. Pharmacie en ligne agréée et sécurisée.</p>
+                    <p class="text-sm mt-4 opacity-75">📍 123 Avenue de la Santé, 75001 Paris<br>📞 01 23 45 67 89</p>
+                </div>
+                <div>
+                    <h4>Navigation</h4>
+                    <ul class="space-y-2 text-sm text-white opacity-90">
+                        <li><a href="{{ path('app_home') }}">Accueil</a></li>
+                        <li><a href="{{ path('app_products') }}">Nos Produits</a></li>
+                        <li><a href="{{ path('app_guide_sante') }}">Conseils Santé</a></li>
+                        <li><a href="{{ path('app_contact') }}">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Services</h4>
+                    <ul class="space-y-2 text-sm text-white opacity-90">
+                        <li><a href="{{ path('app_ordonnance') }}">Envoi d'ordonnance</a></li>
+                        <li><a href="{{ path('app_contact') }}">Click & Collect</a></li>
+                        <li><a href="{{ path('app_contact') }}">Livraison Express</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Aide</h4>
+                    <ul class="space-y-2 text-sm text-white opacity-90">
+                        <li><a href="{{ path('app_contact') }}">FAQ</a></li>
+                        <li><a href="{{ path('app_contact') }}">Mon Compte</a></li>
+                        <li><a href="{{ path('app_contact') }}">Suivi de commande</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 CuraVita. Tous droits réservés.</p>
+                <div class="flex gap-4">
+                    {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('admin_dashboard') }}">Espace Admin</a>{% endif %}
+                    <a href="#">Mentions Légales</a>
+                    <a href="#">CGV</a>
+                    <a href="#">Confidentialité</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ asset('assets/js/main.js') }}"></script>
+    
+    <!-- Scroll to section script -->
+    <script>
+        function scrollToTraitements(event) {
+            // Si on est déjà sur la page ordonnance
+            if (window.location.pathname.includes('ordonnance')) {
+                event.preventDefault();
+                const element = document.getElementById('mes-traitements');
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+            // Sinon, laisser le lien normal fonctionner
+        }
+        
+        // Au chargement de la page, vérifier si on a un hash
+        window.addEventListener('DOMContentLoaded', function() {
+            if (window.location.hash === '#mes-traitements') {
+                setTimeout(function() {
+                    const element = document.getElementById('mes-traitements');
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100);
+            }
+        });
+    </script>
+    
+    <!-- User Dropdown Styles -->
+    <style>
+        .user-dropdown {
+            position: relative;
+        }
+        
+        .user-dropdown-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-main);
+        }
+        
+        .user-dropdown-btn:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .user-avatar {
+            position: relative;
+            width: 32px;
+            height: 32px;
+            background-color: #e5e7eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+        }
+        
+        .user-avatar.large {
+            width: 48px;
+            height: 48px;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .online-indicator {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            background-color: #10b981;
+            border: 2px solid white;
+            border-radius: 50%;
+        }
+        
+        .online-indicator.large {
+            width: 14px;
+            height: 14px;
+            bottom: 2px;
+            right: 2px;
+        }
+        
+        .user-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+        
+        .dropdown-arrow {
+            transition: transform 0.3s ease;
+        }
+        
+        .user-dropdown-btn:hover .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+        
+        .user-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            width: 320px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+        
+        .user-dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .user-dropdown-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-details {
+            flex: 1;
+        }
+        
+        .user-name-large {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
+        }
+        
+        .user-email {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .role-badge.admin {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .role-badge.user {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .user-dropdown-divider {
+            height: 1px;
+            background-color: var(--border);
+        }
+        
+        .user-dropdown-actions {
+            padding: 0.5rem;
+        }
+        
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-main);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+            font-size: 0.875rem;
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .dropdown-item.logout {
+            color: #dc2626;
+        }
+        
+        .dropdown-item.logout:hover {
+            background-color: #fef2f2;
+        }
+        
+        @media (max-width: 768px) {
+            .user-dropdown-menu {
+                width: 280px;
+                right: -1rem;
+            }
+        }
+    </style>
+    
+    <!-- User Dropdown JavaScript -->
+    <script>
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const dropdownBtn = document.querySelector('.user-dropdown-btn');
+            
+            if (!dropdownBtn.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+    </script>
+    
+    {% block javascripts %}{% endblock %}
+<script>
+    function toggleUserDropdown() {
+        const dropdown = document.querySelector('.user-dropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('show');
+        }
+
+        // S'assurer que les liens admin ne s'affichent que pour les admins
+        document.addEventListener('DOMContentLoaded', function() {
+            const depotsLink = document.querySelector('a[href="{{ path('front_depots') }}"]');
+            const stocksLink = document.querySelector('a[href="{{ path('front_stocks') }}"]');
+            
+            // Vérifier si l'utilisateur est admin
+            function checkAdminLinks() {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const isAdmin = user.roles && user.roles.includes('ROLE_ADMIN');
+                
+                if (depotsLink) {
+                    depotsLink.style.display = isAdmin ? 'block' : 'none';
+                    depotsLink.classList.toggle('admin-only');
+                }
+                
+                if (stocksLink) {
+                    stocksLink.style.display = isAdmin ? 'block' : 'none';
+                    stocksLink.classList.toggle('admin-only');
+                }
+            }
+            
+            // Vérifier toutes les secondes
+            const adminLinks = document.querySelectorAll('.admin-only');
+            adminLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (!isAdmin) {
+                        e.preventDefault();
+                        alert('Vous devez être connecté en tant qu\'administrateur pour accéder à cette page.');
+                    }
+                });
+            });
+            
+            // Vérifier le rôle au chargement de la page
+            checkAdminLinks();
+            
+            // Observer les changements de rôle
+            window.addEventListener('storage', function(e) {
+                checkAdminLinks();
+            });
+        });
+    </script>
+</body>
+</html>

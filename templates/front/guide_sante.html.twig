@@ -1,0 +1,32 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Guide Santé - CURAVITA{% endblock %}
+
+{% block main %}
+<div class="container py-12" style="padding: 4rem 1rem;">
+    <h1 class="text-center mb-12 text-primary">Guide Santé</h1>
+
+    <div class="guide-grid" style="display: grid; gap: 2rem; max-width: 800px; margin: 0 auto;">
+        <div class="accordion-item bg-secondary rounded-lg overflow-hidden" style="background-color: white; border-bottom: 2px solid var(--border-color);">
+            <button class="accordion-header text-lg p-4 bg-secondary/50 w-full flex justify-between items-center" style="background-color: var(--secondary-color); font-size: 1.1rem;"><span>Conseils santé</span><span class="icon">+</span></button>
+            <div class="accordion-content"><div class="p-6"><h3 class="font-bold mb-2">Comment renforcer son immunité ?</h3><p class="mb-4">Adoptez une alimentation riche en vitamines, pratiquez une activité physique régulière et dormez suffisamment.</p><h3 class="font-bold mb-2">L'importance de l'hydratation</h3><p>Boire 1.5L d'eau par jour est essentiel pour le bon fonctionnement de votre organisme.</p></div></div>
+        </div>
+        <div class="accordion-item bg-secondary rounded-lg overflow-hidden" style="background-color: white; border-bottom: 2px solid var(--border-color);">
+            <button class="accordion-header text-lg p-4 bg-secondary/50 w-full flex justify-between items-center" style="background-color: var(--secondary-color); font-size: 1.1rem;"><span>Maladies fréquentes</span><span class="icon">+</span></button>
+            <div class="accordion-content"><div class="p-6"><h3 class="font-bold mb-2">Rhume et Grippe</h3><p class="mb-4">Différences, symptômes et traitements. Consultez nos fiches détaillées.</p><h3 class="font-bold mb-2">Allergies saisonnières</h3><p>Comment les prévenir et les soulager naturellement.</p></div></div>
+        </div>
+        <div class="accordion-item bg-secondary rounded-lg overflow-hidden" style="background-color: white; border-bottom: 2px solid var(--border-color);">
+            <button class="accordion-header text-lg p-4 bg-secondary/50 w-full flex justify-between items-center" style="background-color: var(--secondary-color); font-size: 1.1rem;"><span>Nutrition & Bien-être</span><span class="icon">+</span></button>
+            <div class="accordion-content"><div class="p-6"><p>Découvrez nos articles sur l'alimentation équilibrée, les compléments alimentaires et la gestion du stress.</p></div></div>
+        </div>
+        <div class="accordion-item bg-secondary rounded-lg overflow-hidden" style="background-color: white; border-bottom: 2px solid var(--border-color);">
+            <button class="accordion-header text-lg p-4 bg-secondary/50 w-full flex justify-between items-center" style="background-color: var(--secondary-color); font-size: 1.1rem;"><span>Médicaments (bonnes pratiques)</span><span class="icon">+</span></button>
+            <div class="accordion-content"><div class="p-6"><p>Ne jamais pratiquer l'automédication sans avis médical. Respectez toujours les dosages prescrits. En cas de doute, demandez conseil à votre pharmacien.</p></div></div>
+        </div>
+        <div class="accordion-item bg-secondary rounded-lg overflow-hidden" style="background-color: white; border-bottom: 2px solid var(--border-color);">
+            <button class="accordion-header text-lg p-4 bg-secondary/50 w-full flex justify-between items-center" style="background-color: var(--destructive); color: white;"><span>Urgences / Quand consulter</span><span class="icon">+</span></button>
+            <div class="accordion-content"><div class="p-6"><p class="font-bold text-destructive mb-2" style="color: var(--destructive);">En cas d'urgence vitale, appelez le 15 (SAMU).</p><p>Consultez immédiatement si : fièvre élevée persistante, difficultés respiratoires, douleurs thoraciques...</p></div></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

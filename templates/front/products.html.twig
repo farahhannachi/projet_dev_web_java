@@ -1,0 +1,68 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Nos Produits - CURAVITA{% endblock %}
+
+{% block main %}
+<div class="container" style="padding: 4rem 1rem;">
+    <h1 class="text-center mb-12 text-primary">Nos Gammes de Produits</h1>
+
+    <section id="nutrition" class="mb-16 scroll-mt-24">
+        <h2 class="text-2xl font-bold mb-6 text-primary">Nutrition</h2>
+        <div class="grid-products">
+            <div class="product-card"><div class="product-img-placeholder"></div><h3>Complément Magnésium</h3><p class="price">12,50 €</p><button class="btn btn-sm btn-primary">Ajouter</button></div>
+            <div class="product-card"><div class="product-img-placeholder"></div><h3>Protéines Végétales</h3><p class="price">24,90 €</p><button class="btn btn-sm btn-primary">Ajouter</button></div>
+            <div class="product-card"><div class="product-img-placeholder"></div><h3>Multivitamines</h3><p class="price">15,90 €</p><button class="btn btn-sm btn-primary">Ajouter</button></div>
+            <div class="product-card"><div class="product-img-placeholder"></div><h3>Oméga 3</h3><p class="price">18,50 €</p><button class="btn btn-sm btn-primary">Ajouter</button></div>
+        </div>
+    </section>
+
+    <section id="vitamines" class="mb-16 scroll-mt-24">
+        <h2 class="text-2xl font-bold mb-6 text-primary">Vitamines & Minéraux</h2>
+        <div class="grid-products">
+            <div class="product-card"><div class="product-img-placeholder"></div><h3>Vitamine C 1000mg</h3><p class="price">8,90 €</p><button class="btn btn-sm btn-primary">Ajouter</button></div>
+            <div class="product-card"><div class="product-img-placeholder"></div><h3>Vitamine D3</h3><p class="price">6,50 €</p><button class="btn btn-sm btn-primary">Ajouter</button></div>
+        </div>
+    </section>
+
+    <section id="hygiene" class="mb-16 scroll-mt-24">
+        <h2 class="text-2xl font-bold mb-6 text-primary">Hygiène</h2>
+        <div class="grid-products">
+            <div class="product-card"><div class="product-img-placeholder"></div><h3>Gel Douche Dermatologique</h3><p class="price">5,90 €</p><button class="btn btn-sm btn-primary">Ajouter</button></div>
+            <div class="product-card"><div class="product-img-placeholder"></div><h3>Dentifrice Blancheur</h3><p class="price">4,20 €</p><button class="btn btn-sm btn-primary">Ajouter</button></div>
+            <div class="product-card"><div class="product-img-placeholder"></div><h3>Déodorant Naturel</h3><p class="price">7,50 €</p><button class="btn btn-sm btn-primary">Ajouter</button></div>
+        </div>
+    </section>
+
+    <section id="beaute" class="mb-16 scroll-mt-24">
+        <h2 class="text-2xl font-bold mb-6 text-primary">Beauté & Soins</h2>
+        <div class="grid-products">
+            <div class="product-card"><div class="product-img-placeholder"></div><h3>Crème Hydratante Visage</h3><p class="price">19,90 €</p><button class="btn btn-sm btn-primary">Ajouter</button></div>
+            <div class="product-card"><div class="product-img-placeholder"></div><h3>Sérum Anti-âge</h3><p class="price">32,50 €</p><button class="btn btn-sm btn-primary">Ajouter</button></div>
+        </div>
+    </section>
+
+    <section id="bebe" class="mb-16 scroll-mt-24">
+        <h2 class="text-2xl font-bold mb-6 text-primary">Bébé & Maman</h2>
+        <div class="grid-products">
+            <div class="product-card"><div class="product-img-placeholder"></div><h3>Lait Infantile 1er âge</h3><p class="price">16,90 €</p><button class="btn btn-sm btn-primary">Ajouter</button></div>
+        </div>
+    </section>
+
+    <section id="medical" class="mb-16 scroll-mt-24">
+        <h2 class="text-2xl font-bold mb-6 text-primary">Matériel Médical</h2>
+        <div class="grid-products">
+            <div class="product-card"><div class="product-img-placeholder"></div><h3>Tensiomètre Électronique</h3><p class="price">45,00 €</p><button class="btn btn-sm btn-primary">Ajouter</button></div>
+            <div class="product-card"><div class="product-img-placeholder"></div><h3>Thermomètre Sans Contact</h3><p class="price">29,90 €</p><button class="btn btn-sm btn-primary">Ajouter</button></div>
+        </div>
+    </section>
+</div>
+
+<style>
+    .grid-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 2rem; }
+    .product-card { border: 1px solid var(--border-color); border-radius: var(--radius); padding: 1rem; transition: shadow 0.2s; background: white; text-align: center; }
+    .product-card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+    .product-img-placeholder { width: 100%; height: 150px; background-color: #f0f0f0; margin-bottom: 1rem; border-radius: 0.25rem; }
+    .scroll-mt-24 { scroll-margin-top: 6rem; }
+    .btn-sm { padding: 0.5rem 1rem; font-size: 0.875rem; margin-top: 0.5rem; }
+</style>
+{% endblock %}

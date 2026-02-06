@@ -1,0 +1,68 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Contact & Aide - CURAVITA{% endblock %}
+
+{% block main %}
+<div class="container py-12" style="padding: 4rem 1rem;">
+    <h1 class="text-center text-primary mb-8">Centre d'aide & Contact</h1>
+
+    <div class="contact-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;">
+        <div>
+            <h2 class="text-2xl font-bold mb-6">Questions Fréquentes</h2>
+            <div class="faq-container mb-12">
+                <div class="accordion-item" style="border-bottom: 1px solid var(--border-color);">
+                    <button class="accordion-header p-4 w-full text-left font-semibold flex justify-between"><span>Quels sont les délais de livraison ?</span><span>+</span></button>
+                    <div class="accordion-content"><div class="p-4 text-muted-foreground">La livraison standard prend 2 à 3 jours ouvrables. La livraison express est assurée en 24h pour toute commande passée avant 14h.</div></div>
+                </div>
+                <div class="accordion-item" style="border-bottom: 1px solid var(--border-color);">
+                    <button class="accordion-header p-4 w-full text-left font-semibold flex justify-between"><span>Comment utiliser mon ordonnance ?</span><span>+</span></button>
+                    <div class="accordion-content"><div class="p-4 text-muted-foreground">Il vous suffit de scanner votre ordonnance via notre formulaire sécurisé ou de nous l'envoyer par courrier. Nos pharmaciens préparent ensuite votre commande.</div></div>
+                </div>
+                <div class="accordion-item" style="border-bottom: 1px solid var(--border-color);">
+                    <button class="accordion-header p-4 w-full text-left font-semibold flex justify-between"><span>Les paiements sont-ils sécurisés ?</span><span>+</span></button>
+                    <div class="accordion-content"><div class="p-4 text-muted-foreground">Oui, toutes les transactions sont cryptées et sécurisées. Nous acceptons CB, Visa, Mastercard et PayPal.</div></div>
+                </div>
+            </div>
+
+            <div class="contact-info bg-secondary p-8 rounded-xl">
+                <h3 class="font-bold mb-4">Nos Coordonnées</h3>
+                <p class="mb-2">📍 123 Avenue de la Santé, 75001 Paris</p>
+                <p class="mb-2">📞 01 23 45 67 89</p>
+                <p class="mb-2">✉️ contact@curavita.fr</p>
+                <p class="mt-4 text-sm opacity-80">Ouvert du Lundi au Vendredi, 9h - 19h</p>
+            </div>
+        </div>
+
+        <div>
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold mb-6">Nous Contacter</h2>
+                <form id="contact-form" class="space-y-4">
+                    <div class="flex flex-col gap-2"><label class="text-sm font-medium">Nom complet</label><input type="text" class="input p-3 border rounded-md w-full" placeholder="Votre nom" required></div>
+                    <div class="flex flex-col gap-2"><label class="text-sm font-medium">Email</label><input type="email" class="input p-3 border rounded-md w-full" placeholder="votre@email.com" required></div>
+                    <div class="flex flex-col gap-2"><label class="text-sm font-medium">Sujet</label><select class="input p-3 border rounded-md w-full bg-white"><option>Question sur une commande</option><option>Conseil produit</option><option>Problème technique</option><option>Autre</option></select></div>
+                    <div class="flex flex-col gap-2"><label class="text-sm font-medium">Message</label><textarea class="input p-3 border rounded-md w-full h-32" placeholder="Votre message..." required></textarea></div>
+                    <button type="submit" class="btn btn-primary w-full py-3">Envoyer le message</button>
+                </form>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-xl border border-gray-100">
+                <h3 class="text-xl font-bold mb-4">Votre Avis Compte</h3>
+                <form id="feedback-form" class="space-y-4">
+                    <div class="flex flex-col gap-2"><label class="text-sm font-medium">Notez votre expérience</label><div class="flex gap-4"><label><input type="radio" name="rating" value="1"> 1</label><label><input type="radio" name="rating" value="2"> 2</label><label><input type="radio" name="rating" value="3"> 3</label><label><input type="radio" name="rating" value="4"> 4</label><label><input type="radio" name="rating" value="5" checked> 5</label></div></div>
+                    <div class="flex flex-col gap-2"><label class="text-sm font-medium">Commentaire</label><textarea class="input p-3 border rounded-md w-full h-20" placeholder="Ce que vous avez aimé..."></textarea></div>
+                    <button type="submit" class="btn btn-accent w-full py-2">Envoyer mon avis</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>.input { border: 1px solid var(--border-color); background: white; transition: border-color 0.2s; } .input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(22, 99, 87, 0.1); } @media (max-width: 768px) { .contact-grid { grid-template-columns: 1fr !important; gap: 2rem !important; } }</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.getElementById('feedback-form')?.addEventListener('submit', function(e) { e.preventDefault(); alert('Merci pour votre avis !'); this.reset(); });
+</script>
+{% endblock %}

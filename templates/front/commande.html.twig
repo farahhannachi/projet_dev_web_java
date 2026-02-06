@@ -1,0 +1,65 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Commande - CURAVITA{% endblock %}
+
+{% block main %}
+<section class="py-12">
+    <div class="container">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold mb-4" style="color: var(--primary-color);">Passer une Commande</h1>
+            <p class="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Commandez vos produits pharmaceutiques en toute simplicité et sécurité
+            </p>
+        </div>
+
+        <div class="max-w-3xl mx-auto">
+            <!-- Formulaire de commande -->
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold mb-6" style="color: var(--primary-color);">Informations de commande</h2>
+                
+                <form class="space-y-6" novalidate>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Nom complet *</label>
+                            <input type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Votre nom">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Téléphone *</label>
+                            <input type="tel" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Votre téléphone">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Adresse de livraison *</label>
+                        <input type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Votre adresse complète">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Email *</label>
+                        <input type="email" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="votre@email.com">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Mode de paiement *</label>
+                        <select class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="">Choisir un mode de paiement</option>
+                            <option value="carte">Carte bancaire</option>
+                            <option value="espece">Espèces à la livraison</option>
+                            <option value="cheque">Chèque</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Message (optionnel)</label>
+                        <textarea class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" rows="4" placeholder="Instructions spéciales ou commentaires..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="w-full btn btn-primary">
+                        <i class="fas fa-shopping-cart mr-2"></i> Valider la commande
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

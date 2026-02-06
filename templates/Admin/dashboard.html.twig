@@ -1,0 +1,108 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Dashboard Admin{% endblock %}
+{% block page_subtitle %}Bienvenue sur l'administration{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    {% for message in app.flashes('success') %}
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    <!-- Statistiques principales -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <i class="fas fa-users" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem; opacity: 0.8;"></i>
+            <h3>Clients</h3>
+            <div class="number">{{ totalClients }}</div>
+            <a href="{{ path('admin_clients') }}" class="btn-outline">
+                <i class="fas fa-cog"></i> Gérer
+            </a>
+        </div>
+        
+        <div class="stat-card">
+            <i class="fas fa-warehouse" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem; opacity: 0.8;"></i>
+            <h3>Dépôts</h3>
+            <div class="number">{{ totalDepots }}</div>
+            <a href="{{ path('admin_depots') }}" class="btn-outline">
+                <i class="fas fa-cog"></i> Gérer
+            </a>
+        </div>
+        
+        <div class="stat-card">
+            <i class="fas fa-boxes" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem; opacity: 0.8;"></i>
+            <h3>Stocks</h3>
+            <div class="number">{{ totalStocks }}</div>
+            <a href="{{ path('admin_stocks') }}" class="btn-outline">
+                <i class="fas fa-cog"></i> Gérer
+            </a>
+        </div>
+        
+        <div class="stat-card">
+            <i class="fas fa-pills" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem; opacity: 0.8;"></i>
+            <h3>Produits</h3>
+            <div class="number">{{ totalProduits }}</div>
+            <a href="{{ path('admin_produits') }}" class="btn-outline">
+                <i class="fas fa-cog"></i> Gérer
+            </a>
+        </div>
+        
+        <div class="stat-card">
+            <i class="fas fa-shopping-cart" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem; opacity: 0.8;"></i>
+            <h3>Commandes</h3>
+            <div class="number">{{ totalCommandes }}</div>
+            <a href="{{ path('admin_commandes') }}" class="btn-outline">
+                <i class="fas fa-cog"></i> Gérer
+            </a>
+        </div>
+
+        <div class="stat-card">
+            <i class="fas fa-file-medical" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem; opacity: 0.8;"></i>
+            <h3>Ordonnances</h3>
+            <div class="number">{{ totalOrdonnances }}</div>
+            <a href="{{ path('admin_ordonnances') }}" class="btn-outline">
+                <i class="fas fa-cog"></i> Gérer
+            </a>
+        </div>
+
+        <div class="stat-card">
+            <i class="fas fa-prescription-bottle-alt" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem; opacity: 0.8;"></i>
+            <h3>Traitements</h3>
+            <div class="number">{{ totalTraitements }}</div>
+            <a href="{{ path('admin_traitements') }}" class="btn-outline">
+                <i class="fas fa-cog"></i> Gérer
+            </a>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="actions-rapides">
+        <h2><i class="fas fa-bolt"></i> Actions Rapides</h2>
+        <div class="actions-buttons">
+            <a href="{{ path('admin_client_new') }}" class="btn-primary">
+                <i class="fas fa-user-plus"></i> Ajouter un Client
+            </a>
+            <a href="{{ path('admin_depot_new') }}" class="btn-primary">
+                <i class="fas fa-plus-circle"></i> Ajouter un Dépôt
+            </a>
+            <a href="{{ path('admin_stock_new') }}" class="btn-primary">
+                <i class="fas fa-plus-square"></i> Ajouter un Stock
+            </a>
+            <a href="{{ path('admin_produit_new') }}" class="btn-primary">
+                <i class="fas fa-pills"></i> Ajouter un Produit
+            </a>
+            <a href="{{ path('admin_commande_new') }}" class="btn-primary">
+                <i class="fas fa-shopping-cart"></i> Ajouter une Commande
+            </a>
+            <a href="{{ path('admin_ordonnance_new') }}" class="btn-primary">
+                <i class="fas fa-file-medical"></i> Ajouter une Ordonnance
+            </a>
+            <a href="{{ path('admin_traitement_new') }}" class="btn-primary">
+                <i class="fas fa-prescription-bottle-alt"></i> Ajouter un Traitement
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

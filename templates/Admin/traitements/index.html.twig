@@ -1,0 +1,120 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Gestion des Traitements{% endblock %}
+{% block page_subtitle %}Liste de tous les traitements{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    {% for message in app.flashes('success') %}
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="alert-error">
+            <i class="fas fa-exclamation-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    <div style="margin-bottom: 2rem;">
+        <a href="{{ path('admin_traitement_new') }}" class="btn-primary">
+            <i class="fas fa-plus"></i> Nouveau Traitement
+        </a>
+    </div>
+
+    <!-- Filtres -->
+    <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: #1f2937;">
+            🔍 Filtrer par :
+        </h3>
+        <form method="get" action="{{ path('admin_traitements') }}">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #6b7280; margin-bottom: 0.5rem;">Date de début</label>
+                    <input type="date" name="date" value="{{ filterDate }}" class="form-control" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #6b7280; margin-bottom: 0.5rem;">Client</label>
+                    <input type="text" name="client" value="{{ filterClient }}" placeholder="Nom, prénom ou email..." class="form-control" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #6b7280; margin-bottom: 0.5rem;">Statut</label>
+                    <select name="statut" class="form-control" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                        <option value="">Tous les statuts</option>
+                        <option value="en attente" {{ filterStatut == 'en attente' ? 'selected' : '' }}>En attente</option>
+                        <option value="validé" {{ filterStatut == 'validé' ? 'selected' : '' }}>Validé</option>
+                        <option value="rejeté" {{ filterStatut == 'rejeté' ? 'selected' : '' }}>Rejeté</option>
+                        <option value="actif" {{ filterStatut == 'actif' ? 'selected' : '' }}>Actif</option>
+                        <option value="terminé" {{ filterStatut == 'terminé' ? 'selected' : '' }}>Terminé</option>
+                        <option value="suspendu" {{ filterStatut == 'suspendu' ? 'selected' : '' }}>Suspendu</option>
+                        <option value="annulé" {{ filterStatut == 'annulé' ? 'selected' : '' }}>Annulé</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="submit" class="btn-primary" style="padding: 0.5rem 1.5rem;">
+                    <i class="fas fa-search"></i> Filtrer
+                </button>
+                <a href="{{ path('admin_traitements') }}" class="btn-outline" style="padding: 0.5rem 1.5rem; text-decoration: none;">
+                    <i class="fas fa-times"></i> Réinitialiser
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Ordonnance</th>
+                    <th>Patient</th>
+                    <th>Dosage</th>
+                    <th>Fréquence</th>
+                    <th>Durée (jours)</th>
+                    <th>Date Début</th>
+                    <th>Date Fin</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for traitement in traitements %}
+                <tr>
+                    <td>{{ traitement.id }}</td>
+                    <td>{{ traitement.ordonnance.numeroOrdonnance }}</td>
+                    <td>{{ traitement.utilisateur.nom }} {{ traitement.utilisateur.prenom }}</td>
+                    <td>{{ traitement.dosage }}</td>
+                    <td>{{ traitement.frequence }}</td>
+                    <td>{{ traitement.dureeJours }}</td>
+                    <td>{{ traitement.dateDebut|date('d/m/Y') }}</td>
+                    <td>{{ traitement.dateFin|date('d/m/Y') }}</td>
+                    <td>
+                        <span class="badge badge-{{ traitement.status == 'actif' ? 'success' : (traitement.status == 'terminé' ? 'info' : 'warning') }}">
+                            {{ traitement.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ path('admin_traitement_edit', {id: traitement.id}) }}" class="btn-sm btn-primary">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                        <form method="post" action="{{ path('admin_traitement_delete', {id: traitement.id}) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce traitement ?');">
+                            <button type="submit" class="btn-sm btn-danger">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="10" style="text-align: center; padding: 2rem;">
+                        Aucun traitement trouvé
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

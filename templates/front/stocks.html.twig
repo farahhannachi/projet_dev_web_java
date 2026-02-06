@@ -1,0 +1,164 @@
+{% extends 'front/_base_modern.html.twig' %}
+
+{% block title %}Nos Stocks - CuraVita{% endblock %}
+
+{% block body %}
+{% if app.user and 'ROLE_ADMIN' in app.user.roles %}
+<section class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1><i class="fas fa-boxes"></i> Gestion des Stocks</h1>
+            <p>Suivez en temps réel l'état de nos stocks et la disponibilité de nos produits pharmaceutiques</p>
+        </div>
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>État des Stocks</h2>
+            <p>Consultez l'état actuel de nos stocks et les dates d'expiration pour garantir la qualité de nos produits</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <div class="stat-number">{{ stocks|length }}</div>
+                <div class="stat-label">Références</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-number">{{ stocks|filter(stock => stock.etatStock == 'disponible')|length }}</div>
+                <div class="stat-label">Disponibles</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-number">{{ stocks|filter(stock => stock.etatStock == 'rupture')|length }}</div>
+                <div class="stat-label">En Rupture</div>
+            </div>
+        </div>
+
+        {% if stocks|length > 0 %}
+            <div class="cards-grid">
+                {% for stock in stocks %}
+                <div class="info-card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: {% if stock.etatStock == 'disponible' %}linear-gradient(135deg, var(--secondary-color), #218838){% else %}linear-gradient(135deg, var(--warning-color), #e0a800){% endif %};">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <div>
+                            <div class="card-title">Stock #{{ stock.id }}</div>
+                            <div class="card-subtitle">Référence: STK-{{ "%04d"|format(stock.id) }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-content">
+                        <ul class="info-list">
+                            <li>
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span>Seuil d'alerte: {{ stock.seuilAlerte }} unités</span>
+                            </li>
+                            <li>
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Expiration: {% if stock.dateExpiration %}{{ stock.dateExpiration|date('d/m/Y') }}{% else %}Non spécifiée{% endif %}</span>
+                            </li>
+                            <li>
+                                <i class="fas fa-clock"></i>
+                                <span>Mise à jour: {% if stock.dateDerniereMiseAJour %}{{ stock.dateDerniereMiseAJour|date('d/m/Y H:i') }}{% else %}Jamais{% endif %}</span>
+                            </li>
+                        </ul>
+                        
+                        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: center;">
+                            {% if stock.etatStock == 'disponible' %}
+                                <span class="badge badge-success">
+                                    <i class="fas fa-check-circle"></i> Disponible
+                                </span>
+                                <span style="color: var(--text-muted); font-size: 0.875rem;">
+                                    <i class="fas fa-info-circle"></i> En stock
+                                </span>
+                            {% else %}
+                                <span class="badge badge-warning">
+                                    <i class="fas fa-exclamation-circle"></i> {{ stock.etatStock }}
+                                </span>
+                                <span style="color: var(--warning-color); font-size: 0.875rem; font-weight: 600;">
+                                    <i class="fas fa-exclamation-triangle"></i> Attention
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        {% if stock.dateExpiration and stock.dateExpiration < date('+30 days') %}
+                        <div style="margin-top: 1rem; padding: 0.75rem; background: linear-gradient(135deg, #fff3cd, #ffeaa7); border-radius: 8px; border-left: 3px solid var(--warning-color);">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; color: #856404; font-size: 0.875rem; font-weight: 600;">
+                                <i class="fas fa-clock"></i>
+                                Expire bientôt ({{ stock.dateExpiration|date('d/m/Y') }})
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 4rem 2rem; background: var(--light-color); border-radius: 20px; margin: 2rem 0;">
+                <div style="width: 100px; height: 100px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
+                    <i class="fas fa-boxes" style="font-size: 3rem; color: white;"></i>
+                </div>
+                <h3 style="color: var(--primary-color); margin-bottom: 1rem; font-size: 1.5rem;">Stocks en Cours de Mise à Jour</h3>
+                <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 1.125rem;">
+                    Nos stocks sont actuellement en cours de mise à jour pour garantir la fraîcheur et la qualité de nos produits.
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <a href="{{ path('app_home') }}" class="btn-primary">
+                        <i class="fas fa-home"></i> Retour à l'Accueil
+                    </a>
+                    <a href="{{ path('front_depots') }}" class="btn-outline">
+                        <i class="fas fa-warehouse"></i> Voir les Dépôts
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
+        <div style="margin-top: 4rem; text-align: center;">
+            <div style="background: linear-gradient(135deg, var(--info-color), #138496); color: white; padding: 3rem; border-radius: 20px; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.05" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,133.3C960,128,1056,96,1152,90.7C1248,85,1344,107,1392,117.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom; background-size: cover;"></div>
+                <div style="position: relative; z-index: 1;">
+                    <h2 style="font-size: 2rem; margin-bottom: 1rem;">
+                        <i class="fas fa-bell"></i> Alertes et Notifications
+                    </h2>
+                    <p style="font-size: 1.125rem; margin-bottom: 2rem; opacity: 0.9;">
+                        Recevez des alertes automatiques lorsque les stocks atteignent les seuils critiques ou approchent de la date d'expiration
+                    </p>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <a href="{{ path('front_depots') }}" class="btn" style="background: white; color: var(--info-color);">
+                            <i class="fas fa-warehouse"></i> Voir les Dépôts
+                        </a>
+                        <a href="#" class="btn-outline" style="border-color: white; color: white;">
+                            <i class="fas fa-bell"></i> Configurer les Alertes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% else %}
+<div class="text-center py-5">
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h4>Accès restreint</h4>
+        <p>Vous devez être connecté en tant qu'administrateur pour accéder à cette page.</p>
+    </div>
+    <a href="{{ path('app_login') }}" class="btn btn-primary">
+        <i class="fas fa-sign-in-alt"></i> Se connecter
+    </a>
+</div>
+{% endif %}
+{% endblock %}

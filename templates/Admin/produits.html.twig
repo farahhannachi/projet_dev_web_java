@@ -1,0 +1,71 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Gestion des Produits{% endblock %}
+{% block page_subtitle %}Liste des produits disponibles{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    {% for message in app.flashes('success') %}
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    <div class="page-header">
+        <h1><i class="fas fa-pills"></i> Gestion des Produits</h1>
+        <a href="{{ path('admin_produit_new') }}" class="btn-primary">
+            <i class="fas fa-plus"></i> Ajouter un Produit
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Description</th>
+                    <th>Prix</th>
+                    <th>Stock</th>
+                    <th>Catégorie</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for produit in produits %}
+                <tr>
+                    <td>{{ produit.id }}</td>
+                    <td>{{ produit.nom }}</td>
+                    <td>{{ produit.description|slice(0, 50) }}...</td>
+                    <td>{{ produit.prix }} €</td>
+                    <td>{{ produit.quantiteStock }}</td>
+                    <td>{{ produit.categorie }}</td>
+                    <td>
+                        <span class="status-badge {{ produit.statut == 'disponible' ? 'status-active' : 'status-inactive' }}">
+                            {{ produit.statut }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ path('admin_produit_edit', {id: produit.id}) }}" class="btn-edit" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="{{ path('admin_produit_delete', {id: produit.id}) }}" method="POST" style="display: inline;">
+                                <button type="submit" class="btn-delete" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center">Aucun produit trouvé</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

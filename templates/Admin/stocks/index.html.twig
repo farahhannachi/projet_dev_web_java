@@ -1,0 +1,71 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Gestion des Stocks{% endblock %}
+{% block page_subtitle %}Liste de tous les stocks{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    {% for message in app.flashes('success') %}
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="margin: 0; color: var(--primary-color); font-size: 1.75rem; font-weight: 600;">
+            <i class="fas fa-boxes"></i> Gestion des Stocks
+        </h2>
+        <a href="{{ path('admin_stock_new') }}" class="btn-primary">
+            <i class="fas fa-plus-square"></i> Nouveau Stock
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th><i class="fas fa-hashtag"></i> ID</th>
+                    <th><i class="fas fa-exclamation-triangle"></i> Seuil d'Alerte</th>
+                    <th><i class="fas fa-calendar-alt"></i> Date d'Expiration</th>
+                    <th><i class="fas fa-toggle-on"></i> État du Stock</th>
+                    <th><i class="fas fa-clock"></i> Dernière Mise à Jour</th>
+                    <th><i class="fas fa-cogs"></i> Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stock in stocks %}
+                <tr>
+                    <td><strong>{{ stock.id }}</strong></td>
+                    <td><i class="fas fa-exclamation-triangle" style="color: var(--warning-color); margin-right: 0.5rem;"></i> {{ stock.seuilAlerte }}</td>
+                    <td><i class="fas fa-calendar-alt" style="color: var(--text-muted); margin-right: 0.5rem;"></i> {{ stock.dateExpiration ? stock.dateExpiration|date('d/m/Y') : '' }}</td>
+                    <td>
+                        {% if stock.etatStock == 'disponible' %}
+                            <span class="status-badge status-success">
+                                <i class="fas fa-check-circle"></i> {{ stock.etatStock }}
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-warning">
+                                <i class="fas fa-exclamation-circle"></i> {{ stock.etatStock }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td><i class="fas fa-clock" style="color: var(--text-muted); margin-right: 0.5rem;"></i> {{ stock.dateDerniereMiseAJour ? stock.dateDerniereMiseAJour|date('d/m/Y H:i') : '' }}</td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <a href="{{ path('admin_stock_edit', {id: stock.id}) }}" class="btn-outline" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            <form method="post" action="{{ path('admin_stock_delete', {id: stock.id}) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce stock ?');">
+                                <button type="submit" class="btn-danger" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

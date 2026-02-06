@@ -1,0 +1,137 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}{{ traitement ? 'Modifier' : 'Nouveau' }} Traitement{% endblock %}
+{% block page_subtitle %}{{ traitement ? 'Modification d\'un traitement' : 'Création d\'un nouveau traitement' }}{% endblock %}
+
+{% block main %}
+<style>
+    .form-error {
+        background: #fee2e2;
+        border: 1px solid #ef4444;
+        color: #991b1b;
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: block;
+    }
+    .form-error::before {
+        content: "⚠️ ";
+    }
+</style>
+
+<div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: #f3f4f6;">
+    <div style="width: 100%; max-width: 700px;">
+        {% for message in app.flashes('error') %}
+            <div class="alert-error" style="margin-bottom: 1.5rem;">
+                <i class="fas fa-exclamation-circle"></i> {{ message }}
+            </div>
+        {% endfor %}
+
+        <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 2.5rem;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid #e5e7eb;">
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #16563f 0%, #1a7a52 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(22, 86, 63, 0.3);">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <ellipse cx="8" cy="12" rx="3" ry="6" fill="white" opacity="0.9"/>
+                        <rect x="7" y="10" width="2" height="4" fill="#16563f"/>
+                        <circle cx="16" cy="12" r="5" fill="white" opacity="0.9"/>
+                        <path d="M13 12 L19 12 M16 9 L16 15" stroke="#16563f" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h2 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0;">
+                    {{ traitement ? 'Modifier' : 'Ajouter' }} un Traitement
+                </h2>
+            </div>
+
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div>
+                    {{ form_label(form.ordonnance, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                    {{ form_widget(form.ordonnance, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                    {{ form_errors(form.ordonnance) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.utilisateur, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                    {{ form_widget(form.utilisateur, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                    {{ form_errors(form.utilisateur) }}
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div>
+                    {{ form_label(form.dosage, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                    {{ form_widget(form.dosage, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                    {{ form_errors(form.dosage) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.frequence, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                    {{ form_widget(form.frequence, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                    {{ form_errors(form.frequence) }}
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                {{ form_label(form.dureeJours, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                {{ form_widget(form.dureeJours, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                {{ form_errors(form.dureeJours) }}
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div>
+                    {{ form_label(form.dateDebut, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                    {{ form_widget(form.dateDebut, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                    {{ form_errors(form.dateDebut) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.dateFin, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                    {{ form_widget(form.dateFin, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                    {{ form_errors(form.dateFin) }}
+                </div>
+            </div>
+
+            {% if traitement %}
+                <div style="margin-bottom: 1.5rem;">
+                    {{ form_label(form.status, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                    {{ form_widget(form.status, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                    {{ form_errors(form.status) }}
+                </div>
+            {% else %}
+                <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <p style="margin: 0; color: #1e40af; font-size: 0.875rem; font-weight: 500;">
+                        ℹ️ Le statut sera automatiquement défini à <strong>"En attente"</strong> lors de la création.
+                    </p>
+                </div>
+            {% endif %}
+
+            <div style="margin-bottom: 2rem;">
+                {{ form_label(form.notes, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                {{ form_widget(form.notes, {'attr': {'class': 'form-control', 'rows': 4, 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem; resize: vertical;'}}) }}
+                {{ form_errors(form.notes) }}
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1.5rem; border-top: 2px solid #e5e7eb;">
+                <a href="{{ path('admin_traitements') }}" style="padding: 0.75rem 1.5rem; background: #6b7280; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s;" onmouseover="this.style.background='#4b5563'" onmouseout="this.style.background='#6b7280'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Retour
+                </a>
+                <button type="submit" style="padding: 0.75rem 1.5rem; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s;" onmouseover="this.style.background='#145239'" onmouseout="this.style.background='var(--primary-color)'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H16L21 8V19C21 20.1046 20.1046 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 3V8H15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 13H17V21H7V13Z" fill="currentColor"/>
+                    </svg>
+                    {{ traitement ? 'Modifier' : 'Ajouter' }}
+                </button>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

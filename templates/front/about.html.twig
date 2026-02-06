@@ -1,0 +1,46 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}À propos - Curavita{% endblock %}
+
+{% block main %}
+<div class="py-16">
+    <div class="container max-w-3xl text-center">
+        <span class="text-primary font-bold text-sm tracking-widest uppercase mb-4 block">Projet de Démonstration</span>
+        <h1 class="mb-6">Une Pharmacie Générée par IA</h1>
+
+        <p class="text-xl text-muted-foreground mb-12 leading-relaxed">
+            Vous naviguez actuellement sur <strong>Curavita</strong>, un site web entièrement conçu et codé par une
+            Intelligence Artificielle Avancée en collaboration avec un humain.
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-8 text-left">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary text-2xl mb-4">🤖</div>
+                <h3 class="font-bold mb-2">Technologie Moderne</h3>
+                <p class="text-sm text-gray-600">
+                    Ce site utilise HTML5, CSS3 moderne (Variables, Grid, Flexbox) et JavaScript sans aucun
+                    framework externe lourd. Tout est optimisé pour la performance.
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div class="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent text-2xl mb-4">🎨</div>
+                <h3 class="font-bold mb-2">Design par IA</h3>
+                <p class="text-sm text-gray-600">
+                    L'interface utilisateur, le choix des couleurs (inspiré de DocMorris) et l'expérience
+                    utilisateur ont été proposés et implémentés par l'agent IA.
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-16 p-8 bg-secondary rounded-2xl">
+            <h2 class="text-2xl font-bold mb-4">Pourquoi ce projet ?</h2>
+            <p class="mb-6">
+                L'objectif est de montrer comment une IA peut agir comme un <strong>Senior Frontend
+                Developer</strong> capable de comprendre des besoins métier complexes (E-commerce, Santé) et de
+                produire un code propre et maintenable.
+            </p>
+            <a href="{{ path('app_home') }}" class="btn btn-primary">Retour à l'accueil</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

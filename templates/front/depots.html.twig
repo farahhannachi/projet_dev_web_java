@@ -1,0 +1,150 @@
+{% extends 'front/_base_modern.html.twig' %}
+
+{% block title %}Nos Dépôts - CuraVita{% endblock %}
+
+{% block body %}
+{% if app.user and 'ROLE_ADMIN' in app.user.roles %}
+<section class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1><i class="fas fa-warehouse"></i> Nos Dépôts Pharmaceutiques</h1>
+            <p>Découvrez notre réseau de dépôts modernes et sécurisés pour une gestion optimale de vos médicaments</p>
+        </div>
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Infrastructure de Stockage</h2>
+            <p>Des dépôts stratégiquement positionnés pour garantir la disponibilité et la qualité de nos produits</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-warehouse"></i>
+                </div>
+                <div class="stat-number">{{ depots|length }}</div>
+                <div class="stat-label">Dépôts Actifs</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <div class="stat-number">{{ depots|reduce((carry, depot) => carry + depot.capaciteDepot, 0) }}</div>
+                <div class="stat-label">Capacité Totale</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Sécurité</div>
+            </div>
+        </div>
+
+        {% if depots|length > 0 %}
+            <div class="cards-grid">
+                {% for depot in depots %}
+                <div class="info-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-warehouse"></i>
+                        </div>
+                        <div>
+                            <div class="card-title">{{ depot.nomDepot }}</div>
+                            <div class="card-subtitle">Dépôt #{{ depot.id }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-content">
+                        <ul class="info-list">
+                            <li>
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>{{ depot.adresseDepot }}</span>
+                            </li>
+                            <li>
+                                <i class="fas fa-boxes"></i>
+                                <span>Capacité: {{ depot.capaciteDepot }} unités</span>
+                            </li>
+                            <li>
+                                <i class="fas fa-user-tie"></i>
+                                <span>Responsable: {{ depot.responsableDepot }}</span>
+                            </li>
+                            <li>
+                                <i class="fas fa-calendar"></i>
+                                <span>Créé le: {{ depot.dateCreation ? depot.dateCreation|date('d/m/Y') : 'N/A' }}</span>
+                            </li>
+                        </ul>
+                        
+                        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: center;">
+                            <span class="badge badge-success">
+                                <i class="fas fa-check-circle"></i> Opérationnel
+                            </span>
+                            <span style="color: var(--text-muted); font-size: 0.875rem;">
+                                <i class="fas fa-info-circle"></i> Disponible 24/7
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 4rem 2rem; background: var(--light-color); border-radius: 20px; margin: 2rem 0;">
+                <div style="width: 100px; height: 100px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
+                    <i class="fas fa-warehouse" style="font-size: 3rem; color: white;"></i>
+                </div>
+                <h3 style="color: var(--primary-color); margin-bottom: 1rem; font-size: 1.5rem;">Dépôts en Cours de Configuration</h3>
+                <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 1.125rem;">
+                    Nos dépôts sont actuellement en cours de configuration pour vous offrir le meilleur service possible.
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <a href="{{ path('app_home') }}" class="btn-primary">
+                        <i class="fas fa-home"></i> Retour à l'Accueil
+                    </a>
+                    <a href="{{ path('front_stocks') }}" class="btn-outline">
+                        <i class="fas fa-boxes"></i> Voir les Stocks
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
+        <div style="margin-top: 4rem; text-align: center;">
+            <div style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; padding: 3rem; border-radius: 20px; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.05" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,133.3C960,128,1056,96,1152,90.7C1248,85,1344,107,1392,117.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom; background-size: cover;"></div>
+                <div style="position: relative; z-index: 1;">
+                    <h2 style="font-size: 2rem; margin-bottom: 1rem;">
+                        <i class="fas fa-truck"></i> Livraison Rapide et Sécurisée
+                    </h2>
+                    <p style="font-size: 1.125rem; margin-bottom: 2rem; opacity: 0.9;">
+                        Notre réseau de dépôts garantit une livraison rapide de vos commandes dans toute la France
+                    </p>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <a href="{{ path('front_stocks') }}" class="btn" style="background: white; color: var(--primary-color);">
+                            <i class="fas fa-boxes"></i> Consulter les Stocks
+                        </a>
+                        <a href="#" class="btn-outline" style="border-color: white; color: white;">
+                            <i class="fas fa-phone"></i> Nous Contacter
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% else %}
+<div class="text-center py-5">
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h4>Accès restreint</h4>
+        <p>Vous devez être connecté en tant qu'administrateur pour accéder à cette page.</p>
+    </div>
+    <a href="{{ path('app_login') }}" class="btn btn-primary">
+        <i class="fas fa-sign-in-alt"></i> Se connecter
+    </a>
+</div>
+{% endif %}
+{% endblock %}

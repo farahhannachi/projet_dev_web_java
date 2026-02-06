@@ -1,0 +1,144 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Gestion des Clients{% endblock %}
+{% block page_subtitle %}Tous les clients inscrits{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    {% for message in app.flashes('success') %}
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="margin: 0; color: var(--primary-color); font-size: 1.75rem; font-weight: 600;">
+            <i class="fas fa-users"></i> Liste des Clients
+        </h2>
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <!-- Bouton Ajouter Client -->
+            <a href="{{ path('admin_client_new') }}" class="btn-primary">
+                <i class="fas fa-user-plus"></i> Ajouter un Client
+            </a>
+            
+            <!-- Barre de recherche -->
+            <form method="get" class="search-bar">
+                <input type="text" 
+                       name="search" 
+                       value="{{ search }}" 
+                       placeholder="Rechercher par email, nom ou prénom..." 
+                       class="search-input">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-search"></i> Rechercher
+                </button>
+                {% if search %}
+                    <a href="{{ path('admin_clients') }}" 
+                       class="btn-outline"
+                       style="background-color: var(--text-muted); color: white; border-color: var(--text-muted);">
+                        <i class="fas fa-times"></i> Effacer
+                    </a>
+                {% endif %}
+            </form>
+            
+            <!-- Bouton PDF -->
+            <a href="{{ path('admin_download_pdf') }}" 
+               class="btn-danger"
+               style="background: linear-gradient(135deg, var(--danger-color), #c82333);">
+                <i class="fas fa-file-pdf"></i> Télécharger PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Résultats de recherche -->
+    {% if search %}
+        <div style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border-left: 4px solid var(--info-color); box-shadow: var(--shadow-sm);">
+            <i class="fas fa-info-circle" style="color: var(--info-color); margin-right: 0.5rem;"></i>
+            <span style="color: var(--info-color); font-weight: 500;">
+                {% if clients|length > 0 %}
+                    {{ clients|length }} résultat(s) trouvé(s) pour "{{ search }}"
+                {% else %}
+                    Aucun résultat trouvé pour "{{ search }}"
+                {% endif %}
+            </span>
+        </div>
+    {% endif %}
+
+    <!-- Tableau des clients -->
+    {% if clients|length > 0 %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-hashtag"></i> ID</th>
+                        <th><i class="fas fa-user"></i> Nom</th>
+                        <th><i class="fas fa-user"></i> Prénom</th>
+                        <th><i class="fas fa-envelope"></i> Email</th>
+                        <th><i class="fas fa-phone"></i> Téléphone</th>
+                        <th><i class="fas fa-map-marker-alt"></i> Adresse</th>
+                        <th><i class="fas fa-user-tag"></i> Rôle</th>
+                        <th><i class="fas fa-toggle-on"></i> État</th>
+                        <th><i class="fas fa-calendar"></i> Date Création</th>
+                        <th><i class="fas fa-cogs"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in clients %}
+                    <tr>
+                        <td><strong>{{ client.id }}</strong></td>
+                        <td>{{ client.nom }}</td>
+                        <td>{{ client.prenom }}</td>
+                        <td><i class="fas fa-envelope" style="color: var(--text-muted); margin-right: 0.5rem;"></i> {{ client.email }}</td>
+                        <td>{{ client.telephone ?: '-' }}</td>
+                        <td>{{ client.adresse ?: '-' }}</td>
+                        <td>
+                            <span class="status-badge status-success">
+                                {{ client.role }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if client.etatCompte == 'actif' %}
+                                <span class="status-badge status-success">
+                                    <i class="fas fa-check-circle"></i> Actif
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-danger">
+                                    <i class="fas fa-times-circle"></i> Bloqué
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ client.dateCreation ? client.dateCreation|date('d/m/Y') : '-' }}</td>
+                        <td>
+                            <div class="actions-container">
+                                <a href="{{ path('admin_client_edit', {id: client.id}) }}" class="btn btn-outline">
+                                    <i class="fas fa-edit"></i> Modifier
+                                </a>
+                                <form method="post" action="{{ path('admin_client_toggle_status', {id: client.id}) }}" class="action-form">
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-toggle-{{ client.etatCompte == 'actif' ? 'off' : 'on' }}"></i> 
+                                        {{ client.etatCompte == 'actif' ? 'Bloquer' : 'Activer' }}
+                                    </button>
+                                </form>
+                                <form method="post" action="{{ path('admin_client_delete', {id: client.id}) }}" class="action-form" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce client ?');">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash"></i> Supprimer
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-users-slash"></i>
+            <h3>Aucun client trouvé</h3>
+            <p>Aucun client n'est encore inscrit ou ne correspond à votre recherche.</p>
+            <a href="{{ path('admin_client_new') }}" class="btn-primary">
+                <i class="fas fa-user-plus"></i> Ajouter un Client
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
