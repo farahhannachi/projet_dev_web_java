@@ -1,0 +1,141 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Gestion des Ordonnances{% endblock %}
+{% block page_subtitle %}Liste de toutes les ordonnances{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    {% for message in app.flashes('success') %}
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="alert-error">
+            <i class="fas fa-exclamation-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    <div style="margin-bottom: 2rem;">
+        <a href="{{ path('admin_ordonnance_new') }}" class="btn-primary">
+            <i class="fas fa-plus"></i> Nouvelle Ordonnance
+        </a>
+    </div>
+
+    <!-- Filtres -->
+    <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: #1f2937;">
+            🔍 Filtrer par :
+        </h3>
+        <form method="get" action="{{ path('admin_ordonnances') }}">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #6b7280; margin-bottom: 0.5rem;">Date</label>
+                    <input type="date" name="date" value="{{ filterDate }}" class="form-control" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #6b7280; margin-bottom: 0.5rem;">Client</label>
+                    <input type="text" name="client" value="{{ filterClient }}" placeholder="Nom, prénom ou email..." class="form-control" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #6b7280; margin-bottom: 0.5rem;">Statut</label>
+                    <select name="statut" class="form-control" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                        <option value="">Tous les statuts</option>
+                        <option value="en attente" {{ filterStatut == 'en attente' ? 'selected' : '' }}>En attente</option>
+                        <option value="validé" {{ filterStatut == 'validé' ? 'selected' : '' }}>Validé</option>
+                        <option value="rejeté" {{ filterStatut == 'rejeté' ? 'selected' : '' }}>Rejeté</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="submit" class="btn-primary" style="padding: 0.5rem 1.5rem;">
+                    <i class="fas fa-search"></i> Filtrer
+                </button>
+                <a href="{{ path('admin_ordonnances') }}" class="btn-outline" style="padding: 0.5rem 1.5rem; text-decoration: none;">
+                    <i class="fas fa-times"></i> Réinitialiser
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Numéro</th>
+                    <th>Patient</th>
+                    <th>Date Ordonnance</th>
+                    <th>Date Expiration</th>
+                    <th>Statut</th>
+                    <th>Traitements</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ordonnance in ordonnances %}
+                <tr>
+                    <td>{{ ordonnance.id }}</td>
+                    <td><strong>{{ ordonnance.numeroOrdonnance }}</strong></td>
+                    <td>{{ ordonnance.utilisateur.nom }} {{ ordonnance.utilisateur.prenom }}</td>
+                    <td>{{ ordonnance.dateOrdonnance|date('d/m/Y') }}</td>
+                    <td>{{ ordonnance.dateExpiration|date('d/m/Y') }}</td>
+                    <td>
+                        <span class="badge badge-{{ ordonnance.statut == 'validé' ? 'success' : (ordonnance.statut == 'rejeté' ? 'danger' : 'warning') }}">
+                            {{ ordonnance.statut }}
+                        </span>
+                    </td>
+                    <td>
+                        {% set traitements = traitementsByOrdonnance[ordonnance.id] %}
+                        {% if traitements is not empty %}
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                {% for traitement in traitements %}
+                                    <div style="background: #f3f4f6; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.875rem;">
+                                        {% if traitement.produit %}
+                                            <div style="font-weight: 600; color: #16563f; margin-bottom: 0.25rem;">
+                                                💊 {{ traitement.produit.nom }}
+                                            </div>
+                                            <div style="color: #6b7280; font-size: 0.75rem;">
+                                                {{ traitement.produit.categorie }}
+                                            </div>
+                                        {% else %}
+                                            <div style="color: #6b7280;">
+                                                Traitement #{{ traitement.id }}
+                                            </div>
+                                        {% endif %}
+                                        <div style="margin-top: 0.25rem;">
+                                            <span class="badge badge-{{ traitement.status == 'validé' or traitement.status == 'actif' ? 'success' : (traitement.status == 'rejeté' ? 'danger' : 'warning') }}" style="font-size: 0.7rem;">
+                                                {{ traitement.status }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <span style="color: #9ca3af; font-size: 0.875rem;">Aucun traitement</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ path('admin_ordonnance_edit', {id: ordonnance.id}) }}" class="btn-sm btn-primary">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                        <form method="post" action="{{ path('admin_ordonnance_delete', {id: ordonnance.id}) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette ordonnance ?');">
+                            <button type="submit" class="btn-sm btn-danger">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 2rem;">
+                        Aucune ordonnance trouvée
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

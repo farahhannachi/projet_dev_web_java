@@ -1,0 +1,298 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Gestion des Produits{% endblock %}
+{% block page_subtitle %}Liste des produits disponibles{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    {% for message in app.flashes('success') %}
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    <!-- Section Filtres -->
+    <div class="filters-section mb-8">
+        <div class="filters-container">
+            <form method="GET" action="{{ path('admin_produits') }}" class="filters-form">
+                <div class="filters-grid">
+                    <!-- Recherche -->
+                    <div class="filter-group">
+                        <input type="text" 
+                               name="search" 
+                               placeholder="Rechercher un produit..." 
+                               value="{{ filters.search }}"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Catégorie -->
+                    <div class="filter-group">
+                        <select name="categorie" class="filter-select">
+                            <option value="all" {{ filters.categorie == 'all' or not filters.categorie ? 'selected' : '' }}>
+                                Toutes les catégories
+                            </option>
+                            {% for categorie in categories %}
+                                <option value="{{ categorie }}" 
+                                        {{ filters.categorie == categorie ? 'selected' : '' }}>
+                                    {{ categorie|title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Statut -->
+                    <div class="filter-group">
+                        <select name="statut" class="filter-select">
+                            <option value="all" {{ filters.statut == 'all' or not filters.statut ? 'selected' : '' }}>
+                                Tous les statuts
+                            </option>
+                            <option value="disponible" {{ filters.statut == 'disponible' ? 'selected' : '' }}>
+                                Disponible
+                            </option>
+                            <option value="indisponible" {{ filters.statut == 'indisponible' ? 'selected' : '' }}>
+                                Indisponible
+                            </option>
+                            <option value="rupture" {{ filters.statut == 'rupture' ? 'selected' : '' }}>
+                                Rupture de stock
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <!-- Prix Minimum -->
+                    <div class="filter-group">
+                        <input type="number" 
+                               name="prix_min" 
+                               placeholder="Prix min" 
+                               value="{{ filters.prix_min }}"
+                               min="0"
+                               step="0.01"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Prix Maximum -->
+                    <div class="filter-group">
+                        <input type="number" 
+                               name="prix_max" 
+                               placeholder="Prix max" 
+                               value="{{ filters.prix_max }}"
+                               min="0"
+                               step="0.01"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Stock Minimum -->
+                    <div class="filter-group">
+                        <input type="number" 
+                               name="stock_min" 
+                               placeholder="Stock min" 
+                               value="{{ filters.stock_min }}"
+                               min="0"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Stock Maximum -->
+                    <div class="filter-group">
+                        <input type="number" 
+                               name="stock_max" 
+                               placeholder="Stock max" 
+                               value="{{ filters.stock_max }}"
+                               min="0"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Tri -->
+                    <div class="filter-group">
+                        <select name="sort" class="filter-select">
+                            <option value="name" {{ filters.sort == 'name' ? 'selected' : '' }}>
+                                Nom (A-Z)
+                            </option>
+                            <option value="price_asc" {{ filters.sort == 'price_asc' ? 'selected' : '' }}>
+                                Prix croissant
+                            </option>
+                            <option value="price_desc" {{ filters.sort == 'price_desc' ? 'selected' : '' }}>
+                                Prix décroissant
+                            </option>
+                            <option value="stock_desc" {{ filters.sort == 'stock_desc' ? 'selected' : '' }}>
+                                Stock décroissant
+                            </option>
+                            <option value="stock_asc" {{ filters.sort == 'stock_asc' ? 'selected' : '' }}>
+                                Stock croissant
+                            </option>
+                            <option value="date_desc" {{ filters.sort == 'date_desc' ? 'selected' : '' }}>
+                                Plus récent
+                            </option>
+                            <option value="date_asc" {{ filters.sort == 'date_asc' ? 'selected' : '' }}>
+                                Plus ancien
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <!-- Boutons -->
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-filter"></i> Filtrer
+                        </button>
+                        <a href="{{ path('admin_produits') }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-times"></i> Réinitialiser
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="page-header">
+        <h1><i class="fas fa-pills"></i> Gestion des Produits</h1>
+        <a href="{{ path('admin_produit_new') }}" class="btn-primary">
+            <i class="fas fa-plus"></i> Ajouter un Produit
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Image</th>
+                    <th>Nom</th>
+                    <th>Description</th>
+                    <th>Prix</th>
+                    <th>Stock</th>
+                    <th>Catégorie</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for produit in produits %}
+                <tr>
+                    <td>{{ produit.id }}</td>
+                    <td>
+                        {% if produit.image %}
+                            <img src="{{ asset(produit.image) }}" alt="{{ produit.nom }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                        {% else %}
+                            <img src="{{ asset('assets/img/default-product.png') }}" alt="Pas d'image" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; opacity: 0.5;">
+                        {% endif %}
+                    </td>
+                    <td>{{ produit.nom }}</td>
+                    <td>{{ produit.description|slice(0, 50) }}...</td>
+                    <td>{{ produit.prix }} €</td>
+                    <td>{{ produit.quantiteStock }}</td>
+                    <td>{{ produit.categorie }}</td>
+                    <td>
+                        <span class="status-badge {{ produit.statut == 'disponible' ? 'status-active' : 'status-inactive' }}">
+                            {{ produit.statut }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ path('admin_produit_edit', {id: produit.id}) }}" class="btn-edit" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="{{ path('admin_produit_delete', {id: produit.id}) }}" method="POST" style="display: inline;">
+                                <button type="submit" class="btn-delete" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center">Aucun produit trouvé</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Styles pour les filtres -->
+<style>
+.filters-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-input, .filter-select {
+    padding: 0.75rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.filter-input:focus, .filter-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-sm {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+    transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .filters-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-actions {
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,270 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Gestion des Promotions{% endblock %}
+{% block page_subtitle %}Sélectionnez un produit pour créer une promotion{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    {% for message in app.flashes('success') %}
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="margin: 0; color: var(--primary-color); font-size: 1.75rem; font-weight: 600;">
+            <i class="fas fa-tag"></i> Produits Disponibles pour Promotions
+        </h2>
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <!-- Bouton Tri Prix -->
+            <a href="{{ path('admin_promotions', {search: search, sort: (sort == 'price') ? '' : 'price'}) }}" 
+               class="btn-outline"
+               style="background: linear-gradient(135deg, #6c757d, #5a6268);">
+                <i class="fas fa-sort-amount-{{ (sort == 'price') ? 'down' : 'up' }}"></i> 
+                TRI
+            </a>
+            
+            <!-- Barre de recherche avancée -->
+            <form method="get" class="search-advanced">
+                <input type="text" 
+                       name="search" 
+                       value="{{ search }}" 
+                       placeholder="Rechercher par nom, catégorie, description..." 
+                       class="search-input">
+                
+                <!-- Filtres avancés -->
+                <select name="category" class="filter-select">
+                    <option value="">Toutes catégories</option>
+                    {% set categories = [] %}
+                    {% for produit in all_products %}
+                        {% if produit.categorie not in categories %}
+                            {% set categories = categories|merge([produit.categorie]) %}
+                        {% endif %}
+                    {% endfor %}
+                    {% for category in categories|sort %}
+                        <option value="{{ category }}" {% if app.request.query.get('category') == category %}selected{% endif %}>{{ category }}</option>
+                    {% endfor %}
+                </select>
+                
+                <select name="promotion_status" class="filter-select">
+                    <option value="">Tous les produits</option>
+                    <option value="with_promo" {% if app.request.query.get('promotion_status') == 'with_promo' %}selected{% endif %}>Avec promotion</option>
+                    <option value="without_promo" {% if app.request.query.get('promotion_status') == 'without_promo' %}selected{% endif %}>Sans promotion</option>
+                </select>
+                
+                <input type="number" 
+                       name="price_min" 
+                       value="{{ app.request.query.get('price_min') }}" 
+                       placeholder="Prix min" 
+                       class="price-input"
+                       step="0.01"
+                       min="0">
+                
+                <input type="number" 
+                       name="price_max" 
+                       value="{{ app.request.query.get('price_max') }}" 
+                       placeholder="Prix max" 
+                       class="price-input"
+                       step="0.01"
+                       min="0">
+                
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-search"></i> Rechercher
+                </button>
+                
+                {% if search or app.request.query.get('category') or app.request.query.get('promotion_status') or app.request.query.get('price_min') or app.request.query.get('price_max') %}
+                    <a href="{{ path('admin_promotions') }}" 
+                       class="btn-outline"
+                       style="background-color: var(--text-muted); color: white; border-color: var(--text-muted);">
+                        <i class="fas fa-times"></i> Effacer
+                    </a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Résultats de recherche -->
+    {% if search %}
+        <div style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border-left: 4px solid var(--info-color); box-shadow: var(--shadow-sm);">
+            <i class="fas fa-info-circle" style="color: var(--info-color); margin-right: 0.5rem;"></i>
+            <span style="color: var(--info-color); font-weight: 500;">
+                {% if produits|length > 0 %}
+                    {{ produits|length }} résultat(s) trouvé(s) pour "{{ search }}"
+                {% else %}
+                    Aucun résultat trouvé pour "{{ search }}"
+                {% endif %}
+            </span>
+        </div>
+    {% endif %}
+
+    {% if produits|length > 0 %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+            {% for produit in produits %}
+                {% set activePromotion = produit.getActivePromotion() %}
+                <div style="background: white; border-radius: 12px; box-shadow: var(--shadow-md); overflow: hidden; transition: var(--transition); border: 2px solid {{ activePromotion ? 'var(--secondary-color)' : 'var(--border-color)' }};">
+                    <div style="padding: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div>
+                                <h3 style="margin: 0; color: var(--dark-color); font-size: 1.25rem; font-weight: 600;">{{ produit.nom }}</h3>
+                                <p style="margin: 0.5rem 0 0 0; color: var(--text-muted); font-size: 0.875rem;">{{ produit.categorie }}</p>
+                            </div>
+                            {% if activePromotion %}
+                                <span class="status-badge status-success">Promotion Active</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            {% if produit.image %}
+                                {% set imageSrc = (produit.image starts with 'http://') or (produit.image starts with 'https://') or (produit.image starts with '//')
+                                    ? produit.image
+                                    : asset('uploads/products/' ~ produit.image)
+                                %}
+                                <img src="{{ imageSrc }}" alt="{{ produit.nom }}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px;">
+                            {% else %}
+                                <div style="width: 100%; height: 150px; background: var(--light-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                                    <i class="fas fa-box" style="font-size: 2rem;"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <p style="margin: 0; color: var(--text-muted); font-size: 0.875rem; line-height: 1.4;">
+                                {{ produit.description|slice(0, 100) }}{% if produit.description|length > 100 %}...{% endif %}
+                            </p>
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            {% if activePromotion %}
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                    <span style="text-decoration: line-through; color: var(--text-muted); font-size: 0.875rem;">{{ produit.prix|number_format(2, ',', ' ') }} €</span>
+                                    <span style="color: var(--secondary-color); font-weight: 600; font-size: 1.25rem;">{{ produit.getPromotionalPrice()|number_format(2, ',', ' ') }} €</span>
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--secondary-color);">
+                                    <i class="fas fa-clock"></i> Du {{ activePromotion.dateDebut|date('d/m/Y') }} au {{ activePromotion.dateFin|date('d/m/Y') }}
+                                </div>
+                            {% else %}
+                                <div style="color: var(--primary-color); font-weight: 600; font-size: 1.25rem;">
+                                    {{ produit.prix|number_format(2, ',', ' ') }} €
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <span style="font-size: 0.875rem; color: {{ produit.quantiteStock > 0 ? 'var(--secondary-color)' : 'var(--danger-color)' }};">
+                                <i class="fas fa-boxes"></i> Stock: {{ produit.quantiteStock }}
+                            </span>
+                            <span style="font-size: 0.875rem; color: {{ produit.statut == 'disponible' ? 'var(--secondary-color)' : 'var(--text-muted)' }};">
+                                <i class="fas fa-circle" style="font-size: 0.5rem;"></i> {{ produit.statut }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 1rem 1.5rem; background: var(--light-color); border-top: 1px solid var(--border-color);">
+                        <a href="{{ path('admin_promotion_create', {id: produit.id}) }}" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                            {% if activePromotion %}
+                                <i class="fas fa-edit"></i> Modifier la Promotion
+                            {% else %}
+                                <i class="fas fa-plus"></i> Créer une Promotion
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: white; border-radius: 12px; box-shadow: var(--shadow-md);">
+            <i class="fas fa-box-open" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+            <h3 style="color: var(--dark-color); margin-bottom: 1rem;">Aucun produit trouvé</h3>
+            <p style="color: var(--text-muted);">Commencez par créer des produits avant de pouvoir ajouter des promotions.</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.status-success {
+    background: var(--secondary-color);
+    color: white;
+}
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid transparent;
+}
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+.btn-primary:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+.btn-outline {
+    background: transparent;
+    color: white;
+    border: 1px solid white;
+}
+.btn-outline:hover {
+    background: white;
+    color: #6c757d;
+}
+.search-bar {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.search-advanced {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.search-input {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    min-width: 250px;
+}
+.filter-select {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    background: white;
+    min-width: 150px;
+}
+.price-input {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    width: 120px;
+}
+.alert-success {
+    background: var(--secondary-color);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+</style>
+{% endblock %}
