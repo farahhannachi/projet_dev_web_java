@@ -15,6 +15,7 @@ use App\Repository\DepotRepository;
 use App\Repository\StockRepository;
 use App\Repository\TraitementRepository;
 use App\Repository\OrdonnanceRepository;
+use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,10 +44,106 @@ class FrontController extends AbstractController
         return $this->render('front/about.html.twig');
     }
 
-    #[Route('/contact', name: 'app_contact', methods: ['GET'])]
-    public function contact(): Response
+    #[Route('/contact', name: 'app_contact', methods: ['GET', 'POST'])]
+    public function contact(Request $request, EntityManagerInterface $entityManager, \App\Repository\QuestionRepository $questionRepository, MailerService $mailerService): Response
     {
-        return $this->render('front/contact.html.twig');
+        $editMode = false;
+        $editQuestionId = $request->query->get('edit');
+        
+        // Mode édition : charger la question existante
+        if ($editQuestionId && $this->getUser()) {
+            $question = $questionRepository->find($editQuestionId);
+            
+            // Vérifier que la question existe et appartient à l'utilisateur
+            if ($question && $question->getUtilisateur() === $this->getUser()) {
+                $editMode = true;
+            } else {
+                $this->addFlash('error', 'Question introuvable ou accès non autorisé.');
+                return $this->redirectToRoute('app_contact');
+            }
+        } else {
+            // Mode création : nouvelle question
+            $question = new \App\Entity\Question();
+            $question->setStatut('ouvert');
+            
+            if ($this->getUser()) {
+                $question->setUtilisateur($this->getUser());
+            }
+        }
+        
+        $form = $this->createForm(\App\Form\QuestionType::class, $question);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            // Si l'utilisateur n'est pas connecté, bloquer la soumission
+            if (!$this->getUser()) {
+                $this->addFlash('error', 'Vous devez être connecté pour envoyer un ticket.');
+                return $this->redirectToRoute('app_login');
+            }
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // L'utilisateur et le statut sont déjà définis au-dessus
+            
+            // Gérer le fichier uploadé
+            $fichier = $form->get('fichier')->getData();
+            if ($fichier) {
+                // Récupérer les infos du fichier AVANT le déplacement
+                $originalName = $fichier->getClientOriginalName();
+                $mimeType = $fichier->getMimeType();
+                $fileSize = $fichier->getSize();
+                
+                $slugger = new \Symfony\Component\String\Slugger\AsciiSlugger();
+                $originalFilename = pathinfo($originalName, PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$fichier->guessExtension();
+
+                try {
+                    $uploadDir = $this->getParameter('kernel.project_dir').'/public/uploads/questions';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0777, true);
+                    }
+                    
+                    // Déplacer le fichier
+                    $fichier->move($uploadDir, $newFilename);
+                    
+                    // Utiliser les valeurs sauvegardées AVANT le déplacement
+                    $question->setFileName($originalName);
+                    $question->setFilePath('/uploads/questions/'.$newFilename);
+                    $question->setFileType($mimeType);
+                    $question->setFileSize($fileSize);
+                } catch (\Symfony\Component\HttpFoundation\File\Exception\FileException $e) {
+                    $this->addFlash('error', 'Erreur lors de l\'upload du fichier');
+                }
+            }
+
+            $entityManager->persist($question);
+            $entityManager->flush();
+
+            if ($editMode) {
+                $this->addFlash('success', 'Votre ticket a été modifié avec succès !');
+            } else {
+                // Envoyer l'email de confirmation au client
+                $mailerService->sendTicketCreatedEmail($question);
+                $this->addFlash('success', 'Votre message a été envoyé avec succès ! Un email de confirmation vous a été envoyé.');
+            }
+
+            // Rediriger vers la page contact pour voir le ticket dans "Mes Tickets"
+            return $this->redirectToRoute('app_contact');
+        }
+
+        // Récupérer les questions de l'utilisateur connecté
+        $mesQuestions = [];
+        if ($this->getUser()) {
+            $mesQuestions = $questionRepository->findByUtilisateur($this->getUser()->getId());
+        }
+
+        return $this->render('front/contact.html.twig', [
+            'form' => $form,
+            'mesQuestions' => $mesQuestions,
+            'editMode' => $editMode,
+            'editQuestion' => $editMode ? $question : null,
+        ]);
     }
 
     #[Route('/ordonnance', name: 'app_ordonnance', methods: ['GET', 'POST'])]
