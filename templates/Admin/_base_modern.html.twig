@@ -69,12 +69,31 @@
 
         .sidebar h3 {
             text-align: center;
-            margin-bottom: 3rem;
-            font-size: 1.75rem;
+            margin: 0;
+            font-size: 1.5rem;
             font-weight: 700;
             letter-spacing: -0.5px;
             position: relative;
             z-index: 1;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 1rem;
+        }
+
+        .sidebar-logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            border-radius: 16px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin-bottom: 1rem;
         }
 
         .sidebar h3::after {
@@ -615,7 +634,10 @@
 <body>
     <div class="admin-container">
         <aside class="sidebar">
-            <h3>CURAVITA</h3>
+            <div class="sidebar-brand">
+                <img src="{{ asset('assets/img/curavita-logo.png') }}" alt="CuraVita Logo" class="sidebar-logo">
+                <h3>CURAVITA</h3>
+            </div>
             <ul class="sidebar-menu">
                 <li><a href="{{ path('admin_dashboard') }}" class="{{ app.request.get('_route') == 'admin_dashboard' ? 'active' : '' }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                 <li><a href="{{ path('admin_clients') }}" class="{{ app.request.get('_route') starts with 'admin_client' ? 'active' : '' }}"><i class="fas fa-users"></i> Clients</a></li>
@@ -625,6 +647,7 @@
                 <li><a href="{{ path('admin_commandes') }}" class="{{ app.request.get('_route') starts with 'admin_commande' ? 'active' : '' }}"><i class="fas fa-shopping-cart"></i> Commandes</a></li>
                 <li><a href="{{ path('admin_ordonnances') }}" class="{{ app.request.get('_route') starts with 'admin_ordonnance' ? 'active' : '' }}"><i class="fas fa-file-medical"></i> Ordonnances</a></li>
                 <li><a href="{{ path('admin_traitements') }}" class="{{ app.request.get('_route') starts with 'admin_traitement' ? 'active' : '' }}"><i class="fas fa-prescription-bottle-alt"></i> Traitements</a></li>
+                <li><a href="{{ path('app_question_index') }}" class="{{ app.request.get('_route') starts with 'app_question' ? 'active' : '' }}"><i class="fas fa-headset"></i> Contact</a></li>
                 <li><hr style="border: 1px solid rgba(255,255,255,0.2); margin: 1rem 0;"></li>
                 <li><a href="{{ path('app_home') }}" class="btn-front">
                     <i class="fas fa-home"></i> Retour au Front
