@@ -1,0 +1,26 @@
+# Ignore uploads for questions and responses
+/public/uploads/questions/
+/public/uploads/responses/
+
+# Ignore cache and dev folders
+/var/cache/
+/var/cache/dev/
+
+# Ignore the entire var folder
+/var/
+
+# Ignore Symfony log files
+/var/log/
+
+# Ignore other common files
+.env.local
+.env.*.local
+/.env
+/vendor/
+/node_modules/
+
+# Ignore IDE and OS files
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
