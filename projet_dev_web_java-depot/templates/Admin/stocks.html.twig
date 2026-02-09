@@ -1,0 +1,401 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Gestion des Stocks{% endblock %}
+{% block page_subtitle %}Liste de tous les stocks{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    <!-- Section Filtres -->
+    <div class="filters-section mb-8">
+        <div class="filters-container">
+            <form method="GET" action="{{ path('admin_stocks') }}" class="filters-form">
+                <div class="filters-grid">
+                    <!-- Recherche -->
+                    <div class="filter-group">
+                        <input type="text" 
+                               name="search" 
+                               placeholder="Rechercher un stock..." 
+                               value="{{ filters.search }}"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- État -->
+                    <div class="filter-group">
+                        <select name="etat" class="filter-select">
+                            <option value="all" {{ filters.etat == 'all' or not filters.etat ? 'selected' : '' }}>
+                                Tous les états
+                            </option>
+                            <option value="disponible" {{ filters.etat == 'disponible' ? 'selected' : '' }}>
+                                Disponible
+                            </option>
+                            <option value="alerte" {{ filters.etat == 'alerte' ? 'selected' : '' }}>
+                                Alerte
+                            </option>
+                            <option value="rupture" {{ filters.etat == 'rupture' ? 'selected' : '' }}>
+                                Rupture
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <!-- Quantité Minimum -->
+                    <div class="filter-group">
+                        <input type="number" 
+                               name="quantite_min" 
+                               placeholder="Quantité min" 
+                               value="{{ filters.quantite_min }}"
+                               min="0"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Quantité Maximum -->
+                    <div class="filter-group">
+                        <input type="number" 
+                               name="quantite_max" 
+                               placeholder="Quantité max" 
+                               value="{{ filters.quantite_max }}"
+                               min="0"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Tri -->
+                    <div class="filter-group">
+                        <select name="sort" class="filter-select">
+                            <option value="produit" {{ filters.sort == 'produit' ? 'selected' : '' }}>
+                                Produit (A-Z)
+                            </option>
+                            <option value="quantity_desc" {{ filters.sort == 'quantity_desc' ? 'selected' : '' }}>
+                                Quantité décroissante
+                            </option>
+                            <option value="quantity_asc" {{ filters.sort == 'quantity_asc' ? 'selected' : '' }}>
+                                Quantité croissante
+                            </option>
+                            <option value="date_desc" {{ filters.sort == 'date_desc' ? 'selected' : '' }}>
+                                Date récente
+                            </option>
+                            <option value="date_asc" {{ filters.sort == 'date_asc' ? 'selected' : '' }}>
+                                Date ancienne
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <!-- Boutons -->
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-filter"></i> Filtrer
+                        </button>
+                        <a href="{{ path('admin_stocks') }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-times"></i> Réinitialiser
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="page-header">
+        <h1><i class="fas fa-boxes"></i> Gestion des Stocks</h1>
+        <a href="{{ path('admin_stock_new') }}" class="btn-primary">
+            <i class="fas fa-plus"></i> Ajouter un Stock
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Image</th>
+                    <th>Produit</th>
+                    <th>Dépôt</th>
+                    <th>Quantité</th>
+                    <th>État</th>
+                    <th>Date d'entrée</th>
+                    <th>Date d'expiration</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stock in stocks %}
+                <tr>
+                    <td>{{ stock.idStock }}</td>
+                    <td>
+                        {% if stock.idProduit and stock.idProduit.image %}
+                            <img src="{{ asset(stock.idProduit.image) }}" alt="{{ stock.idProduit.nom }}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
+                        {% else %}
+                            <div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">-</div>
+                        {% endif %}
+                    </td>
+                    <td>{{ stock.idProduit ? stock.idProduit.nom : '-' }}</td>
+                    <td>{{ stock.idDepot ? stock.idDepot.nom : '-' }}</td>
+                    <td>{{ stock.quantite }}</td>
+                    <td>
+                        <span class="status-badge {{ stock.etatStock == 'disponible' ? 'status-active' : stock.etatStock == 'alerte' ? 'status-warning' : 'status-inactive' }}">
+                            {{ stock.etatStock }}
+                        </span>
+                    </td>
+                    <td>{{ stock.dateEntree ? stock.dateEntree|date('d/m/Y') : '-' }}</td>
+                    <td>{{ stock.dateExpiration ? stock.dateExpiration|date('d/m/Y') : '-' }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ path('admin_stock_edit', {'id': stock.idStock}) }}" class="btn-edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="POST" action="{{ path('admin_stock_delete', {'id': stock.idStock}) }}" 
+                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce stock ?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ stock.idStock) }}">
+                                <button type="submit" class="btn-delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <div class="empty-content">
+                            <i class="fas fa-boxes"></i>
+                            <h3>Aucun stock trouvé</h3>
+                            <p>Commencez par ajouter votre premier stock.</p>
+                            <a href="{{ path('admin_stock_new') }}" class="btn-primary">
+                                <i class="fas fa-plus"></i> Ajouter un Stock
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Informations de débogage -->
+<div style="background: #f0f0f0; border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin: 2rem 0; font-family: monospace; font-size: 0.875rem;">
+    <h3 style="margin-top: 0; color: #333;">🔍 Débogage Stocks</h3>
+    <p><strong>Filtres actifs:</strong> {{ filters|json_encode }}</p>
+    <p><strong>Stocks:</strong> {{ stocks|length }} éléments</p>
+    
+    {% if stocks|length > 0 %}
+        <p><strong>Premier stock:</strong> {{ stocks[0].produit ? stocks[0].produit.nom : 'N/A' }}</p>
+        <p><strong>État premier stock:</strong> {{ stocks[0].etatStock }}</p>
+    {% endif %}
+</div>
+
+<style>
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    color: var(--primary-color);
+    font-size: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.table-container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.modern-table th {
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+.modern-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modern-table tr:hover {
+    background: var(--light-color);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-edit {
+    background: var(--warning-color);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: var(--transition);
+}
+
+.btn-edit:hover {
+    background: #e67e22;
+    transform: translateY(-1px);
+}
+
+.btn-delete {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: var(--transition);
+}
+
+.btn-delete:hover {
+    background: #c0392b;
+    transform: translateY(-1px);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.empty-content i {
+    font-size: 3rem;
+    color: var(--text-muted);
+}
+
+.empty-content h3 {
+    color: var(--dark-color);
+    margin: 0;
+}
+
+.empty-content p {
+    color: var(--text-muted);
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .modern-table {
+        font-size: 0.875rem;
+    }
+    
+    .modern-table th,
+    .modern-table td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .filters-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-actions {
+        justify-content: center;
+    }
+}
+
+/* Styles pour les filtres */
+.filters-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-input, .filter-select {
+    padding: 0.75rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.filter-input:focus, .filter-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-sm {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}

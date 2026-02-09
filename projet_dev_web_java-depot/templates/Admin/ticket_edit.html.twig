@@ -1,0 +1,166 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block title %}Modifier le ticket #{{ question.id }} - Admin{% endblock %}
+
+{% block page_title %}Modifier le ticket #{{ question.id }}{% endblock %}
+{% block page_subtitle %}{{ question.objet }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 35px;
+            max-width: 900px;
+        }
+        .form-group {
+            margin-bottom: 22px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #16563f;
+            box-shadow: 0 0 0 3px rgba(22, 86, 63, 0.1);
+        }
+        .form-select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            background: white;
+            cursor: pointer;
+        }
+        .form-select:focus {
+            outline: none;
+            border-color: #16563f;
+            box-shadow: 0 0 0 3px rgba(22, 86, 63, 0.1);
+        }
+        textarea.form-control {
+            resize: vertical;
+            min-height: 150px;
+        }
+        .btn-submit {
+            background: linear-gradient(135deg, #16563f, #0f3d2a);
+            color: white;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(22, 86, 63, 0.2);
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(22, 86, 63, 0.3);
+        }
+        .btn-back {
+            background: #e9ecef;
+            color: #333;
+            padding: 12px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-back:hover {
+            background: #dee2e6;
+            color: #333;
+        }
+        .alert-warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .file-info {
+            color: #666;
+            font-size: 0.85rem;
+            margin-top: 6px;
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+<div class="main-content">
+    <a href="{{ path('app_question_show', {id: question.id}) }}" class="btn-back" style="display: inline-block; margin-bottom: 20px;">← Retour au ticket</a>
+
+    {% if question.statut != 'ouvert' and question.statut != 'en_cours' %}
+        <div class="alert-warning">
+            ⚠️ Attention : Ce ticket a le statut « {{ question.statut }} ». Les modifications peuvent ne pas être prises en compte.
+        </div>
+    {% endif %}
+
+    <div class="form-card">
+        {{ form_start(form) }}
+            {{ form_errors(form) }}
+
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form_label(form.typeTicket, 'Type de ticket') }}
+                    {{ form_widget(form.typeTicket, {'attr': {'class': 'form-select'}}) }}
+                    {{ form_errors(form.typeTicket) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.priorite, 'Priorité') }}
+                    {{ form_widget(form.priorite, {'attr': {'class': 'form-select'}}) }}
+                    {{ form_errors(form.priorite) }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.objet, 'Objet') }}
+                {{ form_widget(form.objet, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Problème avec ma commande #1234'}}) }}
+                {{ form_errors(form.objet) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.description, 'Description détaillée') }}
+                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'placeholder': 'Décrivez le problème en détail...'}}) }}
+                {{ form_errors(form.description) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.fichier, 'Nouvelle pièce jointe (optionnelle)') }}
+                {{ form_widget(form.fichier, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.fichier) }}
+                {% if question.fileName %}
+                    <div class="file-info">📎 Fichier actuel : <strong>{{ question.fileName }}</strong></div>
+                {% endif %}
+                <div class="file-info">Formats acceptés : JPG, PNG, GIF, PDF, DOC, DOCX (max 5 Mo)</div>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-top: 30px;">
+                <a href="{{ path('app_question_show', {id: question.id}) }}" class="btn-back">Annuler</a>
+                <button type="submit" class="btn-submit">💾 Enregistrer les modifications</button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

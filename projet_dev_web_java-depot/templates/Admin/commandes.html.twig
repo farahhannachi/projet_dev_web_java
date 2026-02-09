@@ -1,0 +1,275 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Gestion des Commandes{% endblock %}
+{% block page_subtitle %}Liste des commandes clients{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    {% for message in app.flashes('success') %}
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    <!-- Section Filtres -->
+    <div class="filters-section mb-8">
+        <div class="filters-container">
+            <form method="GET" action="{{ path('admin_commandes') }}" class="filters-form">
+                <div class="filters-grid">
+                    <!-- Recherche -->
+                    <div class="filter-group">
+                        <input type="text" 
+                               name="search" 
+                               placeholder="Rechercher une commande..." 
+                               value="{{ filters.search }}"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Statut -->
+                    <div class="filter-group">
+                        <select name="statut" class="filter-select">
+                            <option value="all" {{ filters.statut == 'all' or not filters.statut ? 'selected' : '' }}>
+                                Tous les statuts
+                            </option>
+                            <option value="en attente" {{ filters.statut == 'en attente' ? 'selected' : '' }}>
+                                En attente
+                            </option>
+                            <option value="confirmée" {{ filters.statut == 'confirmée' ? 'selected' : '' }}>
+                                Confirmée
+                            </option>
+                            <option value="en préparation" {{ filters.statut == 'en préparation' ? 'selected' : '' }}>
+                                En préparation
+                            </option>
+                            <option value="expédiée" {{ filters.statut == 'expédiée' ? 'selected' : '' }}>
+                                Expédiée
+                            </option>
+                            <option value="livrée" {{ filters.statut == 'livrée' ? 'selected' : '' }}>
+                                Livrée
+                            </option>
+                            <option value="annulée" {{ filters.statut == 'annulée' ? 'selected' : '' }}>
+                                Annulée
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <!-- Date Minimum -->
+                    <div class="filter-group">
+                        <input type="date" 
+                               name="date_min" 
+                               value="{{ filters.date_min }}"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Date Maximum -->
+                    <div class="filter-group">
+                        <input type="date" 
+                               name="date_max" 
+                               value="{{ filters.date_max }}"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Montant Minimum -->
+                    <div class="filter-group">
+                        <input type="number" 
+                               name="montant_min" 
+                               placeholder="Montant min" 
+                               value="{{ filters.montant_min }}"
+                               min="0"
+                               step="0.01"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Montant Maximum -->
+                    <div class="filter-group">
+                        <input type="number" 
+                               name="montant_max" 
+                               placeholder="Montant max" 
+                               value="{{ filters.montant_max }}"
+                               min="0"
+                               step="0.01"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Tri -->
+                    <div class="filter-group">
+                        <select name="sort" class="filter-select">
+                            <option value="date_desc" {{ filters.sort == 'date_desc' ? 'selected' : '' }}>
+                                Date récente
+                            </option>
+                            <option value="date_asc" {{ filters.sort == 'date_asc' ? 'selected' : '' }}>
+                                Date ancienne
+                            </option>
+                            <option value="montant_desc" {{ filters.sort == 'montant_desc' ? 'selected' : '' }}>
+                                Montant décroissant
+                            </option>
+                            <option value="montant_asc" {{ filters.sort == 'montant_asc' ? 'selected' : '' }}>
+                                Montant croissant
+                            </option>
+                            <option value="name_asc" {{ filters.sort == 'name_asc' ? 'selected' : '' }}>
+                                Nom (A-Z)
+                            </option>
+                            <option value="name_desc" {{ filters.sort == 'name_desc' ? 'selected' : '' }}>
+                                Nom (Z-A)
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <!-- Boutons -->
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-filter"></i> Filtrer
+                        </button>
+                        <a href="{{ path('admin_commandes') }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-times"></i> Réinitialiser
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="page-header">
+        <h1><i class="fas fa-shopping-cart"></i> Gestion des Commandes</h1>
+        <a href="{{ path('admin_commande_new') }}" class="btn-primary">
+            <i class="fas fa-plus"></i> Ajouter une Commande
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Client</th>
+                    <th>Total</th>
+                    <th>Mode de paiement</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for commande in commandes %}
+                <tr>
+                    <td>{{ commande.id }}</td>
+                    <td>{{ commande.dateCommande|date('d/m/Y H:i') }}</td>
+                    <td>{{ commande.adresseLivraison }}</td>
+                    <td>{{ commande.total }} €</td>
+                    <td>{{ commande.modePaiement }}</td>
+                    <td>
+                        <span class="status-badge {{ commande.statut == 'livrée' ? 'status-active' : commande.statut == 'annulée' ? 'status-danger' : 'status-warning' }}">
+                            {{ commande.statut }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ path('admin_commande_edit', {id: commande.id}) }}" class="btn-edit" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="{{ path('admin_commande_delete', {id: commande.id}) }}" method="POST" style="display: inline;">
+                                <button type="submit" class="btn-delete" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette commande ?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center">Aucune commande trouvée</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Styles pour les filtres -->
+<style>
+.filters-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-input, .filter-select {
+    padding: 0.75rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.filter-input:focus, .filter-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-sm {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+    transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .filters-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-actions {
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
