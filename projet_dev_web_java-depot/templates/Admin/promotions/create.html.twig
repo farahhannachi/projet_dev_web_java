@@ -56,16 +56,14 @@
 
         <form method="post" id="promotionForm">
             <input type="hidden" name="_token" value="{{ csrf_token('promotion' ~ produit.id) }}">
-            
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
                 <div>
                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Titre de la promotion</label>
-                    <input type="text" name="titre" value="{{ existingPromotion ? existingPromotion.titre : 'Promotion sur ' ~ produit.nom }}" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                    <input type="text" name="titre" value="{{ existingPromotion ? existingPromotion.titre : 'Promotion sur ' ~ produit.nom }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
                 </div>
-                
                 <div>
                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Statut</label>
-                    <select name="statut" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                    <select name="statut" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
                         <option value="active" {{ existingPromotion and existingPromotion.statut == 'active' ? 'selected' : '' }}>Active</option>
                         <option value="inactive" {{ existingPromotion and existingPromotion.statut == 'inactive' ? 'selected' : '' }}>Inactive</option>
                     </select>
@@ -74,30 +72,28 @@
             
             <div style="margin-bottom: 1.5rem;">
                 <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Description</label>
-                <textarea name="description" rows="3" placeholder="Description de la promotion" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem; resize: vertical;">{{ existingPromotion ? existingPromotion.description : '' }}</textarea>
+                <textarea name="description" rows="3" placeholder="Description de la promotion" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem; resize: vertical;">{{ existingPromotion ? existingPromotion.description : '' }}</textarea>
             </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
                 <div>
                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Prix promotionnel (€)</label>
-                    <input type="number" name="prix_promotionnel" step="0.01" min="0" max="{{ produit.prix - 0.01 }}" value="{{ existingPromotion ? produit.getPromotionalPrice() : '' }}" placeholder="{{ produit.prix * 0.8|number_format(2) }}" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                    <input type="number" name="prix_promotionnel" step="0.01" value="{{ existingPromotion ? produit.getPromotionalPrice() : '' }}" placeholder="{{ produit.prix * 0.8|number_format(2) }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
                     <small style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 0.25rem;">Doit être inférieur au prix original</small>
                 </div>
-                
                 <div>
-                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Date de début</label>
-                    <input type="date" name="date_debut" value="{{ existingPromotion ? existingPromotion.dateDebut|date('Y-m-d') : '' }}" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Prix promotionnel (\u20ac)</label>
+                    <input type="date" name="date_debut" value="{{ existingPromotion ? existingPromotion.dateDebut|date('Y-m-d') : '' }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                    <small style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 0.25rem;">Doit \u00eatre inf\u00e9rieur au prix original</small>
                 </div>
-                
+                <div>
+                    <input type="date" name="date_fin" value="{{ existingPromotion ? existingPromotion.dateFin|date('Y-m-d') : '' }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                    <input type="date" name="date_debut" value="{{ existingPromotion ? existingPromotion.dateDebut|date('Y-m-d') : '' }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                </div>
                 <div>
                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Date de fin</label>
-                    <input type="date" name="date_fin" value="{{ existingPromotion ? existingPromotion.dateFin|date('Y-m-d') : '' }}" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                    <input type="date" name="date_fin" value="{{ existingPromotion ? existingPromotion.dateFin|date('Y-m-d') : '' }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
                 </div>
-            </div>
-            
-            <div style="background: var(--light-color); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-                <h4 style="margin: 0 0 0.5rem 0; color: var(--primary-color); font-size: 0.875rem; font-weight: 600;">
-                    <i class="fas fa-info-circle"></i> Information
                 </h4>
                 <p style="margin: 0; color: var(--text-muted); font-size: 0.875rem; line-height: 1.4;">
                     La promotion sera automatiquement calculée en pourcentage basé sur la différence entre le prix original ({{ produit.prix|number_format(2, ',', ' ') }} €) et le prix promotionnel. 

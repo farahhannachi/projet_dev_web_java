@@ -89,14 +89,47 @@ class PromotionController extends AbstractController
     }
 
     #[Route('/admin/promotion/create/{id}', name: 'admin_promotion_create', methods: ['GET', 'POST'])]
-    public function createForProduct(Produit $produit, Request $request, EntityManagerInterface $entityManager): Response
+    public function createForProduct(Produit $produit, Request $request, EntityManagerInterface $entityManager, \Symfony\Component\Validator\Validator\ValidatorInterface $validator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
-        
+        // Symfony Validator is injected
         // Check if there's already an active promotion
         $existingPromotion = $produit->getActivePromotion();
-        
+
         if ($request->isMethod('POST')) {
+            $titre = $request->request->get('titre');
+            $description = $request->request->get('description');
+            $dateDebut = $request->request->get('date_debut');
+            $dateFin = $request->request->get('date_fin');
+            $statut = $request->request->get('statut');
+            $prixPromotionnel = $request->request->get('prix_promotionnel');
+
+            $input = [
+                'titre' => $titre,
+                'description' => $description,
+                'date_debut' => $dateDebut,
+                'date_fin' => $dateFin,
+                'statut' => $statut,
+                'prix_promotionnel' => $prixPromotionnel,
+            ];
+
+            $constraints = new \Symfony\Component\Validator\Constraints\Collection([
+                'titre' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Length(['min' => 3])],
+                'description' => [new \Symfony\Component\Validator\Constraints\NotBlank()],
+                'date_debut' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Date()],
+                'date_fin' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Date()],
+                'statut' => [new \Symfony\Component\Validator\Constraints\NotBlank()],
+                'prix_promotionnel' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Type(['type' => 'numeric'])],
+            ]);
+
+            $violations = $validator->validate($input, $constraints);
+            if (count($violations) > 0) {
+                foreach ($violations as $violation) {
+                    $this->addFlash('error', $violation->getMessage());
+                }
+                return $this->redirectToRoute('admin_promotion_create', ['id' => $produit->getId()]);
+            }
+
             if ($existingPromotion) {
                 // Update existing promotion
                 $promotion = $existingPromotion;
@@ -106,34 +139,33 @@ class PromotionController extends AbstractController
                 $promotion->setProduit($produit);
                 $promotion->setIdAdmin($this->getUser()->getId());
             }
-            
-            $promotion->setTitre($request->request->get('titre'));
-            $promotion->setDescription($request->request->get('description'));
-            $promotion->setDateDebut(new \DateTime($request->request->get('date_debut')));
-            $promotion->setDateFin(new \DateTime($request->request->get('date_fin')));
-            $promotion->setStatut($request->request->get('statut'));
-            
+
+            $promotion->setTitre($titre);
+            $promotion->setDescription($description);
+            $promotion->setDateDebut(new \DateTime($dateDebut));
+            $promotion->setDateFin(new \DateTime($dateFin));
+            $promotion->setStatut($statut);
+
             // Calculate discount based on promotional price
             $originalPrice = $produit->getPrix();
-            $promotionalPrice = (float)$request->request->get('prix_promotionnel');
-            
+            $promotionalPrice = (float)$prixPromotionnel;
+
             if ($promotionalPrice < $originalPrice) {
                 $discountAmount = $originalPrice - $promotionalPrice;
                 $discountPercentage = ($discountAmount / $originalPrice) * 100;
-
                 $promotion->setValeurReduction($discountPercentage);
             }
-            
+
             if (!$existingPromotion) {
                 $entityManager->persist($promotion);
             }
             $entityManager->flush();
-            
+
             $this->addFlash('success', 'Promotion ' . ($existingPromotion ? 'modifiée' : 'créée') . ' avec succès');
-            
+
             return $this->redirectToRoute('admin_promotions');
         }
-        
+
         return $this->render('Admin/promotions/create.html.twig', [
             'produit' => $produit,
             'existingPromotion' => $existingPromotion
@@ -141,61 +173,133 @@ class PromotionController extends AbstractController
     }
 
     #[Route('/admin/promotion/new', name: 'admin_promotion_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, ProduitRepository $produitRepository): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, ProduitRepository $produitRepository, \Symfony\Component\Validator\Validator\ValidatorInterface $validator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
-        
+        // Symfony Validator is injected
+
         if ($request->isMethod('POST')) {
-            $promotion = new Promotion();
-            $promotion->setTitre($request->request->get('titre'));
-            $promotion->setDescription($request->request->get('description'));
-            $promotion->setValeurReduction((float)$request->request->get('valeur_reduction'));
-            $promotion->setDateDebut(new \DateTime($request->request->get('date_debut')));
-            $promotion->setDateFin(new \DateTime($request->request->get('date_fin')));
-            $promotion->setStatut($request->request->get('statut'));
-            
-            // Set product if selected
+            $titre = $request->request->get('titre');
+            $description = $request->request->get('description');
+            $valeurReduction = $request->request->get('valeur_reduction');
+            $dateDebut = $request->request->get('date_debut');
+            $dateFin = $request->request->get('date_fin');
+            $statut = $request->request->get('statut');
             $produitId = $request->request->get('id_produit');
+
+            $input = [
+                'titre' => $titre,
+                'description' => $description,
+                'valeur_reduction' => $valeurReduction,
+                'date_debut' => $dateDebut,
+                'date_fin' => $dateFin,
+                'statut' => $statut,
+                'id_produit' => $produitId,
+            ];
+
+            $constraints = new \Symfony\Component\Validator\Constraints\Collection([
+                'titre' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Length(['min' => 3])],
+                'description' => [new \Symfony\Component\Validator\Constraints\NotBlank()],
+                'valeur_reduction' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Type(['type' => 'numeric'])],
+                'date_debut' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Date()],
+                'date_fin' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Date()],
+                'statut' => [new \Symfony\Component\Validator\Constraints\NotBlank()],
+                'id_produit' => [new \Symfony\Component\Validator\Constraints\NotBlank()],
+            ]);
+
+            $violations = $validator->validate($input, $constraints);
+            if (count($violations) > 0) {
+                foreach ($violations as $violation) {
+                    $this->addFlash('error', $violation->getMessage());
+                }
+                return $this->redirectToRoute('admin_promotion_new');
+            }
+
+            $promotion = new Promotion();
+            $promotion->setTitre($titre);
+            $promotion->setDescription($description);
+            $promotion->setValeurReduction((float)$valeurReduction);
+            $promotion->setDateDebut(new \DateTime($dateDebut));
+            $promotion->setDateFin(new \DateTime($dateFin));
+            $promotion->setStatut($statut);
+
+            // Set product if selected
             if ($produitId) {
                 $produit = $produitRepository->find($produitId);
                 if ($produit) {
                     $promotion->setProduit($produit);
                 }
             }
-            
+
             // Set admin ID
             $promotion->setIdAdmin($this->getUser()->getId());
-            
+
             $entityManager->persist($promotion);
             $entityManager->flush();
-            
+
             $this->addFlash('success', 'Promotion ajoutée avec succès');
-            
+
             return $this->redirectToRoute('admin_promotions');
         }
-        
+
         $produits = $produitRepository->findAll();
-        
+
         return $this->render('Admin/promotions/new.html.twig', [
             'produits' => $produits
         ]);
     }
 
     #[Route('/admin/promotion/{id}/edit', name: 'admin_promotion_edit', methods: ['GET', 'POST'])]
-    public function edit(Promotion $promotion, Request $request, EntityManagerInterface $entityManager, ProduitRepository $produitRepository): Response
+    public function edit(Promotion $promotion, Request $request, EntityManagerInterface $entityManager, ProduitRepository $produitRepository, \Symfony\Component\Validator\Validator\ValidatorInterface $validator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
-        
+        // Symfony Validator is injected
+
         if ($request->isMethod('POST')) {
-            $promotion->setTitre($request->request->get('titre'));
-            $promotion->setDescription($request->request->get('description'));
-            $promotion->setValeurReduction((float)$request->request->get('valeur_reduction'));
-            $promotion->setDateDebut(new \DateTime($request->request->get('date_debut')));
-            $promotion->setDateFin(new \DateTime($request->request->get('date_fin')));
-            $promotion->setStatut($request->request->get('statut'));
-            
-            // Update product if changed
+            $titre = $request->request->get('titre');
+            $description = $request->request->get('description');
+            $valeurReduction = $request->request->get('valeur_reduction');
+            $dateDebut = $request->request->get('date_debut');
+            $dateFin = $request->request->get('date_fin');
+            $statut = $request->request->get('statut');
             $produitId = $request->request->get('id_produit');
+
+            $input = [
+                'titre' => $titre,
+                'description' => $description,
+                'valeur_reduction' => $valeurReduction,
+                'date_debut' => $dateDebut,
+                'date_fin' => $dateFin,
+                'statut' => $statut,
+                'id_produit' => $produitId,
+            ];
+
+            $constraints = new \Symfony\Component\Validator\Constraints\Collection([
+                'titre' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Length(['min' => 3])],
+                'description' => [new \Symfony\Component\Validator\Constraints\NotBlank()],
+                'valeur_reduction' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Type(['type' => 'numeric'])],
+                'date_debut' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Date()],
+                'date_fin' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Date()],
+                'statut' => [new \Symfony\Component\Validator\Constraints\NotBlank()],
+                'id_produit' => [new \Symfony\Component\Validator\Constraints\NotBlank()],
+            ]);
+
+            $violations = $validator->validate($input, $constraints);
+            if (count($violations) > 0) {
+                foreach ($violations as $violation) {
+                    $this->addFlash('error', $violation->getMessage());
+                }
+                return $this->redirectToRoute('admin_promotion_edit', ['id' => $promotion->getIdPromotion()]);
+            }
+
+            $promotion->setTitre($titre);
+            $promotion->setDescription($description);
+            $promotion->setValeurReduction((float)$valeurReduction);
+            $promotion->setDateDebut(new \DateTime($dateDebut));
+            $promotion->setDateFin(new \DateTime($dateFin));
+            $promotion->setStatut($statut);
+
+            // Update product if changed
             if ($produitId) {
                 $produit = $produitRepository->find($produitId);
                 if ($produit) {
@@ -204,16 +308,16 @@ class PromotionController extends AbstractController
             } else {
                 $promotion->setProduit(null);
             }
-            
+
             $entityManager->flush();
-            
+
             $this->addFlash('success', 'Promotion modifiée avec succès');
-            
+
             return $this->redirectToRoute('admin_promotions');
         }
-        
+
         $produits = $produitRepository->findAll();
-        
+
         return $this->render('Admin/promotions/edit.html.twig', [
             'promotion' => $promotion,
             'produits' => $produits

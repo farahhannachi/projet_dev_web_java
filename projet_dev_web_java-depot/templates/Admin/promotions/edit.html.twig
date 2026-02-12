@@ -14,44 +14,37 @@
     <div style="background: white; border-radius: 12px; box-shadow: var(--shadow-md); padding: 2rem; max-width: 800px; margin: 0 auto;">
         <form method="post">
             <input type="hidden" name="_token" value="{{ csrf_token('promotion' ~ promotion.id) }}">
-            
             <div style="margin-bottom: 1.5rem;">
                 <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Titre de la promotion</label>
-                <input type="text" name="titre" value="{{ promotion.titre }}" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                <input type="text" name="titre" value="{{ promotion.titre }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
             </div>
-            
             <div style="margin-bottom: 1.5rem;">
                 <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Description</label>
-                <textarea name="description" rows="3" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem; resize: vertical;">{{ promotion.description }}</textarea>
+                <textarea name="description" rows="3" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem; resize: vertical;">{{ promotion.description }}</textarea>
             </div>
-            
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
                 <div>
-                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Valeur de réduction</label>
-                    <input type="number" name="valeur_reduction" step="0.01" min="0" value="{{ promotion.valeurReduction }}" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Valeur de r\u00e9duction</label>
+                    <input type="number" name="valeur_reduction" step="0.01" value="{{ promotion.valeurReduction }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
                 </div>
-                
                 <div>
                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Statut</label>
-                    <select name="statut" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                    <select name="statut" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
                         <option value="active" {{ promotion.statut == 'active' ? 'selected' : '' }}>Active</option>
                         <option value="inactive" {{ promotion.statut == 'inactive' ? 'selected' : '' }}>Inactive</option>
                     </select>
                 </div>
             </div>
-            
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
                 <div>
-                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Date de début</label>
-                    <input type="date" name="date_debut" value="{{ promotion.dateDebut ? promotion.dateDebut|date('Y-m-d') : '' }}" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Date de d\u00e9but</label>
+                    <input type="date" name="date_debut" value="{{ promotion.dateDebut ? promotion.dateDebut|date('Y-m-d') : '' }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
                 </div>
-                
                 <div>
                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Date de fin</label>
-                    <input type="date" name="date_fin" value="{{ promotion.dateFin ? promotion.dateFin|date('Y-m-d') : '' }}" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                    <input type="date" name="date_fin" value="{{ promotion.dateFin ? promotion.dateFin|date('Y-m-d') : '' }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
                 </div>
             </div>
-            
             <div style="margin-bottom: 1.5rem;">
                 <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Produit (optionnel)</label>
                 <select name="id_produit" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">

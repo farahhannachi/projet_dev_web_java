@@ -40,28 +40,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Form Validation (Contact)
-    const contactForm = document.getElementById('contact-form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const inputs = contactForm.querySelectorAll('input, textarea');
-            let valid = true;
-            inputs.forEach(input => {
-                if (!input.value.trim()) {
-                    valid = false;
-                    input.style.borderColor = 'var(--destructive)';
-                } else {
-                    input.style.borderColor = 'var(--border-color)';
-                }
-            });
-
-            if (valid) {
-                alert('Message envoyé avec succès !');
-                contactForm.reset();
-            } else {
-                alert('Veuillez remplir tous les champs.');
-            }
-        });
-    }
+    // ...existing code...
 });

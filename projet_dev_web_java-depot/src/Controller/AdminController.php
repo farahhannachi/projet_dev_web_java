@@ -243,38 +243,62 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/client/new', name: 'admin_client_new', methods: ['GET', 'POST'])]
-    public function newClient(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, UtilisateurRepository $utilisateurRepository): Response
+    public function newClient(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, UtilisateurRepository $utilisateurRepository, \Symfony\Component\Validator\Validator\ValidatorInterface $validator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
+        // Symfony Validator is injected
+
         if ($request->isMethod('POST')) {
             $email = $request->request->get('email');
-            
+            $nom = $request->request->get('nom');
+            $prenom = $request->request->get('prenom');
+            $password = $request->request->get('mot_de_passe');
+            $role = $request->request->get('role', 'ROLE_USER');
+
+            $input = [
+                'email' => $email,
+                'nom' => $nom,
+                'prenom' => $prenom,
+                'mot_de_passe' => $password,
+                'role' => $role,
+            ];
+
+            $constraints = new \Symfony\Component\Validator\Constraints\Collection([
+                'email' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Email()],
+                'nom' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Length(['min' => 2])],
+                'prenom' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Length(['min' => 2])],
+                'mot_de_passe' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Length(['min' => 6])],
+                'role' => [new \Symfony\Component\Validator\Constraints\NotBlank()],
+            ]);
+
+            $violations = $validator->validate($input, $constraints);
+            if (count($violations) > 0) {
+                foreach ($violations as $violation) {
+                    $this->addFlash('error', $violation->getMessage());
+                }
+                return $this->redirectToRoute('admin_client_new');
+            }
+
             // Vérifier si l'email existe déjà
             $existingUser = $utilisateurRepository->findOneBy(['email' => $email]);
             if ($existingUser) {
                 $this->addFlash('error', 'Cet email est déjà utilisé par un autre utilisateur.');
                 return $this->redirectToRoute('admin_client_new');
             }
-            
+
             $client = new Utilisateur();
-            $client->setNom($request->request->get('nom'));
-            $client->setPrenom($request->request->get('prenom'));
+            $client->setNom($nom);
+            $client->setPrenom($prenom);
             $client->setEmail($email);
             $client->setEtatCompte('actif');
             $client->setDateCreation(new \DateTimeImmutable());
-            
-            // Hasher le mot de passe
-            $password = $request->request->get('mot_de_passe');
             $client->setMotDePasse($passwordHasher->hashPassword($client, $password));
-            
-            // Assigner les rôles
-            $role = $request->request->get('role', 'ROLE_USER');
             $client->setRoles([$role]);
 
             $entityManager->persist($client);
             $entityManager->flush();
-            
+
             $this->addFlash('success', 'Client créé avec succès');
             return $this->redirectToRoute('admin_clients');
         }
@@ -298,20 +322,51 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/client/{id}/edit', name: 'admin_client_edit', methods: ['GET', 'POST'])]
-    public function editClient(Utilisateur $client, Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): Response
+    public function editClient(Utilisateur $client, Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, \Symfony\Component\Validator\Validator\ValidatorInterface $validator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if ($request->isMethod('POST')) {
-            $client->setNom($request->request->get('nom'));
-            $client->setPrenom($request->request->get('prenom'));
-            $client->setEmail($request->request->get('email'));
+            $nom = $request->request->get('nom');
+            $prenom = $request->request->get('prenom');
+            $email = $request->request->get('email');
             $role = $request->request->get('role', 'ROLE_USER');
-            $client->setRoles([$role]);
-            $client->setEtatCompte($request->request->get('etat_compte'));
-            
-            // Si un nouveau mot de passe est fourni
+            $etatCompte = $request->request->get('etat_compte');
             $newPassword = $request->request->get('mot_de_passe');
+
+            $input = [
+                'nom' => $nom,
+                'prenom' => $prenom,
+                'email' => $email,
+                'role' => $role,
+                'etat_compte' => $etatCompte,
+                'mot_de_passe' => $newPassword,
+            ];
+
+            $constraints = new \Symfony\Component\Validator\Constraints\Collection([
+                'nom' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Length(['min' => 2])],
+                'prenom' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Length(['min' => 2])],
+                'email' => [new \Symfony\Component\Validator\Constraints\NotBlank(), new \Symfony\Component\Validator\Constraints\Email()],
+                'role' => [new \Symfony\Component\Validator\Constraints\NotBlank()],
+                'etat_compte' => [new \Symfony\Component\Validator\Constraints\NotBlank()],
+                'mot_de_passe' => [new \Symfony\Component\Validator\Constraints\Length(['min' => 6])],
+            ]);
+
+            $violations = $validator->validate($input, $constraints);
+            if (count($violations) > 0) {
+                foreach ($violations as $violation) {
+                    $this->addFlash('error', $violation->getMessage());
+                }
+                return $this->redirectToRoute('admin_client_edit', ['id' => $client->getId()]);
+            }
+
+            $client->setNom($nom);
+            $client->setPrenom($prenom);
+            $client->setEmail($email);
+            $client->setRoles([$role]);
+            $client->setEtatCompte($etatCompte);
+
+            // Si un nouveau mot de passe est fourni
             if (!empty($newPassword)) {
                 $client->setMotDePasse($passwordHasher->hashPassword($client, $newPassword));
             }
