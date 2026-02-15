@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordonnance {{ ordonnance.numeroOrdonnance }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #16563f;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #16563f;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .document-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin: 30px 0;
+        }
+        
+        .info-section {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+        
+        .info-value {
+            font-weight: 500;
+            color: #1f2937;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .status-valide {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .notes-section {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+        
+        .notes-title {
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🏥 CURAVITA</div>
+        <div class="subtitle">Votre pharmacie en ligne de confiance</div>
+        <div class="subtitle">123 Avenue de la Santé, 75001 Paris | 📞 01 23 45 67 89</div>
+    </div>
+    
+    <div class="document-title">📋 ORDONNANCE MÉDICALE</div>
+    
+    <div class="info-section">
+        <div class="info-row">
+            <div>
+                <div class="info-label">Numéro d'ordonnance</div>
+                <div class="info-value" style="font-size: 1.25rem; color: #16563f;">{{ ordonnance.numeroOrdonnance }}</div>
+            </div>
+            <div>
+                <div class="info-label">Statut</div>
+                <div><span class="status-badge status-valide">✓ {{ ordonnance.statut|capitalize }}</span></div>
+            </div>
+        </div>
+        
+        <div class="info-row">
+            <div>
+                <div class="info-label">Patient</div>
+                <div class="info-value">{{ ordonnance.utilisateur.nom }} {{ ordonnance.utilisateur.prenom }}</div>
+            </div>
+            <div>
+                <div class="info-label">Email</div>
+                <div class="info-value">{{ ordonnance.utilisateur.email }}</div>
+            </div>
+        </div>
+        
+        <div class="info-row">
+            <div>
+                <div class="info-label">Date de l'ordonnance</div>
+                <div class="info-value">{{ ordonnance.dateOrdonnance|date('d/m/Y') }}</div>
+            </div>
+            <div>
+                <div class="info-label">Date d'expiration</div>
+                <div class="info-value">{{ ordonnance.dateExpiration|date('d/m/Y') }}</div>
+            </div>
+        </div>
+    </div>
+    
+    {% if ordonnance.noteMedical %}
+        <div class="notes-section">
+            <div class="notes-title">📝 Note médicale</div>
+            <div>{{ ordonnance.noteMedical }}</div>
+        </div>
+    {% endif %}
+    
+    <div class="footer">
+        <p><strong>Document généré le {{ "now"|date('d/m/Y à H:i') }}</strong></p>
+        <p>Ce document est confidentiel et destiné uniquement au patient mentionné ci-dessus.</p>
+        <p style="margin-top: 20px;">CURAVITA - Pharmacie en ligne agréée ARS | SIRET: 123 456 789 00012</p>
+    </div>
+</body>
+</html>

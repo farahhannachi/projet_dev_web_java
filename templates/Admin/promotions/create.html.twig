@@ -1,0 +1,177 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}{{ existingPromotion ? 'Modifier' : 'Créer' }} une Promotion{% endblock %}
+{% block page_subtitle %}Pour le produit: {{ produit.nom }}{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    {% for message in app.flashes('success') %}
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    <div style="background: white; border-radius: 12px; box-shadow: var(--shadow-md); padding: 2rem; max-width: 800px; margin: 0 auto;">
+        <!-- Product Info -->
+        <div style="display: flex; gap: 2rem; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color);">
+            {% if produit.image %}
+                {% set imageSrc = (produit.image starts with 'http://') or (produit.image starts with 'https://') or (produit.image starts with '//')
+                    ? produit.image
+                    : asset('uploads/products/' ~ produit.image)
+                %}
+                <img src="{{ imageSrc }}" alt="{{ produit.nom }}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
+            {% else %}
+                <div style="width: 120px; height: 120px; background: var(--light-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                    <i class="fas fa-box" style="font-size: 2rem;"></i>
+                </div>
+            {% endif %}
+            
+            <div style="flex: 1;">
+                <h2 style="margin: 0 0 0.5rem 0; color: var(--dark-color); font-size: 1.5rem; font-weight: 600;">{{ produit.nom }}</h2>
+                <p style="margin: 0 0 1rem 0; color: var(--text-muted);">{{ produit.categorie }}</p>
+                <p style="margin: 0 0 0.5rem 0; color: var(--text-muted); font-size: 0.875rem;">{{ produit.description|slice(0, 150) }}{% if produit.description|length > 150 %}...{% endif %}</p>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <span style="font-size: 0.875rem; color: {{ produit.quantiteStock > 0 ? 'var(--secondary-color)' : 'var(--danger-color)' }};">
+                        <i class="fas fa-boxes"></i> Stock: {{ produit.quantiteStock }}
+                    </span>
+                    <span style="font-size: 0.875rem; color: {{ produit.statut == 'disponible' ? 'var(--secondary-color)' : 'var(--text-muted)' }};">
+                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i> {{ produit.statut }}
+                    </span>
+                </div>
+            </div>
+            
+            <div style="text-align: right;">
+                <div style="margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-muted); font-size: 0.875rem;">Prix original:</span>
+                    <div style="text-decoration: line-through; color: var(--text-muted); font-size: 1rem;">{{ produit.prix|number_format(2, ',', ' ') }} €</div>
+                </div>
+                {% if existingPromotion %}
+                    <div>
+                        <span style="color: var(--secondary-color); font-size: 0.875rem;">Prix promotionnel actuel:</span>
+                        <div style="color: var(--secondary-color); font-weight: 600; font-size: 1.25rem;">{{ produit.getPromotionalPrice()|number_format(2, ',', ' ') }} €</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="post" id="promotionForm">
+            <input type="hidden" name="_token" value="{{ csrf_token('promotion' ~ produit.id) }}">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Titre de la promotion</label>
+                    <input type="text" name="titre" value="{{ existingPromotion ? existingPromotion.titre : 'Promotion sur ' ~ produit.nom }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Statut</label>
+                    <select name="statut" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                        <option value="active" {{ existingPromotion and existingPromotion.statut == 'active' ? 'selected' : '' }}>Active</option>
+                        <option value="inactive" {{ existingPromotion and existingPromotion.statut == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Description</label>
+                <textarea name="description" rows="3" placeholder="Description de la promotion" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem; resize: vertical;">{{ existingPromotion ? existingPromotion.description : '' }}</textarea>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Prix promotionnel (€)</label>
+                    <input type="number" name="prix_promotionnel" step="0.01" value="{{ existingPromotion ? produit.getPromotionalPrice() : '' }}" placeholder="{{ produit.prix * 0.8|number_format(2) }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                    <small style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 0.25rem;">Doit être inférieur au prix original</small>
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Prix promotionnel (\u20ac)</label>
+                    <input type="date" name="date_debut" value="{{ existingPromotion ? existingPromotion.dateDebut|date('Y-m-d') : '' }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                    <small style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 0.25rem;">Doit \u00eatre inf\u00e9rieur au prix original</small>
+                </div>
+                <div>
+                    <input type="date" name="date_fin" value="{{ existingPromotion ? existingPromotion.dateFin|date('Y-m-d') : '' }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                    <input type="date" name="date_debut" value="{{ existingPromotion ? existingPromotion.dateDebut|date('Y-m-d') : '' }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-color);">Date de fin</label>
+                    <input type="date" name="date_fin" value="{{ existingPromotion ? existingPromotion.dateFin|date('Y-m-d') : '' }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
+                </div>
+                </h4>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.875rem; line-height: 1.4;">
+                    La promotion sera automatiquement calculée en pourcentage basé sur la différence entre le prix original ({{ produit.prix|number_format(2, ',', ' ') }} €) et le prix promotionnel. 
+                    La promotion s'activera à la date de début et se terminera automatiquement à la date de fin, après quoi le prix retournera à son tarif original.
+                </p>
+            </div>
+            
+        </form>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+            <a href="{{ path('admin_promotions') }}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+            {% if existingPromotion %}
+                <form method="post" action="{{ path('admin_promotion_delete', {id: existingPromotion.id}) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette promotion ? Le prix retournera à son tarif original.');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ existingPromotion.id) }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Supprimer la Promotion
+                    </button>
+                </form>
+            {% endif %}
+            <button type="submit" class="btn btn-primary" form="promotionForm">
+                <i class="fas fa-save"></i> {{ existingPromotion ? 'Mettre à jour' : 'Créer' }} la Promotion
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid transparent;
+}
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+.btn-primary:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+.btn-outline {
+    background: white;
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.btn-outline:hover {
+    background: var(--primary-color);
+    color: white;
+}
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+    border-color: var(--danger-color);
+}
+.btn-danger:hover {
+    background: #c82333;
+    border-color: #c82333;
+}
+.alert-success {
+    background: var(--secondary-color);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+</style>
+{% endblock %}
