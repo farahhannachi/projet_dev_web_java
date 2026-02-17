@@ -1,0 +1,391 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Gestion des Dépôts{% endblock %}
+{% block page_subtitle %}Liste de tous les dépôts{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    <!-- Section Filtres -->
+    <div class="filters-section mb-8">
+        <div class="filters-container">
+            <form method="GET" action="{{ path('admin_depots') }}" class="filters-form">
+                <div class="filters-grid">
+                    <!-- Recherche -->
+                    <div class="filter-group">
+                        <input type="text" 
+                               name="search" 
+                               placeholder="Rechercher un dépôt..." 
+                               value="{{ filters.search }}"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Ville -->
+                    <div class="filter-group">
+                        <select name="ville" class="filter-select">
+                            <option value="all" {{ filters.ville == 'all' or not filters.ville ? 'selected' : '' }}>
+                                Toutes les villes
+                            </option>
+                            {% for ville in villes %}
+                                <option value="{{ ville }}" 
+                                        {{ filters.ville == ville ? 'selected' : '' }}>
+                                    {{ ville }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Capacité Minimum -->
+                    <div class="filter-group">
+                        <input type="number" 
+                               name="capacite_min" 
+                               placeholder="Capacité min" 
+                               value="{{ filters.capacite_min }}"
+                               min="0"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Capacité Maximum -->
+                    <div class="filter-group">
+                        <input type="number" 
+                               name="capacite_max" 
+                               placeholder="Capacité max" 
+                               value="{{ filters.capacite_max }}"
+                               min="0"
+                               class="filter-input">
+                    </div>
+                    
+                    <!-- Tri -->
+                    <div class="filter-group">
+                        <select name="sort" class="filter-select">
+                            <option value="name" {{ filters.sort == 'name' ? 'selected' : '' }}>
+                                Nom (A-Z)
+                            </option>
+                            <option value="capacity_desc" {{ filters.sort == 'capacity_desc' ? 'selected' : '' }}>
+                                Capacité décroissante
+                            </option>
+                            <option value="capacity_asc" {{ filters.sort == 'capacity_asc' ? 'selected' : '' }}>
+                                Capacité croissante
+                            </option>
+                            <option value="date_desc" {{ filters.sort == 'date_desc' ? 'selected' : '' }}>
+                                Date récente
+                            </option>
+                            <option value="date_asc" {{ filters.sort == 'date_asc' ? 'selected' : '' }}>
+                                Date ancienne
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <!-- Boutons -->
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-filter"></i> Filtrer
+                        </button>
+                        <a href="{{ path('admin_depots') }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-times"></i> Réinitialiser
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="page-header">
+        <h1><i class="fas fa-warehouse"></i> Gestion des Dépôts</h1>
+        <a href="{{ path('admin_depot_new') }}" class="btn-primary">
+            <i class="fas fa-plus"></i> Ajouter un Dépôt
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Ville</th>
+                    <th>Code Postal</th>
+                    <th>Téléphone</th>
+                    <th>Capacité</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for depot in depots %}
+                <tr>
+                    <td>{{ depot.idDepot }}</td>
+                    <td>{{ depot.nom }}</td>
+                    <td>{{ depot.ville }}</td>
+                    <td>{{ depot.codePostal }}</td>
+                    <td>{{ depot.telephone|default('-') }}</td>
+                    <td>{{ depot.capacite|default('-') }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ path('admin_depot_edit', {'id': depot.idDepot}) }}" class="btn-edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="POST" action="{{ path('admin_depot_delete', {'id': depot.idDepot}) }}" 
+                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce dépôt ?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ depot.idDepot) }}">
+                                <button type="submit" class="btn-delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <div class="empty-content">
+                            <i class="fas fa-warehouse"></i>
+                            <h3>Aucun dépôt trouvé</h3>
+                            <p>Commencez par ajouter votre premier dépôt.</p>
+                            <a href="{{ path('admin_depot_new') }}" class="btn-primary">
+                                <i class="fas fa-plus"></i> Ajouter un Dépôt
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Informations de débogage -->
+<div style="background: #f0f0f0; border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin: 2rem 0; font-family: monospace; font-size: 0.875rem;">
+    <h3 style="margin-top: 0; color: #333;">🔍 Débogage Dépôts</h3>
+    <p><strong>Filtres actifs:</strong> {{ filters|json_encode }}</p>
+    <p><strong>Dépôts:</strong> {{ depots|length }} éléments</p>
+    <p><strong>Villes disponibles:</strong> {{ villes|length }}</p>
+    
+    {% if depots|length > 0 %}
+        <p><strong>Premier dépôt:</strong> {{ depots[0].nomDepot }}</p>
+    {% endif %}
+    
+    {% if villes|length > 0 %}
+        <p><strong>Première ville:</strong> {{ villes[0] }}</p>
+    {% endif %}
+</div>
+
+<style>
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    color: var(--primary-color);
+    font-size: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.table-container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.modern-table th {
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+.modern-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modern-table tr:hover {
+    background: var(--light-color);
+}
+
+/* Styles pour les filtres */
+.filters-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-input, .filter-select {
+    padding: 0.75rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.filter-input:focus, .filter-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-sm {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+    transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .filters-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-actions {
+        justify-content: center;
+    }
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-edit {
+    background: var(--warning-color);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: var(--transition);
+}
+
+.btn-edit:hover {
+    background: #e67e22;
+    transform: translateY(-1px);
+}
+
+.btn-delete {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: var(--transition);
+}
+
+.btn-delete:hover {
+    background: #c0392b;
+    transform: translateY(-1px);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.empty-content i {
+    font-size: 3rem;
+    color: var(--text-muted);
+}
+
+.empty-content h3 {
+    color: var(--dark-color);
+    margin: 0;
+}
+
+.empty-content p {
+    color: var(--text-muted);
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .modern-table {
+        font-size: 0.875rem;
+    }
+    
+    .modern-table th,
+    .modern-table td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

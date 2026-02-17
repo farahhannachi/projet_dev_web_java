@@ -1,0 +1,86 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}{{ existingPromotion ? 'Modifier' : 'Creer' }} une promotion{% endblock %}
+{% block page_subtitle %}Pour le produit: {{ produit.nom }}{% endblock %}
+
+{% block main %}
+<div style="padding:2rem;">
+    {% for message in app.flashes('error') %}
+        <div class="alert-danger"><i class="fas fa-exclamation-circle"></i> {{ message }}</div>
+    {% endfor %}
+    <div class="card-wrap">
+        <div class="product-head">
+            <div>
+                <h2>{{ produit.nom }}</h2>
+                <p>{{ produit.categorie }} | Stock: {{ produit.quantiteStock }}</p>
+            </div>
+            <div class="price-box">
+                <div class="old">{{ produit.prix|number_format(2, ',', ' ') }} DT</div>
+                {% if existingPromotion %}
+                    <div class="new">{{ produit.getPromotionalPrice()|number_format(2, ',', ' ') }} DT</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="post" class="form-grid" novalidate>
+            <input type="hidden" name="_token" value="{{ csrf_token('promotion' ~ produit.id) }}">
+
+            <div>
+                <label>Titre</label>
+                <input type="text" name="titre" value="{{ existingPromotion ? existingPromotion.titre : 'Promotion sur ' ~ produit.nom }}">
+            </div>
+            <div>
+                <label>Statut</label>
+                <select name="statut">
+                    <option value="active" {{ existingPromotion and existingPromotion.statut == 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="inactive" {{ existingPromotion and existingPromotion.statut == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                </select>
+            </div>
+
+            <div class="full">
+                <label>Description</label>
+                <textarea name="description" rows="3">{{ existingPromotion ? existingPromotion.description : '' }}</textarea>
+            </div>
+
+            <div>
+                <label>Prix promotionnel (DT)</label>
+                <input type="number" name="prix_promotionnel" step="0.01" min="0" value="{{ existingPromotion ? produit.getPromotionalPrice() : '' }}">
+                <small>Doit etre inferieur au prix original.</small>
+            </div>
+            <div>
+                <label>Date debut</label>
+                <input type="date" name="date_debut" value="{{ existingPromotion ? existingPromotion.dateDebut|date('Y-m-d') : '' }}">
+            </div>
+            <div>
+                <label>Date fin</label>
+                <input type="date" name="date_fin" value="{{ existingPromotion ? existingPromotion.dateFin|date('Y-m-d') : '' }}">
+            </div>
+
+            <div class="actions full">
+                <a href="{{ path('admin_promotions') }}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Retour</a>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> {{ existingPromotion ? 'Mettre a jour' : 'Creer' }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.card-wrap{background:#fff;border-radius:12px;padding:1.4rem;box-shadow:var(--shadow-md);max-width:880px;margin:0 auto}
+.product-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border-color)}
+.product-head h2{margin:0 0 .35rem;color:var(--dark-color)}
+.product-head p{margin:0;color:var(--text-muted)}
+.price-box{text-align:right}.old{text-decoration:line-through;color:var(--text-muted)}.new{font-weight:700;color:var(--secondary-color)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-grid .full{grid-column:1/-1}
+label{display:block;font-weight:600;margin-bottom:.35rem;color:var(--dark-color)}
+input,select,textarea{width:100%;padding:.7rem;border:1px solid var(--border-color);border-radius:8px;font-size:.9rem}
+small{color:var(--text-muted);font-size:.75rem}
+.actions{display:flex;gap:.6rem;justify-content:flex-end;align-items:center;margin-top:.6rem}
+.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.65rem .95rem;border-radius:8px;border:1px solid transparent;text-decoration:none;cursor:pointer}
+.btn-primary{background:var(--primary-color);color:#fff;border-color:var(--primary-color)}
+.btn-outline{background:#fff;color:var(--primary-color);border-color:var(--primary-color)}
+.btn-danger{background:#dc3545;color:#fff;border-color:#dc3545}
+.alert-danger{background:#f8d7da;color:#842029;padding:.8rem 1rem;border-radius:8px;margin-bottom:.8rem;display:flex;gap:.5rem;align-items:center}
+@media(max-width:860px){.form-grid{grid-template-columns:1fr}.actions{flex-wrap:wrap}}
+</style>
+{% endblock %}

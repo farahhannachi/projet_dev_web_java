@@ -1,0 +1,65 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Mes adresses - CURAVITA{% endblock %}
+
+{% block stylesheets %}
+<style>
+.wrap{max-width:1120px;margin:2rem auto;padding:0 1rem}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:.8rem;flex-wrap:wrap;margin-bottom:1rem}
+.title{margin:0;color:#0f4e3b;font-size:1.7rem}
+.subtitle{margin:.2rem 0 0;color:#5f7a6f;font-size:.94rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:.95rem}
+.card{position:relative;background:linear-gradient(160deg,#ffffff 0%,#f8fcfa 100%);border:1px solid #dbece4;border-radius:16px;box-shadow:0 12px 28px rgba(12,52,40,.08);padding:1rem}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(135deg,#0f5f45,#1ca16f);border-radius:16px 16px 0 0}
+.name{display:flex;align-items:center;gap:.45rem;font-weight:800;color:#123f32;font-size:1.05rem}
+.dot{width:8px;height:8px;border-radius:999px;background:#1ca16f}
+.addr{margin-top:.65rem;color:#45685b;line-height:1.5}
+.tag{display:inline-block;margin-top:.55rem;padding:.23rem .55rem;border-radius:999px;background:#eaf8f1;color:#0f6c4b;font-size:.77rem;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:0;border-radius:10px;padding:.66rem .9rem;cursor:pointer;font-weight:700}
+.btn-main{background:linear-gradient(135deg,#0f5f45,#1ca16f);color:#fff}
+.btn-soft{background:#eef5f1;color:#33594b}
+.btn-soft-danger{background:#fff1f1;color:#9f1d1d}
+.actions{display:flex;gap:.45rem;margin-top:1rem}
+.flash{margin-bottom:.8rem;padding:.75rem .9rem;border-radius:10px;background:#dbfaea;color:#0b6640;border:1px solid #bcead5}
+.empty{text-align:center;padding:1.3rem;border:1px dashed #cfe2d9;border-radius:14px;color:#5f7a6f;background:#fbfefd}
+@media(max-width:620px){.actions{flex-direction:column}.actions form{width:100%}.actions .btn{width:100%}}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="wrap">
+    <div class="head">
+        <div>
+            <h2 class="title">Mes adresses de livraison</h2>
+            <p class="subtitle">Gere tes adresses pour accelerer le passage de commande.</p>
+        </div>
+        <a href="{{ path('app_mes_adresses_new') }}" class="btn btn-main">Nouvelle adresse</a>
+    </div>
+
+    {% for message in app.flashes('success') %}<div class="flash">{{ message }}</div>{% endfor %}
+
+    <div class="cards">
+        {% for address in addresses %}
+            <article class="card">
+                <div class="name"><span class="dot"></span>{{ address.fullName }}</div>
+                <div class="addr">
+                    {{ address.line1 }}<br>
+                    {% if address.line2 %}{{ address.line2 }}<br>{% endif %}
+                    {{ address.city }}, {{ address.region }} {{ address.postalCode }}<br>
+                    {{ address.country }}
+                    {% if address.phone %}<br>Tel: {{ address.phone }}{% endif %}
+                </div>
+                <span class="tag">Adresse livraison</span>
+                <div class="actions">
+                    <a class="btn btn-soft" href="{{ path('app_mes_adresses_edit', {id: address.id}) }}">Modifier</a>
+                    <form action="{{ path('app_mes_adresses_delete', {id: address.id}) }}" method="post" onsubmit="return confirm('Supprimer cette adresse ?')">
+                        <button class="btn btn-soft-danger" type="submit">Supprimer</button>
+                    </form>
+                </div>
+            </article>
+        {% else %}
+            <article class="empty">Aucune adresse enregistree.</article>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

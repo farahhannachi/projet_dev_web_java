@@ -1,0 +1,109 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Mes commandes - CURAVITA{% endblock %}
+
+{% block stylesheets %}
+<style>
+.wrap{max-width:1200px;margin:2rem auto;padding:0 1rem}
+.stats{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:.7rem;margin-bottom:1rem}
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,minmax(120px,1fr))}}
+.card{background:#fff;border:1px solid #d9ece3;border-radius:14px;box-shadow:0 10px 25px rgba(12,44,35,.07)}
+.stat{padding:.8rem}.stat b{display:block;font-size:1.25rem;color:#124838}.stat span{color:#5d746a;font-size:.86rem}
+.filters{padding:.9rem;display:grid;grid-template-columns:2fr 1fr 1fr;gap:.7rem;margin-bottom:1rem}
+@media(max-width:820px){.filters{grid-template-columns:1fr}}
+.input,.select{width:100%;padding:.72rem .8rem;border:1px solid #caded4;border-radius:10px}
+.order{padding:1rem;margin-bottom:.8rem}
+.head{display:flex;justify-content:space-between;gap:.7rem;align-items:center;flex-wrap:wrap}
+.badge{padding:.22rem .6rem;border-radius:999px;font-size:.78rem;font-weight:800}
+.b-en_attente{background:#fff2cc;color:#92400e}.b-confirmee{background:#dbeafe;color:#1e3a8a}.b-annulee{background:#fee2e2;color:#991b1b}.b-livree{background:#d1fae5;color:#065f46}.b-review{background:#ffe7ba;color:#7c3e00}.b-bloquee{background:#1f2937;color:#fff}
+.rows{margin-top:.8rem;border-top:1px solid #e5f1eb}
+.row{display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px dashed #edf4f0}
+.track{display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.6rem}
+.step{padding:.2rem .45rem;border-radius:999px;border:1px solid #d6e8df;font-size:.74rem;color:#5b756a}
+.step.on{background:#e7f9ef;color:#0a7b4c;border-color:#9de2bf}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="wrap">
+    <div class="stats">
+        <div class="card stat"><b>{{ stats.total }}</b><span>Commandes</span></div>
+        <div class="card stat"><b>{{ stats.en_attente }}</b><span>En attente</span></div>
+        <div class="card stat"><b>{{ stats.confirmee }}</b><span>Confirmees</span></div>
+        <div class="card stat"><b>{{ stats.livree }}</b><span>Livrees</span></div>
+        <div class="card stat"><b>{{ stats.montant_total|number_format(2, ',', ' ') }} DT</b><span>Montant total</span></div>
+    </div>
+
+    <form class="card filters" method="get">
+        <input class="input" name="search" value="{{ filters.search }}" placeholder="Recherche par nom, email, adresse...">
+        <select class="select" name="statut">
+            <option value="all" {% if filters.statut == 'all' %}selected{% endif %}>Tous statuts</option>
+            <option value="en_attente" {% if filters.statut == 'en_attente' %}selected{% endif %}>En attente</option>
+            <option value="confirmee" {% if filters.statut == 'confirmee' %}selected{% endif %}>Confirmee</option>
+            <option value="annulee" {% if filters.statut == 'annulee' %}selected{% endif %}>Annulee</option>
+            <option value="livree" {% if filters.statut == 'livree' %}selected{% endif %}>Livree</option>
+            <option value="review" {% if filters.statut == 'review' %}selected{% endif %}>Review</option>
+            <option value="bloquee" {% if filters.statut == 'bloquee' %}selected{% endif %}>Bloquee</option>
+        </select>
+        <select class="select" name="sort">
+            <option value="date_desc" {% if filters.sort == 'date_desc' %}selected{% endif %}>Date recente</option>
+            <option value="date_asc" {% if filters.sort == 'date_asc' %}selected{% endif %}>Date ancienne</option>
+            <option value="amount_desc" {% if filters.sort == 'amount_desc' %}selected{% endif %}>Montant decroissant</option>
+            <option value="amount_asc" {% if filters.sort == 'amount_asc' %}selected{% endif %}>Montant croissant</option>
+        </select>
+    </form>
+
+    {% for commande in commandes %}
+        <article class="card order">
+            <div class="head">
+                <div>
+                    <strong>Commande #{{ commande.id }}</strong>
+                    <div style="color:#5a7268;font-size:.86rem">{{ commande.dateCommande|date('d/m/Y H:i') }} | {{ commande.modePaiement == 'en_ligne' ? 'Paiement en ligne' : 'Paiement a la livraison' }}</div>
+                </div>
+                <span class="badge b-{{ commande.statut }}">{{ commande.statut|replace({'_':' '})|title }}</span>
+            </div>
+
+            <div class="rows">
+                {% for item in details_par_commande[commande.id]|default([]) %}
+                    <div class="row"><span>{{ item.nom }} x{{ item.quantity }}</span><strong>{{ item.lineTotal|number_format(2, ',', ' ') }} DT</strong></div>
+                {% else %}
+                    <div class="row"><span>Produits non disponibles</span><span>-</span></div>
+                {% endfor %}
+                {% if commande.couponCode %}
+                    <div class="row"><span>Coupon {{ commande.couponCode }}</span><strong>-{{ commande.couponDiscount|number_format(2, ',', ' ') }} DT</strong></div>
+                {% endif %}
+                <div class="row"><strong>Total</strong><strong>{{ commande.total|number_format(2, ',', ' ') }} DT</strong></div>
+                {% if commande.estimatedDeliveryDate %}
+                    <div class="row"><span>Livraison estimee</span><strong>{{ commande.estimatedDeliveryDate|date('d/m/Y H:i') }}</strong></div>
+                {% endif %}
+                {% if commande.fraudScore >= 70 %}
+                    <div class="row"><span>Controle anti-fraude</span><strong>Score {{ commande.fraudScore }}/100</strong></div>
+                {% endif %}
+            </div>
+
+            <div class="track">
+                <span class="step {{ commande.statut in ['en_attente','confirmee','review','livree'] ? 'on' : '' }}">En attente</span>
+                <span class="step {{ commande.statut in ['confirmee','review','livree'] ? 'on' : '' }}">Confirmee</span>
+                <span class="step {{ commande.statut == 'review' ? 'on' : '' }}">Review</span>
+                <span class="step {{ commande.statut == 'livree' ? 'on' : '' }}">Livree</span>
+                <span class="step {{ commande.statut == 'annulee' ? 'on' : '' }}">Annulee</span>
+                <span class="step {{ commande.statut == 'bloquee' ? 'on' : '' }}">Bloquee</span>
+            </div>
+        </article>
+    {% else %}
+        <div class="card" style="padding:1rem;text-align:center">Aucune commande.</div>
+    {% endfor %}
+</div>
+
+<script>
+(() => {
+  const form = document.querySelector('form.filters');
+  const fields = form ? form.querySelectorAll('input,select') : [];
+  let timer = null;
+  fields.forEach(el => el.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => form.submit(), 300);
+  }));
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,343 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Stocks - Module DÃ©pÃ´t & Stock{% endblock %}
+
+{% block content %}
+<div style="padding: 2rem;">
+    <!-- En-tÃªte avec statistiques principales -->
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 style="margin: 0; font-size: 2rem; font-weight: 600;">
+                    <i class="fas fa-warehouse"></i> Module DÃ©pÃ´t & Stock
+                </h1>
+                <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">
+                    Gestion des entrÃ©es/sorties, contrÃ´le des quantitÃ©s, surveillance des dates d'expiration
+                </p>
+            </div>
+            <a href="{{ path('admin_stock_new') }}" class="btn-primary" style="background: white; color: #667eea;">
+                <i class="fas fa-plus-circle"></i> Nouveau Stock
+            </a>
+        </div>
+    </div>
+
+    <!-- Cartes de statistiques -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 4px solid #28a745;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <h4 style="margin: 0; color: #6c757d; font-size: 0.875rem;">Total Stocks</h4>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 1.75rem; font-weight: bold; color: #28a745;">{{ stocks|length }}</p>
+                </div>
+                <i class="fas fa-boxes" style="font-size: 2rem; color: #28a745; opacity: 0.3;"></i>
+            </div>
+        </div>
+
+        <div style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 4px solid #ffc107;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <h4 style="margin: 0; color: #6c757d; font-size: 0.875rem;">Stocks en Alerte</h4>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 1.75rem; font-weight: bold; color: #ffc107;">{{ stocks|filter(s => s.etatStock == 'alerte')|length }}</p>
+                </div>
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #ffc107; opacity: 0.3;"></i>
+            </div>
+        </div>
+
+        <div style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 4px solid #dc3545;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <h4 style="margin: 0; color: #6c757d; font-size: 0.875rem;">Rupture de Stock</h4>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 1.75rem; font-weight: bold; color: #dc3545;">{{ stocks|filter(s => s.etatStock == 'rupture')|length }}</p>
+                </div>
+                <i class="fas fa-times-circle" style="font-size: 2rem; color: #dc3545; opacity: 0.3;"></i>
+            </div>
+        </div>
+
+        <div style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 4px solid #17a2b8;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <h4 style="margin: 0; color: #6c757d; font-size: 0.875rem;">Produits PÃ©rimÃ©s</h4>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 1.75rem; font-weight: bold; color: #17a2b8;">{{ stocks|filter(s => s.estPerime())|length }}</p>
+                </div>
+                <i class="fas fa-clock" style="font-size: 2rem; color: #17a2b8; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertes intelligentes -->
+    {% set alertes = {
+        'critique': stocks|filter(s => s.quantite <= s.seuilCritique),
+        'alerte': stocks|filter(s => s.quantite > s.seuilCritique and s.quantite <= s.seuilAlerte),
+        'peremption': stocks|filter(s => s.estPerime()),
+        'proche_peremption': stocks|filter(s => s.estProchePeremption())
+    } %}
+
+    {% if alertes.critique|length > 0 or alertes.alerte|length > 0 or alertes.peremption|length > 0 %}
+    <div style="margin-bottom: 2rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #495057;">
+            <i class="fas fa-bell"></i> Alertes Intelligentes
+        </h3>
+        
+        {% if alertes.critique|length > 0 %}
+        <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <h4 style="margin: 0 0 0.5rem 0;"><i class="fas fa-exclamation-circle"></i> Rupture Critique</h4>
+            <ul style="margin: 0; padding-left: 1.25rem;">
+                {% for stock in alertes.critique %}
+                <li>{{ stock.produit.nom }} dans {{ stock.depot.nomDepot }} - Reste: {{ stock.quantite }} unitÃ©s</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if alertes.alerte|length > 0 %}
+        <div style="background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <h4 style="margin: 0 0 0.5rem 0;"><i class="fas fa-exclamation-triangle"></i> Stock Faible</h4>
+            <ul style="margin: 0; padding-left: 1.25rem;">
+                {% for stock in alertes.alerte %}
+                <li>{{ stock.produit.nom }} dans {{ stock.depot.nomDepot }} - Reste: {{ stock.quantite }} unitÃ©s</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if alertes.peremption|length > 0 %}
+        <div style="background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 1rem; border-radius: 8px;">
+            <h4 style="margin: 0 0 0.5rem 0;"><i class="fas fa-clock"></i> Produits PÃ©rimÃ©s</h4>
+            <ul style="margin: 0; padding-left: 1.25rem;">
+                {% for stock in alertes.peremption %}
+                <li>{{ stock.produit.nom }} dans {{ stock.depot.nomDepot }} - PÃ©rimÃ© depuis {{ stock.joursAvantPeremption|abs }} jours</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Filtres de recherche -->
+    <div style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #495057;">
+            <i class="fas fa-filter"></i> Filtres et Recherche
+        </h3>
+        <form method="get" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end;">
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #495057;">Recherche</label>
+                <input type="text" name="search" value="{{ filters.search }}" placeholder="Produit..." style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #495057;">Ã‰tat</label>
+                <select name="etat" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px;">
+                    <option value="">Tous</option>
+                    <option value="disponible" {{ filters.etat == 'disponible' ? 'selected' }}>Disponible</option>
+                    <option value="alerte" {{ filters.etat == 'alerte' ? 'selected' }}>Alerte</option>
+                    <option value="rupture" {{ filters.etat == 'rupture' ? 'selected' }}>Rupture</option>
+                    <option value="perime" {{ filters.etat == 'perime' ? 'selected' }}>PÃ©rimÃ©</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #495057;">QuantitÃ© min</label>
+                <input type="number" name="quantite_min" value="{{ filters.quantite_min }}" placeholder="0" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #495057;">QuantitÃ© max</label>
+                <input type="number" name="quantite_max" value="{{ filters.quantite_max }}" placeholder="999" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+            <div>
+                <button type="submit" class="btn-primary" style="padding: 0.5rem 1rem; border: none; border-radius: 6px; background: #007bff; color: white; cursor: pointer;">
+                    <i class="fas fa-search"></i> Rechercher
+                </button>
+                <a href="{{ path('admin_stocks') }}" class="btn-secondary" style="padding: 0.5rem 1rem; border: none; border-radius: 6px; background: #6c757d; color: white; cursor: pointer; text-decoration: none; margin-left: 0.5rem;">
+                    <i class="fas fa-times"></i> RÃ©initialiser
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tableau des stocks -->
+    <div style="background: white; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="padding: 1.5rem; border-bottom: 1px solid #eee;">
+            <h3 style="margin: 0; color: #495057;">
+                <i class="fas fa-list"></i> Liste des Stocks
+            </h3>
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="background: #f8f9fa;">
+                    <tr>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #495057; border-bottom: 1px solid #dee2e6;">ID</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #495057; border-bottom: 1px solid #dee2e6;">Produit</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #495057; border-bottom: 1px solid #dee2e6;">DÃ©pÃ´t</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #495057; border-bottom: 1px solid #dee2e6;">QuantitÃ©</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #495057; border-bottom: 1px solid #dee2e6;">Ã‰tat</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #495057; border-bottom: 1px solid #dee2e6;">PÃ©remption</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #495057; border-bottom: 1px solid #dee2e6;">Valeur</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; color: #495057; border-bottom: 1px solid #dee2e6;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in stocks %}
+                    <tr style="border-bottom: 1px solid #dee2e6; {% if stock.etatStock == 'rupture' %}background: #fff5f5;{% elseif stock.etatStock == 'alerte' %}background: #fffbf0;{% endif %}">
+                        <td style="padding: 1rem;">
+                            <strong>{{ stock.id }}</strong>
+                        </td>
+                        <td style="padding: 1rem;">
+                            <div>
+                                <strong style="color: #495057;">{{ stock.produit.nom }}</strong>
+                                {% if stock.produit.categorie %}
+                                <br><small style="color: #6c757d;">{{ stock.produit.categorie }}</small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td style="padding: 1rem;">
+                            <div>
+                                <strong style="color: #495057;">{{ stock.depot.nomDepot }}</strong>
+                                {% if stock.depot.ville %}
+                                <br><small style="color: #6c757d;">{{ stock.depot.ville }}</small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td style="padding: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="font-weight: bold; font-size: 1.1rem;">{{ stock.quantite }}</span>
+                                {% if stock.seuilAlerte %}
+                                <small style="color: #6c757d;">/ {{ stock.seuilAlerte }}</small>
+                                {% endif %}
+                            </div>
+                            {% if stock.totalEntrees > 0 or stock.totalSorties > 0 %}
+                            <div style="font-size: 0.75rem; color: #6c757d; margin-top: 0.25rem;">
+                                EntrÃ©es: {{ stock.totalEntrees }} | Sorties: {{ stock.totalSorties }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 1rem;">
+                            {% if stock.etatStock == 'disponible' %}
+                                <span style="background: #d4edda; color: #155724; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 600;">
+                                    âœ“ Disponible
+                                </span>
+                            {% elseif stock.etatStock == 'alerte' %}
+                                <span style="background: #fff3cd; color: #856404; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 600;">
+                                    âš  Alerte
+                                </span>
+                            {% elseif stock.etatStock == 'rupture' %}
+                                <span style="background: #f8d7da; color: #721c24; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 600;">
+                                    âœ— Rupture
+                                </span>
+                            {% elseif stock.etatStock == 'perime' %}
+                                <span style="background: #f8d7da; color: #721c24; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 600;">
+                                    â° PÃ©rimÃ©
+                                </span>
+                            {% else %}
+                                <span style="background: #d1ecf1; color: #0c5460; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 600;">
+                                    â³ Expiration proche
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 1rem;">
+                            {% if stock.dateExpiration %}
+                                {% set jours = stock.joursAvantPeremption %}
+                                {% if jours < 0 %}
+                                    <div style="color: #dc3545; font-weight: 600;">
+                                        PÃ©rimÃ©
+                                        <br><small>Il y a {{ jours|abs }} jours</small>
+                                    </div>
+                                {% elseif jours <= 30 %}
+                                    <div style="color: #ffc107; font-weight: 600;">
+                                        {{ stock.dateExpiration|date('d/m/Y') }}
+                                        <br><small>Dans {{ jours }} jours</small>
+                                    </div>
+                                {% else %}
+                                    <div style="color: #28a745;">
+                                        {{ stock.dateExpiration|date('d/m/Y') }}
+                                        <br><small>{{ jours }} jours</small>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <span style="color: #6c757d;">-</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 1rem;">
+                            {% if stock.valeurStock %}
+                                <div style="font-weight: 600; color: #28a745;">
+                                    {{ stock.valeurStock|number_format(2, ',', ' ') }} â‚¬
+                                </div>
+                                {% if stock.margeBeneficiaire %}
+                                <small style="color: #6c757d;">
+                                    Marge: {{ stock.margeBeneficiaire|number_format(2, ',', ' ') }} â‚¬
+                                </small>
+                                {% endif %}
+                            {% else %}
+                                <span style="color: #6c757d;">-</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 1rem;">
+                            <div style="display: flex; gap: 0.5rem;">
+                                <a href="{{ path('admin_stock_edit', {'id': stock.id}) }}" 
+                                   style="padding: 0.375rem 0.75rem; background: #007bff; color: white; border-radius: 6px; text-decoration: none; font-size: 0.875rem;"
+                                   title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="POST" action="{{ path('admin_stock_delete', {'id': stock.id}) }}" 
+                                      onsubmit="return confirm('ÃŠtes-vous sÃ»r de vouloir supprimer ce stock ?')" style="display: inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ stock.id) }}">
+                                    <button type="submit" 
+                                            style="padding: 0.375rem 0.75rem; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem;"
+                                            title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" style="padding: 3rem; text-align: center; background: #f8f9fa;">
+                            <div style="color: #6c757d;">
+                                <i class="fas fa-boxes" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                                <h4 style="margin: 0 0 0.5rem 0;">Aucun stock trouvÃ©</h4>
+                                <p style="margin: 0;">Commencez par ajouter votre premier stock.</p>
+                                <a href="{{ path('admin_stock_new') }}" class="btn-primary" style="margin-top: 1rem; padding: 0.75rem 1.5rem; background: #007bff; color: white; text-decoration: none; border-radius: 6px; display: inline-block;">
+                                    <i class="fas fa-plus"></i> Ajouter un Stock
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Informations supplÃ©mentaires -->
+    <div style="margin-top: 2rem; padding: 1.5rem; background: #e7f3ff; border-radius: 10px; border-left: 4px solid #007bff;">
+        <h4 style="margin: 0 0 0.5rem 0; color: #007bff;">
+            <i class="fas fa-info-circle"></i> FonctionnalitÃ©s du Module DÃ©pÃ´t & Stock
+        </h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            <div>
+                <strong style="color: #495057;">âœ… Gestion des entrÃ©es/sorties</strong>
+                <p style="margin: 0.25rem 0 0 0; color: #6c757d; font-size: 0.875rem;">Suivi prÃ©cis des mouvements de stock</p>
+            </div>
+            <div>
+                <strong style="color: #495057;">âœ… ContrÃ´le des quantitÃ©s</strong>
+                <p style="margin: 0.25rem 0 0 0; color: #6c757d; font-size: 0.875rem;">Seuils d'alerte et critiques personnalisables</p>
+            </div>
+            <div>
+                <strong style="color: #495057;">âœ… Surveillance des dates d'expiration</strong>
+                <p style="margin: 0.25rem 0 0 0; color: #6c757d; font-size: 0.875rem;">Alertes automatiques de pÃ©remption</p>
+            </div>
+            <div>
+                <strong style="color: #495057;">âœ… Optimisation du rÃ©approvisionnement</strong>
+                <p style="margin: 0.25rem 0 0 0; color: #6c757d; font-size: 0.875rem;">Suggestions intelligentes de commandes</p>
+            </div>
+            <div>
+                <strong style="color: #495057;">âœ… Statistiques dÃ©taillÃ©es</strong>
+                <p style="margin: 0.25rem 0 0 0; color: #6c757d; font-size: 0.875rem;">Valeur du stock et marges bÃ©nÃ©ficiaires</p>
+            </div>
+            <div>
+                <strong style="color: #495057;">âœ… TraÃ§abilitÃ© complÃ¨te</strong>
+                <p style="margin: 0.25rem 0 0 0; color: #6c757d; font-size: 0.875rem;">NumÃ©ros de lot et fournisseurs</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
