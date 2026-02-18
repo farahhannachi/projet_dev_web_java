@@ -23,7 +23,7 @@ class Produit
     private ?string $description = null;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private ?float $prix = null;
+    private ?string $prix = null;
 
     #[ORM\Column(name: 'quantite_stock')]
     private ?int $quantiteStock = null;

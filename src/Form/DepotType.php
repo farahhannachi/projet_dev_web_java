@@ -7,7 +7,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 
@@ -67,6 +67,24 @@ class DepotType extends AbstractType
                     ])
                 ]
             ])
+            ->add('latitude', NumberType::class, [
+                'label' => 'Latitude',
+                'required' => false,
+                'scale' => 7,
+                'attr' => [
+                    'placeholder' => 'Auto (modifiable)',
+                    'step' => '0.0000001'
+                ]
+            ])
+            ->add('longitude', NumberType::class, [
+                'label' => 'Longitude',
+                'required' => false,
+                'scale' => 7,
+                'attr' => [
+                    'placeholder' => 'Auto (modifiable)',
+                    'step' => '0.0000001'
+                ]
+            ])
             ->add('responsableDepot', TextType::class, [
                 'label' => 'Responsable',
                 'required' => false,
@@ -78,6 +96,25 @@ class DepotType extends AbstractType
                     new \Symfony\Component\Validator\Constraints\Length([
                         'max' => 255,
                         'maxMessage' => 'Le nom du responsable ne peut pas dépasser {{ limit }} caractères'
+                    ])
+                ]
+            ])
+            ->add('responsableTelephone', TelType::class, [
+                'label' => 'Telephone responsable',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => '+216xxxxxxxx',
+                    'maxlength' => 30,
+                    'inputmode' => 'tel'
+                ],
+                'constraints' => [
+                    new \Symfony\Component\Validator\Constraints\Length([
+                        'max' => 30,
+                        'maxMessage' => 'Le numero ne peut pas depasser {{ limit }} caracteres'
+                    ]),
+                    new \Symfony\Component\Validator\Constraints\Regex([
+                        'pattern' => '/^[0-9+().\\s-]*$/',
+                        'message' => 'Le numero contient des caracteres invalides'
                     ])
                 ]
             ])

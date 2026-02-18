@@ -4,6 +4,11 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    depot_health_weights:
+        rupture: 0.40
+        expiration: 0.25
+        rotation: 0.20
+        seuils: 0.15
 
 services:
     # default configuration for services in *this* file
@@ -27,6 +32,18 @@ services:
             $twilioFrom: '%env(default::TWILIO_FROM_NUMBER)%'
             $brevoSmsApiKey: '%env(default::BREVO_SMS_API_KEY)%'
             $brevoSmsSender: '%env(default::BREVO_SMS_SENDER)%'
+
+    App\EventSubscriber\StockThresholdSubscriber:
+        tags:
+            - { name: doctrine.event_subscriber }
+
+    App\EventSubscriber\StockAlertMailSubscriber:
+        tags:
+            - { name: doctrine.event_subscriber }
+
+    App\Service\DepotHealthScoreService:
+        arguments:
+            $weights: '%depot_health_weights%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

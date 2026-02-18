@@ -34,7 +34,7 @@ class Promotion
     #[ORM\Column(length: 20)]
     private ?string $statut = 'active';
 
-    #[ORM\ManyToOne(targetEntity: Produit::class)]
+    #[ORM\ManyToOne(targetEntity: Produit::class, inversedBy: 'promotions')]
     #[ORM\JoinColumn(name: 'id_produit', referencedColumnName: 'id_produit', nullable: true)]
     private ?Produit $produit = null;
 

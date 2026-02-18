@@ -31,8 +31,17 @@ class Depot
     #[ORM\Column(name: 'responsable_depot', length: 255)]
     private ?string $responsableDepot = null;
 
+    #[ORM\Column(name: 'responsable_telephone', length: 50, nullable: true)]
+    private ?string $responsableTelephone = null;
+
     #[ORM\Column(name: 'date_creation')]
     private ?\DateTimeImmutable $dateCreation = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
+    private ?string $latitude = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
+    private ?string $longitude = null;
 
     #[ORM\OneToMany(targetEntity: Stock::class, mappedBy: 'depot')]
     private Collection $stocks;
@@ -107,6 +116,17 @@ class Depot
         return $this;
     }
 
+    public function getResponsableTelephone(): ?string
+    {
+        return $this->responsableTelephone;
+    }
+
+    public function setResponsableTelephone(?string $responsableTelephone): static
+    {
+        $this->responsableTelephone = $responsableTelephone;
+        return $this;
+    }
+
     public function getDateCreation(): ?\DateTimeImmutable
     {
         return $this->dateCreation;
@@ -116,6 +136,28 @@ class Depot
     {
         $this->dateCreation = $dateCreation;
 
+        return $this;
+    }
+
+    public function getLatitude(): ?float
+    {
+        return $this->latitude !== null ? (float) $this->latitude : null;
+    }
+
+    public function setLatitude(?float $latitude): static
+    {
+        $this->latitude = $latitude !== null ? (string) $latitude : null;
+        return $this;
+    }
+
+    public function getLongitude(): ?float
+    {
+        return $this->longitude !== null ? (float) $this->longitude : null;
+    }
+
+    public function setLongitude(?float $longitude): static
+    {
+        $this->longitude = $longitude !== null ? (string) $longitude : null;
         return $this;
     }
 

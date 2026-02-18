@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Alerte Stock</title>
+</head>
+<body style="font-family: Arial, sans-serif; color:#111827; line-height:1.5;">
+    <div style="max-width:620px;margin:0 auto;padding:20px;border:1px solid #e5e7eb;border-radius:12px;">
+        <h2 style="margin:0 0 12px 0;color:#b91c1c;">
+            {{ level == 'critique' ? 'ALERTE URGENTE - Stock critique' : 'Alerte preventive - Stock faible' }}
+        </h2>
+        <p style="margin:0 0 16px 0;">
+            Un seuil a ete atteint pour le stock suivant.
+        </p>
+
+        <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+            <tr>
+                <td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;">Produit</td>
+                <td style="padding:8px;border:1px solid #e5e7eb;">{{ produit }}</td>
+            </tr>
+            <tr>
+                <td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;">Numero de lot</td>
+                <td style="padding:8px;border:1px solid #e5e7eb;">{{ lot }}</td>
+            </tr>
+            <tr>
+                <td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;">Depot</td>
+                <td style="padding:8px;border:1px solid #e5e7eb;">{{ depot }}</td>
+            </tr>
+            <tr>
+                <td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;">Quantite restante</td>
+                <td style="padding:8px;border:1px solid #e5e7eb;">{{ quantite }}</td>
+            </tr>
+            <tr>
+                <td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;">Seuil critique</td>
+                <td style="padding:8px;border:1px solid #e5e7eb;">{{ seuil_critique }}</td>
+            </tr>
+            <tr>
+                <td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;">Seuil alerte</td>
+                <td style="padding:8px;border:1px solid #e5e7eb;">{{ seuil_alerte }}</td>
+            </tr>
+            <tr>
+                <td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;">Date expiration</td>
+                <td style="padding:8px;border:1px solid #e5e7eb;">{{ expiration }}</td>
+            </tr>
+        </table>
+
+        <div style="background:#fef3c7;border:1px solid #f59e0b;padding:12px;border-radius:8px;">
+            <strong>Recommandation:</strong>
+            Commander environ <strong>{{ recommandation }}</strong> unites.
+        </div>
+
+        <p style="margin-top:16px;font-size:12px;color:#6b7280;">
+            Email automatique - Module Depot & Stock.
+        </p>
+    </div>
+</body>
+</html>

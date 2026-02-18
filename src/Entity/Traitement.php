@@ -14,7 +14,7 @@ class Traitement
     #[ORM\Column(name: 'id_traitement')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Ordonnance::class)]
+    #[ORM\ManyToOne(targetEntity: Ordonnance::class, inversedBy: 'traitements')]
     #[ORM\JoinColumn(name: 'id_ordonnance', referencedColumnName: 'id_ordonnance', nullable: false)]
     private ?Ordonnance $ordonnance = null;
 

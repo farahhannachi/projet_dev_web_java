@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -216,7 +216,7 @@
             <ul class="sidebar-menu">
                 <li><a href="{{ path('admin_dashboard') }}" class="{{ app.request.get('_route') == 'admin_dashboard' ? 'active' : '' }}">Dashboard</a></li>
                 <li><a href="{{ path('admin_clients') }}" class="{{ app.request.get('_route') starts with 'admin_client' ? 'active' : '' }}">Clients</a></li>
-                <li><a href="{{ path('admin_depots') }}" class="{{ app.request.get('_route') starts with 'admin_depot' ? 'active' : '' }}">Dépôts</a></li>
+                <li><a href="{{ path('admin_depots') }}" class="{{ app.request.get('_route') starts with 'admin_depot' ? 'active' : '' }}">DÃ©pÃ´ts</a></li>
                 <li><a href="{{ path('admin_stocks') }}" class="{{ app.request.get('_route') starts with 'admin_stock' ? 'active' : '' }}">Stocks</a></li>
             </ul>
         </aside>
@@ -227,7 +227,7 @@
                     <h1>{% block page_title %}Dashboard{% endblock %}</h1>
                     <p>{% block page_subtitle %}Bienvenue sur l'administration{% endblock %}</p>
                 </div>
-                <a href="{{ path('app_logout') }}" class="btn-logout">Déconnexion</a>
+                <a href="{{ path('app_logout') }}" class="btn-logout">DÃ©connexion</a>
             </div>
             
             <div class="content">
@@ -239,3 +239,5 @@
     {% block javascripts %}{% endblock %}
 </body>
 </html>
+
+

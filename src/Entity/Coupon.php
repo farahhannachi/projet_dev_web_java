@@ -29,7 +29,7 @@ class Coupon
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     #[Assert\Positive]
-    private float $valeur = 0.0;
+    private string $valeur = '0.00';
 
     #[ORM\Column(name: 'date_expiration', nullable: true)]
     private ?\DateTimeImmutable $dateExpiration = null;
@@ -44,7 +44,7 @@ class Coupon
     private bool $actif = true;
 
     #[ORM\Column(name: 'montant_minimum_panier', type: 'decimal', precision: 10, scale: 2, options: ['default' => 0])]
-    private float $montantMinimumPanier = 0.0;
+    private string $montantMinimumPanier = '0.00';
 
     public function getId(): ?int
     {

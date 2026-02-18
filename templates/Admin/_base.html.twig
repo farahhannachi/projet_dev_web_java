@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -29,7 +29,7 @@
                             <li><a href="{{ path('admin_promotions') }}" class="nav-link {{ app.request.get('_route') starts with 'admin_promotion' ? 'active' : '' }}" onclick="window.location.href='{{ path('admin_promotions') }}'; return false;">Promotions</a></li>
                             <li><a href="{{ path('admin_commandes') }}" class="nav-link {{ app.request.get('_route') starts with 'admin_commande' ? 'active' : '' }}">Commandes</a></li>
                             <li><a href="{{ path('admin_coupons') }}" class="nav-link {{ app.request.get('_route') starts with 'admin_coupon' ? 'active' : '' }}">Coupons</a></li>
-                            <li><a href="{{ path('admin_depots') }}" class="nav-link {{ app.request.get('_route') starts with 'admin_depot' ? 'active' : '' }}">Dépôts</a></li>
+                            <li><a href="{{ path('admin_depots') }}" class="nav-link {{ app.request.get('_route') starts with 'admin_depot' ? 'active' : '' }}">DÃ©pÃ´ts</a></li>
                             <li><a href="{{ path('admin_stocks') }}" class="nav-link {{ app.request.get('_route') starts with 'admin_stock' ? 'active' : '' }}">Stocks</a></li>
                         </ul>
                     </div>
@@ -40,7 +40,7 @@
                             <p>Admin</p>
                             <p>{{ app.session.get('email', '') }}</p>
                         </div>
-                        <a href="{{ path('app_logout') }}" class="sidebar-footer-logout" aria-label="Déconnexion">Déconnexion</a>
+                        <a href="{{ path('app_logout') }}" class="sidebar-footer-logout" aria-label="DÃ©connexion">DÃ©connexion</a>
                     </div>
                 </div>
             </nav>
@@ -68,3 +68,5 @@
     {% block javascripts %}{% endblock %}
 </body>
 </html>
+
+

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -568,7 +568,7 @@
         }
         
         .form-error-message::before, .invalid-feedback::before {
-            content: "⚠️ ";
+            content: "âš ï¸ ";
         }
         
         ul.form-error-list li {
@@ -576,7 +576,7 @@
         }
         
         ul.form-error-list li::before {
-            content: "⚠️ ";
+            content: "âš ï¸ ";
         }
 
         .form-grid {
@@ -645,7 +645,7 @@
                 <li><a href="{{ path('admin_promotions') }}" class="{{ app.request.get('_route') starts with 'admin_promotion' ? 'active' : '' }}"><i class="fas fa-tag"></i> Promotions</a></li>
                 <li><a href="{{ path('admin_commandes') }}" class="{{ app.request.get('_route') starts with 'admin_commande' ? 'active' : '' }}"><i class="fas fa-shopping-cart"></i> Commandes</a></li>
                 <li><a href="{{ path('admin_coupons') }}" class="{{ app.request.get('_route') starts with 'admin_coupon' ? 'active' : '' }}"><i class="fas fa-ticket-alt"></i> Coupons</a></li>
-                <li><a href="{{ path('admin_depots') }}" class="{{ app.request.get('_route') starts with 'admin_depot' ? 'active' : '' }}"><i class="fas fa-warehouse"></i> Dépôts</a></li>
+                <li><a href="{{ path('admin_depots') }}" class="{{ app.request.get('_route') starts with 'admin_depot' ? 'active' : '' }}"><i class="fas fa-warehouse"></i> DÃ©pÃ´ts</a></li>
                 <li><a href="{{ path('admin_stocks') }}" class="{{ app.request.get('_route') starts with 'admin_stock' ? 'active' : '' }}"><i class="fas fa-boxes"></i> Stocks</a></li>
                 <li><a href="{{ path('admin_ordonnances') }}" class="{{ app.request.get('_route') starts with 'admin_ordonnance' ? 'active' : '' }}"><i class="fas fa-file-medical"></i> Ordonnances</a></li>
                 <li><a href="{{ path('admin_traitements') }}" class="{{ app.request.get('_route') starts with 'admin_traitement' ? 'active' : '' }}"><i class="fas fa-prescription-bottle-alt"></i> Traitements</a></li>
@@ -664,7 +664,7 @@
                     <p>{% block page_subtitle %}Bienvenue sur l'administration{% endblock %}</p>
                 </div>
                 <a href="{{ path('app_logout') }}" class="btn-logout">
-                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    <i class="fas fa-sign-out-alt"></i> DÃ©connexion
                 </a>
             </div>
             
@@ -677,3 +677,5 @@
     {% block javascripts %}{% endblock %}
 </body>
 </html>
+
+

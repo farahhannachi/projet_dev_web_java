@@ -3,11 +3,11 @@
 {% block title %}Nos Dépôts - CuraVita{% endblock %}
 
 {% block main %}
-<div class="container" style="padding: 4rem 1rem;">
-    <h1 class="text-center mb-12 text-primary">Nos Dépôts</h1>
+<div class="container depot-page" style="padding: 4rem 1rem;">
+    <h1 class="text-center mb-12 text-primary fade-in-up delay-1">Nos Dépôts</h1>
 
     <!-- Section Filtres -->
-    <div class="filters-section mb-8">
+    <div class="filters-section mb-8 fade-in-up delay-2">
         <div class="filters-container">
             <form method="GET" action="{{ path('front_depots') }}" class="filters-form">
                 <div class="filters-grid">
@@ -93,7 +93,7 @@
     {% if depots|length > 0 %}
         <div class="cards-grid">
             {% for depot in depots %}
-                <div class="info-card">
+                <div class="info-card fade-in-up delay-{{ (loop.index0 % 6) + 1 }}">
                     <div class="card-header">
                         <div class="card-icon">
                             <i class="fas fa-warehouse"></i>
@@ -118,12 +118,51 @@
                                 <i class="fas fa-user-tie"></i>
                                 <span>Responsable: {{ depot.responsableDepot }}</span>
                             </li>
+                            {% if depot.responsableTelephone %}
+                            <li>
+                                <i class="fas fa-phone"></i>
+                                <span>Telephone: {{ depot.responsableTelephone }}</span>
+                            </li>
+                            {% endif %}
                             <li>
                                 <i class="fas fa-calendar"></i>
                                 <span>Créé le: {{ depot.dateCreation ? depot.dateCreation|date('d/m/Y') : 'N/A' }}</span>
                             </li>
                         </ul>
-                        
+
+                        <div class="health-section">
+                            <div class="health-card" data-health-url="{{ path('api_depot_health', { id: depot.id }) }}">
+                                <div class="health-gauge" style="--score: 0; --gauge-color: #6b7280;">
+                                    <div class="health-center">
+                                        <div class="health-score-value">--%</div>
+                                        <div class="health-score-label">Score</div>
+                                    </div>
+                                </div>
+                                <div class="health-meta">
+                                    <div class="health-status">Chargement...</div>
+                                    <button type="button" class="health-toggle" aria-expanded="false">Details</button>
+                                </div>
+                                <div class="health-details" aria-hidden="true">
+                                    <div class="health-detail" data-crit="rupture">
+                                        <span class="health-label">Rupture</span>
+                                        <span class="health-value">--</span>
+                                    </div>
+                                    <div class="health-detail" data-crit="expiration">
+                                        <span class="health-label">Expiration</span>
+                                        <span class="health-value">--</span>
+                                    </div>
+                                    <div class="health-detail" data-crit="rotation">
+                                        <span class="health-label">Rotation</span>
+                                        <span class="health-value">--</span>
+                                    </div>
+                                    <div class="health-detail" data-crit="seuils">
+                                        <span class="health-label">Seuils</span>
+                                        <span class="health-value">--</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: center;">
                             <span class="badge badge-success">
                                 <i class="fas fa-check-circle"></i> Opérationnel
@@ -137,7 +176,7 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="empty-state">
+        <div class="empty-state fade-in-up">
             <i class="fas fa-warehouse" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
             <h3 style="color: var(--text-muted); margin-bottom: 1rem;">Aucun dépôt trouvé</h3>
             <p style="color: var(--text-muted);">Aucun dépôt ne correspond à vos critères de recherche.</p>
@@ -146,13 +185,78 @@
 </div>
 
 <style>
+/* Hero style (Guide Sante feel) */
+.depot-page {
+    position: relative;
+    overflow: hidden;
+    padding-top: 5rem;
+}
+.depot-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 320px;
+    background-image:
+        radial-gradient(circle at 30% 20%, rgba(0, 180, 216, 0.35) 0%, transparent 40%),
+        radial-gradient(circle at 70% 80%, rgba(40, 167, 69, 0.35) 0%, transparent 40%),
+        linear-gradient(135deg, #0a1628 0%, #16563f 50%, #00b4d8 100%);
+    background-repeat: no-repeat;
+    background-size: auto, auto, cover;
+    animation: pulse-bg 8s ease-in-out infinite;
+}
+@keyframes pulse-bg {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.03); }
+}
+.depot-page > * { position: relative; z-index: 1; }
+.depot-page > h1 {
+    font-size: clamp(2.5rem, 7vw, 4rem);
+    font-weight: 800;
+    color: #ffffff;
+    text-shadow: 2px 2px 20px rgba(0,0,0,0.3);
+    margin-bottom: 2rem;
+    background: linear-gradient(90deg, #ffffff, #ffd166, #ff6b9d, #ffffff);
+    background-size: 300% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: rainbow 6s linear infinite;
+}
+.depot-page > h1::before {
+    content: '\f494';
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    width: 120px;
+    height: 120px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 1.75rem;
+    font-size: 3.25rem;
+    color: #ff6b9d;
+    border: 3px solid rgba(255,255,255,0.3);
+    backdrop-filter: blur(10px);
+    animation: pulse-heart 1.5s ease-in-out infinite;
+}
+@keyframes pulse-heart {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+    50% { transform: scale(1.08); box-shadow: 0 0 0 18px rgba(255,255,255,0); }
+}
+@keyframes rainbow {
+    0% { background-position: 0% center; }
+    100% { background-position: 300% center; }
+}
+
 /* Styles pour les filtres */
 .filters-section {
-    background: white;
+    background: rgba(255,255,255,0.95);
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
+    backdrop-filter: blur(8px);
 }
 
 .filters-grid {
@@ -246,6 +350,130 @@
 .badge { display: inline-block; padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
 .badge-success { background: #28a745; color: white; }
 .badge-warning { background: #ffc107; color: #212529; }
+.health-section { margin-top: 1.5rem; }
+.health-card {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #f8fafc, #ffffff);
+    position: relative;
+    overflow: hidden;
+}
+.health-gauge {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: conic-gradient(var(--gauge-color) calc(var(--score) * 1%), #e5e7eb 0);
+    display: grid;
+    place-items: center;
+    position: relative;
+}
+.health-center {
+    position: absolute;
+    inset: 12px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 0 1px #e5e7eb;
+}
+.health-score-value { font-size: 1.3rem; font-weight: 700; color: #0f172a; }
+.health-score-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; }
+.health-meta { display: flex; flex-direction: column; gap: 0.5rem; }
+.health-status { font-size: 1rem; font-weight: 600; color: #0f172a; }
+.health-toggle {
+    align-self: flex-start;
+    border: none;
+    background: #0f172a;
+    color: white;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.health-toggle:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(15, 23, 42, 0.15); }
+.health-details {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed #e5e7eb;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.25s ease;
+}
+.health-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: #475569;
+}
+.health-label { font-weight: 600; color: #0f172a; }
+.health-value { font-weight: 500; color: #1f2937; }
+.health-card:hover .health-details,
+.health-card.is-open .health-details {
+    opacity: 1;
+    max-height: 200px;
+}
+
+/* Animations (Guide Sante style) */
+.fade-in-up { opacity: 1; transform: translateY(0); }
+body.reveal-ready .fade-in-up { opacity: 0; transform: translateY(30px); }
+body.reveal-ready .fade-in-up.is-visible { animation: fadeInUp 0.8s ease forwards; }
+@keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+.delay-6 { animation-delay: 0.6s; }
+
+.info-card,
+.health-card,
+.filters-section {
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.info-card:hover,
+.health-card:hover,
+.filters-section:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.reveal-ready .fade-in-up,
+    body.reveal-ready .fade-in-up.is-visible {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+    .depot-page::before {
+        animation: none;
+    }
+    .depot-page > h1 {
+        animation: none;
+        background-position: 0% center;
+    }
+    .depot-page > h1::before {
+        animation: none;
+    }
+    .info-card,
+    .health-card,
+    .filters-section {
+        transition: none;
+    }
+}
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -260,6 +488,127 @@
     .cards-grid {
         grid-template-columns: 1fr;
     }
+
+    .health-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    .health-gauge {
+        margin: 0 auto;
+    }
+    .health-meta {
+        align-items: center;
+    }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const revealItems = document.querySelectorAll('.fade-in-up');
+    if (revealItems.length) {
+        document.body.classList.add('reveal-ready');
+        if (!('IntersectionObserver' in window)) {
+            revealItems.forEach((el) => el.classList.add('is-visible'));
+        } else {
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
+            revealItems.forEach((el) => observer.observe(el));
+        }
+    }
+
+    const statusLabels = {
+        sain: 'Depot sain',
+        surveiller: 'Depot a surveiller',
+        risque: 'Depot a risque',
+        indisponible: 'Indisponible'
+    };
+
+    document.querySelectorAll('.health-card').forEach((card) => {
+        const toggle = card.querySelector('.health-toggle');
+        const details = card.querySelector('.health-details');
+        if (toggle && details) {
+            toggle.addEventListener('click', () => {
+                const isOpen = card.classList.toggle('is-open');
+                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                details.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+            });
+        }
+
+        const url = card.getAttribute('data-health-url');
+        const gauge = card.querySelector('.health-gauge');
+        const scoreValue = card.querySelector('.health-score-value');
+        const statusEl = card.querySelector('.health-status');
+
+        if (!url || !gauge || !scoreValue || !statusEl) {
+            return;
+        }
+
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then((response) => response.ok ? response.json() : Promise.reject(response))
+            .then((data) => {
+                if (!data || data.ok !== true) {
+                    throw new Error('Invalid response');
+                }
+
+                const score = typeof data.score === 'number' ? data.score : 0;
+                const color = data.color || '#6b7280';
+                const statusKey = (data.status || 'indisponible').toString();
+                const statusText = statusLabels[statusKey] || statusKey;
+
+                gauge.style.setProperty('--score', Math.max(0, Math.min(100, score)));
+                gauge.style.setProperty('--gauge-color', color);
+                scoreValue.textContent = `${Math.round(score)}%`;
+                statusEl.textContent = statusText;
+                statusEl.style.color = color;
+
+                const criteria = data.criteria || {};
+                const weights = data.weights || {};
+
+                const setDetail = (key, text, weight) => {
+                    const detail = card.querySelector(`.health-detail[data-crit="${key}"]`);
+                    if (!detail) {
+                        return;
+                    }
+                    const label = detail.querySelector('.health-label');
+                    const value = detail.querySelector('.health-value');
+                    if (label) {
+                        const baseLabel = label.textContent.split(' (')[0];
+                        label.textContent = weight !== undefined
+                            ? `${baseLabel} (${Math.round(weight * 100)}%)`
+                            : baseLabel;
+                    }
+                    if (value) {
+                        value.textContent = text;
+                    }
+                };
+
+                if (criteria.rupture) {
+                    setDetail('rupture', `${criteria.rupture.count} | ${criteria.rupture.rate}% | score ${criteria.rupture.score}`, weights.rupture);
+                }
+                if (criteria.expiration) {
+                    setDetail('expiration', `${criteria.expiration.count} | ${criteria.expiration.rate}% | score ${criteria.expiration.score}`, weights.expiration);
+                }
+                if (criteria.rotation) {
+                    setDetail('rotation', `${criteria.rotation.ratio}% | score ${criteria.rotation.score}`, weights.rotation);
+                }
+                if (criteria.seuils) {
+                    setDetail('seuils', `${criteria.seuils.count} | ${criteria.seuils.rate}% | score ${criteria.seuils.score}`, weights.seuils);
+                }
+            })
+            .catch(() => {
+                gauge.style.setProperty('--score', 0);
+                gauge.style.setProperty('--gauge-color', '#6b7280');
+                scoreValue.textContent = '--%';
+                statusEl.textContent = statusLabels.indisponible;
+                statusEl.style.color = '#6b7280';
+            });
+    });
+});
+</script>
 {% endblock %}

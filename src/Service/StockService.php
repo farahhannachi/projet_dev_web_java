@@ -4,21 +4,25 @@ namespace App\Service;
 
 use App\Entity\Stock;
 use App\Repository\StockRepository;
+use App\Repository\VenteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class StockService
 {
     private StockRepository $stockRepository;
+    private VenteRepository $venteRepository;
     private EntityManagerInterface $entityManager;
     private ParameterBagInterface $parameterBag;
 
     public function __construct(
         StockRepository $stockRepository,
+        VenteRepository $venteRepository,
         EntityManagerInterface $entityManager,
         ParameterBagInterface $parameterBag
     ) {
         $this->stockRepository = $stockRepository;
+        $this->venteRepository = $venteRepository;
         $this->entityManager = $entityManager;
         $this->parameterBag = $parameterBag;
     }
@@ -412,5 +416,218 @@ class StockService
                     round(($stats['total_sorties'] / $stats['total_entrees']) * 100, 2) : 0
             ]
         ];
+    }
+
+    /**
+     * 🎯 PRÉVISION INTELLIGENTE DE STOCK
+     * Calcule automatiquement le nombre de jours restants avant rupture de stock pour chaque produit
+     */
+    public function calculerPrevisionStock(Stock $stock): array
+    {
+        // Récupérer la quantité actuelle en stock du produit
+        $stockActuel = $stock->getQuantite();
+        
+        // Calculer la consommation moyenne journalière basée sur les ventes des 30 derniers jours
+        $moyenneVenteJournaliere = $this->venteRepository->getConsommationMoyenneJournaliere(
+            $stock->getProduit()?->getId() ?? 0
+        );
+
+        // ⚠️ Cas particulier : Si la moyenne journalière est égale à 0
+        if ($moyenneVenteJournaliere == 0) {
+            return [
+                'stock_actuel' => $stockActuel,
+                'moyenne_vente_journaliere' => 0,
+                'jours_restants' => null,
+                'statut' => 'STABLE',
+                'message' => 'Stock stable - Aucune vente récente détectée',
+                'date_rupture_estimee' => null,
+                'niveau_risque' => 'faible'
+            ];
+        }
+
+        // Calculer le nombre de jours restants avant rupture selon la formule
+        $joursRestants = intval($stockActuel / $moyenneVenteJournaliere);
+
+        // 🎨 Classification pour affichage dashboard
+        $statut = $this->classifierStatutPrevision($joursRestants);
+        $niveauRisque = $this->calculerNiveauRisquePrevision($joursRestants);
+
+        // Calculer la date de rupture estimée
+        $dateRuptureEstimee = null;
+        if ($joursRestants > 0) {
+            $dateRuptureEstimee = (new \DateTime())->modify("+{$joursRestants} days");
+        }
+
+        return [
+            'stock_actuel' => $stockActuel,
+            'moyenne_vente_journaliere' => round($moyenneVenteJournaliere, 2),
+            'jours_restants' => $joursRestants,
+            'statut' => $statut,
+            'message' => $this->genererMessagePrevision($joursRestants, $moyenneVenteJournaliere),
+            'date_rupture_estimee' => $dateRuptureEstimee?->format('d/m/Y'),
+            'niveau_risque' => $niveauRisque,
+            'recommendations' => $this->genererRecommendationsPrevision($stock, $joursRestants, $moyenneVenteJournaliere)
+        ];
+    }
+
+    /**
+     * Calcule les prévisions pour tous les stocks
+     */
+    public function calculerPrevisionsTousStocks(): array
+    {
+        $stocks = $this->stockRepository->findAll();
+        $previsions = [];
+
+        foreach ($stocks as $stock) {
+            if ($stock->getProduit()) {
+                $previsions[] = [
+                    'stock' => $stock,
+                    'prevision' => $this->calculerPrevisionStock($stock)
+                ];
+            }
+        }
+
+        // Trier par niveau de risque (critique en premier)
+        usort($previsions, function($a, $b) {
+            $ordreRisque = ['critique' => 0, 'eleve' => 1, 'modere' => 2, 'faible' => 3];
+            $niveauA = $a['prevision']['niveau_risque'];
+            $niveauB = $b['prevision']['niveau_risque'];
+            
+            return $ordreRisque[$niveauA] ?? 4 <=> ($ordreRisque[$niveauB] ?? 4);
+        });
+
+        return $previsions;
+    }
+
+    /**
+     * 🎨 Classification pour affichage dashboard
+     */
+    private function classifierStatutPrevision(int $joursRestants): string
+    {
+        if ($joursRestants > 30) {
+            return 'STABLE'; // vert
+        } elseif ($joursRestants >= 7 && $joursRestants <= 30) {
+            return 'A_SURVEILLER'; // orange
+        } else {
+            return 'RUPTURE_IMMINENTE'; // rouge
+        }
+    }
+
+    /**
+     * Calcule le niveau de risque pour prévision
+     */
+    private function calculerNiveauRisquePrevision(int $joursRestants): string
+    {
+        if ($joursRestants <= 3) {
+            return 'critique';
+        } elseif ($joursRestants <= 7) {
+            return 'eleve';
+        } elseif ($joursRestants <= 15) {
+            return 'modere';
+        } else {
+            return 'faible';
+        }
+    }
+
+    /**
+     * Génère un message explicatif pour la prévision
+     */
+    private function genererMessagePrevision(int $joursRestants, float $moyenneVenteJournaliere): string
+    {
+        if ($joursRestants <= 0) {
+            return 'Rupture de stock imminente - Réapprovisionnement urgent requis';
+        } elseif ($joursRestants <= 7) {
+            return "Rupture prévue dans {$joursRestants} jours - Commande à planifier rapidement";
+        } elseif ($joursRestants <= 30) {
+            return "Stock suffisant pour {$joursRestants} jours - Surveillance recommandée";
+        } else {
+            return "Stock confortable - Prochaine commande à planifier dans {$joursRestants} jours";
+        }
+    }
+
+    /**
+     * Génère des recommandations basées sur la prévision
+     */
+    private function genererRecommendationsPrevision(Stock $stock, int $joursRestants, float $moyenneVenteJournaliere): array
+    {
+        $recommendations = [];
+
+        if ($joursRestants <= 7) {
+            $recommendations[] = [
+                'type' => 'urgent',
+                'message' => 'Réapprovisionnement immédiat requis',
+                'action' => 'Commander maintenant'
+            ];
+        }
+
+        if ($stock->estProchePeremption()) {
+            $recommendations[] = [
+                'type' => 'peremption',
+                'message' => 'Produit proche de la péremption',
+                'action' => 'Promotion ou destruction'
+            ];
+        }
+
+        if ($moyenneVenteJournaliere > 0 && $joursRestants > 60) {
+            $recommendations[] = [
+                'type' => 'surstock',
+                'message' => 'Risque de surstock détecté',
+                'action' => 'Réduire les commandes'
+            ];
+        }
+
+        if ($stock->getQuantite() <= $stock->getSeuilAlerte()) {
+            $recommendations[] = [
+                'type' => 'seuil',
+                'message' => 'Stock en dessous du seuil d\'alerte',
+                'action' => 'Déclencher alerte'
+            ];
+        }
+
+        return $recommendations;
+    }
+
+    /**
+     * Obtient les statistiques de prévision pour le dashboard
+     */
+    public function getStatistiquesPrevisionDashboard(): array
+    {
+        $previsions = $this->calculerPrevisionsTousStocks();
+        
+        $stats = [
+            'total_stocks' => count($previsions),
+            'stocks_critiques' => 0,
+            'stocks_a_surveiller' => 0,
+            'stocks_stables' => 0,
+            'stocks_stable_zero_vente' => 0,
+            'ruptures_imminentes' => [],
+            'top_risques' => array_slice($previsions, 0, 5) // Top 5 des plus à risque
+        ];
+
+        foreach ($previsions as $item) {
+            $prevision = $item['prevision'];
+            $statut = $prevision['statut'];
+
+            switch ($statut) {
+                case 'RUPTURE_IMMINENTE':
+                    $stats['stocks_critiques']++;
+                    if ($prevision['jours_restants'] <= 7) {
+                        $stats['ruptures_imminentes'][] = $item;
+                    }
+                    break;
+                case 'A_SURVEILLER':
+                    $stats['stocks_a_surveiller']++;
+                    break;
+                case 'STABLE':
+                    if ($prevision['moyenne_vente_journaliere'] == 0) {
+                        $stats['stocks_stable_zero_vente']++;
+                    } else {
+                        $stats['stocks_stables']++;
+                    }
+                    break;
+            }
+        }
+
+        return $stats;
     }
 }

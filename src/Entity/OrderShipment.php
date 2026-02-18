@@ -26,7 +26,7 @@ class OrderShipment
     private string $itemsJson = '[]';
 
     #[ORM\Column(name: 'shipping_cost', type: 'decimal', precision: 10, scale: 2, options: ['default' => 0])]
-    private float $shippingCost = 0.0;
+    private string $shippingCost = '0.00';
 
     public function getId(): ?int
     {

@@ -19,12 +19,8 @@ use App\Repository\TraitementRepository;
 use App\Service\StockService;
 use App\Service\MailerService;
 use App\Service\SmsService;
+use App\Service\DepotService as DepotManagementService;
 use App\Form\ProduitType;
-use App\Form\CommandeType;
-use App\Form\DepotType;
-use App\Form\StockType;
-use App\Form\CouponType;
-use App\Service\DepotService;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Doctrine\ORM\EntityManagerInterface;
@@ -44,7 +40,7 @@ use App\Entity\Stock as StockEntity;
 class AdminController extends AbstractController
 {
     #[Route('/admin', name: 'admin_dashboard')]
-    public function dashboard(Request $request, UtilisateurRepository $utilisateurRepository, DepotRepository $depotRepository, StockRepository $stockRepository, ProduitRepository $produitRepository, CommandeRepository $commandeRepository, OrdonnanceRepository $ordonnanceRepository, TraitementRepository $traitementRepository): Response
+    public function dashboard(Request $request, UtilisateurRepository $utilisateurRepository, DepotRepository $depotRepository, StockRepository $stockRepository, ProduitRepository $produitRepository, CommandeRepository $commandeRepository, OrdonnanceRepository $ordonnanceRepository, TraitementRepository $traitementRepository, StockService $stockService): Response
     {
         // SÃ©curitÃ© : seul l'admin peut entrer
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
@@ -126,6 +122,9 @@ class AdminController extends AbstractController
             'stocks' => $stocks,
             'commandes' => $commandes,
             'depots' => $depots,
+            // 🎯 PRÉVISION INTELLIGENTE DE STOCK
+            'previsions_stock' => $stockService->getStatistiquesPrevisionDashboard(),
+            'previsions_detaillees' => $stockService->calculerPrevisionsTousStocks(),
             // Filtres actifs
             'filters' => [
                 'stock_search' => $stockSearch,
@@ -135,6 +134,49 @@ class AdminController extends AbstractController
                 'depot_search' => $depotSearch
             ]
         ]);
+    }
+
+    #[Route('/index.php/admin', name: 'admin_dashboard_alt')]
+    public function dashboardAlt(Request $request, UtilisateurRepository $utilisateurRepository, DepotRepository $depotRepository, StockRepository $stockRepository, ProduitRepository $produitRepository, CommandeRepository $commandeRepository, OrdonnanceRepository $ordonnanceRepository, TraitementRepository $traitementRepository, StockService $stockService): Response
+    {
+        return $this->dashboard($request, $utilisateurRepository, $depotRepository, $stockRepository, $produitRepository, $commandeRepository, $ordonnanceRepository, $traitementRepository, $stockService);
+    }
+
+    #[Route('/admin/sms/test', name: 'admin_sms_test', methods: ['POST'])]
+    public function testSms(Request $request, SmsService $smsService): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $csrfToken = (string) $request->request->get('_csrf_token');
+        if (!$this->isCsrfTokenValid('sms_test', $csrfToken)) {
+            $this->addFlash('error', 'CSRF invalide.');
+            return $this->redirectToRoute('admin_dashboard');
+        }
+
+        if (!$smsService->canSend()) {
+            $this->addFlash('error', 'Aucun provider SMS configure (Twilio ou Brevo).');
+            return $this->redirectToRoute('admin_dashboard');
+        }
+
+        $to = trim((string) $request->request->get('to', ''));
+        if ($to === '') {
+            $to = $this->getEnvValue('SMS_STOCK_ALERT_TO');
+        }
+        if ($to === '') {
+            $to = '+21628579499';
+        }
+
+        $message = sprintf('TEST SMS CURAVITA %s', (new \DateTime())->format('d/m/Y H:i'));
+        $sent = $smsService->sendSms($to, $message);
+
+        if ($sent) {
+            $this->addFlash('success', sprintf('SMS test envoye vers %s.', $to));
+        } else {
+            $error = $smsService->getLastError() ?? 'Erreur inconnue';
+            $this->addFlash('error', sprintf('Echec SMS: %s', $error));
+        }
+
+        return $this->redirectToRoute('admin_dashboard');
     }
 
     #[Route('/admin/download-pdf', name: 'admin_download_pdf')]
@@ -1504,6 +1546,12 @@ class AdminController extends AbstractController
         if (is_file($path)) {
             @unlink($path);
         }
+    }
+
+    private function getEnvValue(string $name): string
+    {
+        $value = $_ENV[$name] ?? $_SERVER[$name] ?? getenv($name);
+        return is_string($value) ? trim($value) : '';
     }
 
     /**

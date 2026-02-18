@@ -3,12 +3,14 @@
 namespace App\Entity;
 
 use App\Repository\StockRepository;
-use App\Entity\Produit;
-use App\Entity\Depot;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StockRepository::class)]
 #[ORM\Table(name: 'stock')]
+#[ORM\UniqueConstraint(name: 'uniq_stock_lot_depot', columns: ['batch_number', 'depot_id'])]
+#[ORM\UniqueConstraint(name: 'uniq_stock_qr_token', columns: ['qr_code_token'])]
 class Stock
 {
     public const ETAT_DISPONIBLE = 'disponible';
@@ -32,6 +34,12 @@ class Stock
 
     #[ORM\Column(name: 'quantite')]
     private ?int $quantite = 0;
+
+    #[ORM\Column(name: 'quantite_initiale', options: ['default' => 0])]
+    private int $quantiteInitiale = 0;
+
+    #[ORM\Column(name: 'is_actif', options: ['default' => true])]
+    private bool $isActif = true;
 
     #[ORM\Column(name: 'seuil_alerte')]
     private ?int $seuilAlerte = 10;
@@ -64,10 +72,10 @@ class Stock
     private int $totalSorties = 0;
 
     #[ORM\Column(name: 'prix_achat_unitaire', type: 'decimal', precision: 10, scale: 2, nullable: true)]
-    private ?float $prixAchatUnitaire = null;
+    private ?string $prixAchatUnitaire = null;
 
     #[ORM\Column(name: 'prix_vente_unitaire', type: 'decimal', precision: 10, scale: 2, nullable: true)]
-    private ?float $prixVenteUnitaire = null;
+    private ?string $prixVenteUnitaire = null;
 
     #[ORM\Column(name: 'emplacement', length: 100, nullable: true)]
     private ?string $emplacement = null;
@@ -75,16 +83,26 @@ class Stock
     #[ORM\Column(name: 'batch_number', length: 50, nullable: true)]
     private ?string $batchNumber = null;
 
+    #[ORM\Column(name: 'qr_code_token', length: 128, nullable: true)]
+    private ?string $qrCodeToken = null;
+
+    #[ORM\Column(name: 'qr_code_payload', type: 'text', nullable: true)]
+    private ?string $qrCodePayload = null;
+
     #[ORM\Column(name: 'fournisseur', length: 100, nullable: true)]
     private ?string $fournisseur = null;
 
     #[ORM\Column(name: 'notes', type: 'text', nullable: true)]
     private ?string $notes = null;
 
+    #[ORM\OneToMany(mappedBy: 'stock', targetEntity: StockMovement::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $movements;
+
     public function __construct()
     {
         $this->dateDerniereMiseAJour = new \DateTime();
         $this->dateEntree = new \DateTime();
+        $this->movements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -126,9 +144,31 @@ class Stock
 
     public function setQuantite(?int $quantite): static
     {
-        $this->quantite = $quantite;
+        $this->quantite = max(0, (int) $quantite);
         $this->updateEtatStock();
         $this->dateDerniereMiseAJour = new \DateTime();
+        return $this;
+    }
+
+    public function getQuantiteInitiale(): int
+    {
+        return $this->quantiteInitiale;
+    }
+
+    public function setQuantiteInitiale(int $quantiteInitiale): static
+    {
+        $this->quantiteInitiale = max(0, $quantiteInitiale);
+        return $this;
+    }
+
+    public function isActif(): bool
+    {
+        return $this->isActif;
+    }
+
+    public function setIsActif(bool $isActif): static
+    {
+        $this->isActif = $isActif;
         return $this;
     }
 
@@ -230,7 +270,7 @@ class Stock
 
     public function setTotalEntrees(int $totalEntrees): static
     {
-        $this->totalEntrees = $totalEntrees;
+        $this->totalEntrees = max(0, $totalEntrees);
         return $this;
     }
 
@@ -241,29 +281,29 @@ class Stock
 
     public function setTotalSorties(int $totalSorties): static
     {
-        $this->totalSorties = $totalSorties;
+        $this->totalSorties = max(0, $totalSorties);
         return $this;
     }
 
     public function getPrixAchatUnitaire(): ?float
     {
-        return $this->prixAchatUnitaire;
+        return $this->prixAchatUnitaire === null ? null : (float) $this->prixAchatUnitaire;
     }
 
     public function setPrixAchatUnitaire(?float $prixAchatUnitaire): static
     {
-        $this->prixAchatUnitaire = $prixAchatUnitaire;
+        $this->prixAchatUnitaire = $prixAchatUnitaire === null ? null : (string) $prixAchatUnitaire;
         return $this;
     }
 
     public function getPrixVenteUnitaire(): ?float
     {
-        return $this->prixVenteUnitaire;
+        return $this->prixVenteUnitaire === null ? null : (float) $this->prixVenteUnitaire;
     }
 
     public function setPrixVenteUnitaire(?float $prixVenteUnitaire): static
     {
-        $this->prixVenteUnitaire = $prixVenteUnitaire;
+        $this->prixVenteUnitaire = $prixVenteUnitaire === null ? null : (string) $prixVenteUnitaire;
         return $this;
     }
 
@@ -286,6 +326,28 @@ class Stock
     public function setBatchNumber(?string $batchNumber): static
     {
         $this->batchNumber = $batchNumber;
+        return $this;
+    }
+
+    public function getQrCodeToken(): ?string
+    {
+        return $this->qrCodeToken;
+    }
+
+    public function setQrCodeToken(?string $qrCodeToken): static
+    {
+        $this->qrCodeToken = $qrCodeToken;
+        return $this;
+    }
+
+    public function getQrCodePayload(): ?string
+    {
+        return $this->qrCodePayload;
+    }
+
+    public function setQrCodePayload(?string $qrCodePayload): static
+    {
+        $this->qrCodePayload = $qrCodePayload;
         return $this;
     }
 
@@ -313,13 +375,13 @@ class Stock
 
     public function getEtatStockAffiche(): string
     {
-        return match($this->etatStock) {
+        return match ($this->etatStock) {
             self::ETAT_DISPONIBLE => 'Disponible',
             self::ETAT_ALERTE => 'Alerte',
             self::ETAT_RUPTURE => 'Rupture',
-            self::ETAT_PERIME => 'Périmé',
-            self::ETAT_EXPIRE => 'Expiré',
-            default => 'Inconnu'
+            self::ETAT_PERIME => 'Perime',
+            self::ETAT_EXPIRE => 'Expire',
+            default => 'Inconnu',
         };
     }
 
@@ -335,12 +397,11 @@ class Stock
             return;
         }
 
-        // Vérifier l'état selon la quantité
-        if ($this->quantite <= 0) {
+        if (($this->quantite ?? 0) <= 0) {
             $this->etatStock = self::ETAT_RUPTURE;
-        } elseif ($this->quantite <= $this->seuilCritique) {
+        } elseif (($this->quantite ?? 0) <= ($this->seuilCritique ?? 0)) {
             $this->etatStock = self::ETAT_RUPTURE;
-        } elseif ($this->quantite <= $this->seuilAlerte) {
+        } elseif (($this->quantite ?? 0) <= ($this->seuilAlerte ?? 0)) {
             $this->etatStock = self::ETAT_ALERTE;
         } else {
             $this->etatStock = self::ETAT_DISPONIBLE;
@@ -360,7 +421,7 @@ class Stock
         if (!$this->dateExpiration) {
             return false;
         }
-        
+
         $aujourdHui = new \DateTime();
         $interval = $aujourdHui->diff($this->dateExpiration);
         return $interval->days <= 30 && $this->dateExpiration > $aujourdHui;
@@ -371,44 +432,109 @@ class Stock
         if (!$this->dateExpiration) {
             return null;
         }
-        
+
         $aujourdHui = new \DateTime();
         $interval = $aujourdHui->diff($this->dateExpiration);
-        
+
         if ($this->dateExpiration < $aujourdHui) {
-            return -$interval->days; // Négatif si déjà périmé
+            return -$interval->days;
         }
-        
+
         return $interval->days;
     }
 
     public function getValeurTotale(): float
     {
-        $prix = $this->prixVenteUnitaire ?? $this->prixAchatUnitaire ?? 0;
-        return $prix * $this->quantite;
+        $prix = $this->getPrixVenteUnitaire() ?? $this->getPrixAchatUnitaire() ?? 0.0;
+        return $prix * ((float) ($this->quantite ?? 0));
+    }
+
+    public function getValeurStock(): float
+    {
+        return $this->getValeurTotale();
+    }
+
+    public function entrerStock(int $quantite, ?string $motif = null): bool
+    {
+        if ($quantite <= 0) {
+            return false;
+        }
+
+        $this->setQuantite(($this->getQuantite() ?? 0) + $quantite);
+        $this->setTotalEntrees($this->getTotalEntrees() + $quantite);
+        $this->setDerniereEntree(new \DateTime());
+        $this->setDateDerniereMiseAJour(new \DateTime());
+        return true;
+    }
+
+    public function sortirStock(int $quantite, ?string $motif = null): bool
+    {
+        if ($quantite <= 0) {
+            return false;
+        }
+
+        $current = (int) ($this->getQuantite() ?? 0);
+        if ($quantite > $current) {
+            return false;
+        }
+
+        $this->setQuantite($current - $quantite);
+        $this->setTotalSorties($this->getTotalSorties() + $quantite);
+        $this->setDerniereSortie(new \DateTime());
+        $this->setDateDerniereMiseAJour(new \DateTime());
+        return true;
     }
 
     public function getMargeBeneficiaire(): ?float
     {
-        if (!$this->prixAchatUnitaire || !$this->prixVenteUnitaire) {
+        if ($this->getPrixAchatUnitaire() === null || $this->getPrixVenteUnitaire() === null) {
             return null;
         }
-        
-        $prixAchat = $this->prixAchatUnitaire;
-        $prixVente = $this->prixVenteUnitaire;
-        
-        if ($prixAchat == 0) {
+
+        $prixAchat = (float) $this->getPrixAchatUnitaire();
+        $prixVente = (float) $this->getPrixVenteUnitaire();
+
+        if ($prixAchat == 0.0) {
             return null;
         }
-        
+
         return (($prixVente - $prixAchat) / $prixAchat) * 100;
     }
 
     public function __toString(): string
     {
         $produit = $this->produit ? $this->produit->getNom() : 'Produit inconnu';
-        $depot = $this->depot ? $this->depot->getNomDepot() : 'Dépôt inconnu';
-        
-        return sprintf('%s - %s (%s)', $produit, $depot, $this->quantite);
+        $depot = $this->depot ? $this->depot->getNomDepot() : 'Depot inconnu';
+
+        return sprintf('%s - %s (%s)', $produit, $depot, (string) $this->quantite);
+    }
+
+    /**
+     * @return Collection<int, StockMovement>
+     */
+    public function getMovements(): Collection
+    {
+        return $this->movements;
+    }
+
+    public function addMovement(StockMovement $movement): static
+    {
+        if (!$this->movements->contains($movement)) {
+            $this->movements->add($movement);
+            $movement->setStock($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMovement(StockMovement $movement): static
+    {
+        if ($this->movements->removeElement($movement)) {
+            if ($movement->getStock() === $this) {
+                $movement->setStock(null);
+            }
+        }
+
+        return $this;
     }
 }

@@ -21,6 +21,7 @@ use App\Repository\OrdonnanceRepository;
 use App\Repository\CommandeRepository;
 use App\Repository\ProduitRepository;
 use App\Service\MailerService;
+use App\Service\StockAssistantService;
 use App\Service\PanierService;
 use App\Service\CouponService;
 use App\Service\DeliveryEstimatorService;
@@ -28,6 +29,7 @@ use App\Service\FraudDetectionService;
 use App\Service\LoyaltyService;
 use App\Service\OrderSplitService;
 use App\Service\ShippingCalculatorService;
+use App\Service\DepotHealthScoreService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -1667,6 +1669,40 @@ class FrontController extends AbstractController
                 'sort' => $sort
             ]
         ]);
+    }
+
+    #[Route('/api/stock/assistant', name: 'api_stock_assistant', methods: ['POST'])]
+    public function stockAssistant(Request $request, StockAssistantService $assistant): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $payload = json_decode((string) $request->getContent(), true);
+        if (!is_array($payload)) {
+            $payload = $request->request->all();
+        }
+
+        $question = trim((string) ($payload['question'] ?? ''));
+        if ($question === '') {
+            return $this->json(['ok' => false, 'message' => 'Question vide'], 422);
+        }
+
+        try {
+            $result = $assistant->analyserQuestion($question);
+            return $this->json(array_merge(['ok' => true], $result));
+        } catch (\Throwable $e) {
+            return $this->json(['ok' => false, 'message' => 'Erreur serveur'], 500);
+        }
+    }
+
+    #[Route('/api/depots/{id}/health', name: 'api_depot_health', methods: ['GET'])]
+    public function depotHealth(Depot $depot, DepotHealthScoreService $healthScoreService): JsonResponse
+    {
+        try {
+            $result = $healthScoreService->calculerScoreDepot($depot);
+            return $this->json(array_merge(['ok' => true], $result));
+        } catch (\Throwable $e) {
+            return $this->json(['ok' => false, 'message' => 'Erreur serveur'], 500);
+        }
     }
 }
 
