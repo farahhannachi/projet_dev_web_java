@@ -37,72 +37,35 @@ class TraitementFrontType extends AbstractType
                     }
                     return $qb->orderBy('o.dateOrdonnance', 'DESC');
                 },
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'Veuillez sélectionner une ordonnance validée'])
-                ],
                 'help' => 'Seules les ordonnances validées par un pharmacien sont affichées'
             ])
             ->add('dosage', TextType::class, [
                 'label' => 'Dosage',
-                'attr' => ['class' => 'input', 'placeholder' => 'Ex: 500mg, 2 comprimés...'],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'Le dosage est obligatoire']),
-                    new Assert\Length([
-                        'max' => 255,
-                        'maxMessage' => 'Le dosage ne peut pas dépasser {{ limit }} caractères'
-                    ])
-                ]
+                'attr' => ['class' => 'input', 'placeholder' => 'Ex: 500mg, 2 comprimés...']
             ])
             ->add('frequence', TextType::class, [
                 'label' => 'Fréquence',
-                'attr' => ['class' => 'input', 'placeholder' => 'Ex: 3 fois par jour, matin et soir...'],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'La fréquence est obligatoire']),
-                    new Assert\Length([
-                        'max' => 255,
-                        'maxMessage' => 'La fréquence ne peut pas dépasser {{ limit }} caractères'
-                    ])
-                ]
+                'attr' => ['class' => 'input', 'placeholder' => 'Ex: 3 fois par jour, matin et soir...']
             ])
             ->add('dureeJours', IntegerType::class, [
                 'label' => 'Durée (en jours)',
-                'attr' => ['class' => 'input', 'placeholder' => 'Ex: 7, 14, 30...'],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'La durée est obligatoire']),
-                    new Assert\Positive(['message' => 'La durée doit être un nombre positif']),
-                    new Assert\LessThanOrEqual([
-                        'value' => 365,
-                        'message' => 'La durée ne peut pas dépasser 365 jours'
-                    ])
-                ]
+                'attr' => ['class' => 'input', 'placeholder' => 'Ex: 7, 14, 30...']
             ])
             ->add('dateDebut', DateType::class, [
                 'label' => 'Date de début',
                 'widget' => 'single_text',
                 'attr' => ['class' => 'input'],
-                'data' => new \DateTime(),
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'La date de début est obligatoire'])
-                ]
+                'data' => new \DateTime()
             ])
             ->add('dateFin', DateType::class, [
                 'label' => 'Date de fin',
                 'widget' => 'single_text',
-                'attr' => ['class' => 'input'],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'La date de fin est obligatoire'])
-                ]
+                'attr' => ['class' => 'input']
             ])
             ->add('notes', TextareaType::class, [
                 'label' => 'Notes complémentaires (Optionnel)',
                 'required' => false,
-                'attr' => ['class' => 'input h-24', 'placeholder' => 'Informations supplémentaires...', 'rows' => 5],
-                'constraints' => [
-                    new Assert\Length([
-                        'max' => 5000,
-                        'maxMessage' => 'Les notes ne peuvent pas dépasser {{ limit }} caractères'
-                    ])
-                ]
+                'attr' => ['class' => 'input h-24', 'placeholder' => 'Informations supplémentaires...', 'rows' => 5]
             ])
         ;
     }

@@ -1,0 +1,95 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Scan QR Stock{% endblock %}
+{% block page_subtitle %}Recherche et sortie intelligente via QR Code{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    <div class="card" style="padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e7eb;">
+        <h3 style="margin-top: 0;"><i class="fas fa-qrcode"></i> Scan QR</h3>
+
+        <div style="display: grid; gap: 0.75rem; max-width: 700px;">
+            <label for="qrInput">Contenu QR</label>
+            <textarea id="qrInput" rows="4" class="form-control" placeholder='Ex: {"numeroLot":"LOT-001","idDepot":1,"idProduit":2,"dateExpiration":"2026-12-31"}'></textarea>
+            <button id="btnResolve" class="btn btn-primary" style="width: fit-content;">
+                <i class="fas fa-search"></i> Vérifier le stock
+            </button>
+        </div>
+
+        <div id="result" style="margin-top: 1.25rem;"></div>
+
+        <hr style="margin: 1.5rem 0;">
+
+        <h4 style="margin-top: 0;">Sortie par scan</h4>
+        <div style="display: grid; gap: 0.75rem; max-width: 700px;">
+            <input id="quantity" type="number" min="1" value="1" class="form-control" placeholder="Quantité de sortie">
+            <input id="motif" type="text" class="form-control" value="Sortie via scan QR" placeholder="Motif">
+            <button id="btnSortie" class="btn btn-danger" style="width: fit-content;">
+                <i class="fas fa-minus-circle"></i> Exécuter la sortie
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(() => {
+  const qrInput = document.getElementById('qrInput');
+  const quantity = document.getElementById('quantity');
+  const motif = document.getElementById('motif');
+  const result = document.getElementById('result');
+  const btnResolve = document.getElementById('btnResolve');
+  const btnSortie = document.getElementById('btnSortie');
+
+  const render = (ok, html) => {
+    result.innerHTML = `<div style="padding:0.9rem;border-radius:10px;border:1px solid ${ok ? '#86efac' : '#fca5a5'};background:${ok ? '#f0fdf4' : '#fef2f2'}">${html}</div>`;
+  };
+
+  const encode = (data) => new URLSearchParams(data).toString();
+
+  btnResolve.addEventListener('click', async () => {
+    const res = await fetch('{{ path('admin_stocks_scan_resolve') }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: encode({ qr: qrInput.value })
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      render(false, data.message || 'Erreur de scan');
+      return;
+    }
+    const s = data.stock;
+    render(true, `
+      <strong>Dépôt:</strong> ${s.depot}<br>
+      <strong>Produit:</strong> ${s.produit}<br>
+      <strong>Lot:</strong> ${s.numeroLot}<br>
+      <strong>Expiration:</strong> ${s.dateExpiration ?? 'N/A'}<br>
+      <strong>Quantité:</strong> ${s.quantiteDisponible}<br>
+      <strong>Seuil alerte / critique:</strong> ${s.seuilAlerte} / ${s.seuilCritique}<br>
+      <strong>Emplacement:</strong> ${s.emplacement ?? 'N/A'}<br>
+      <strong>État:</strong> ${s.etatStock ?? 'N/A'}
+    `);
+  });
+
+  btnSortie.addEventListener('click', async () => {
+    const res = await fetch('{{ path('admin_stocks_scan_sortie') }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: encode({
+        qr: qrInput.value,
+        quantity: quantity.value,
+        motif: motif.value
+      })
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      render(false, data.message || 'Sortie bloquée');
+      return;
+    }
+    render(true, `${data.message}<br><strong>Mouvement #</strong>${data.result.mouvementId}`);
+  });
+})();
+</script>
+{% endblock %}
+

@@ -20,56 +20,26 @@ class OrdonnanceType extends AbstractType
     {
         $builder
             ->add('numeroOrdonnance', TextType::class, [
-                'label' => 'Numéro d\'ordonnance',
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'Le numéro d\'ordonnance est obligatoire']),
-                    new Assert\Length([
-                        'max' => 100,
-                        'maxMessage' => 'Le numéro ne peut pas dépasser {{ limit }} caractères'
-                    ])
-                ]
+                'label' => 'Numéro d\'ordonnance'
             ])
             ->add('dateOrdonnance', DateType::class, [
                 'label' => 'Date de l\'ordonnance',
-                'widget' => 'single_text',
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'La date de l\'ordonnance est obligatoire']),
-                    new Assert\LessThanOrEqual([
-                        'value' => 'today',
-                        'message' => 'La date ne peut pas être dans le futur'
-                    ])
-                ]
+                'widget' => 'single_text'
             ])
             ->add('dateExpiration', DateType::class, [
                 'label' => 'Date d\'expiration',
-                'widget' => 'single_text',
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'La date d\'expiration est obligatoire']),
-                    new Assert\GreaterThan([
-                        'value' => 'today',
-                        'message' => 'La date d\'expiration doit être dans le futur'
-                    ])
-                ]
+                'widget' => 'single_text'
             ])
             ->add('noteMedical', TextareaType::class, [
                 'label' => 'Note médicale',
-                'required' => false,
-                'constraints' => [
-                    new Assert\Length([
-                        'max' => 5000,
-                        'maxMessage' => 'La note ne peut pas dépasser {{ limit }} caractères'
-                    ])
-                ]
+                'required' => false
             ])
             ->add('utilisateur', EntityType::class, [
                 'label' => 'Patient',
                 'class' => Utilisateur::class,
                 'choice_label' => function(Utilisateur $user) {
                     return $user->getNom() . ' ' . $user->getPrenom() . ' (' . $user->getEmail() . ')';
-                },
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'Le patient est obligatoire'])
-                ]
+                }
             ])
         ;
         
@@ -81,13 +51,6 @@ class OrdonnanceType extends AbstractType
                     'En attente' => 'en attente',
                     'Validé' => 'validé',
                     'Rejeté' => 'rejeté'
-                ],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'Le statut est obligatoire']),
-                    new Assert\Choice([
-                        'choices' => ['en attente', 'validé', 'rejeté'],
-                        'message' => 'Statut invalide'
-                    ])
                 ]
             ]);
         }

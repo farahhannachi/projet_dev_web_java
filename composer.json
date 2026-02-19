@@ -14,6 +14,7 @@
         "doctrine/orm": "^2.17",
         "dompdf/dompdf": "^3.1",
         "knplabs/knp-snappy-bundle": "^1.10",
+        "pusher/pusher-php-server": "^7.2",
         "symfony/asset": "6.4.*",
         "symfony/console": "6.4.*",
         "symfony/doctrine-bridge": "6.4.*",
@@ -22,6 +23,7 @@
         "symfony/form": "6.4.*",
         "symfony/framework-bundle": "6.4.*",
         "symfony/google-mailer": "6.4.*",
+        "symfony/http-client": "6.4.*",
         "symfony/mailer": "6.4.*",
         "symfony/password-hasher": "6.4.*",
         "symfony/runtime": "6.4.*",
@@ -31,7 +33,8 @@
         "symfony/yaml": "6.4.*",
         "symfonycasts/verify-email-bundle": "^1.18",
         "twig/extra-bundle": "^2.12|^3.0",
-        "twig/twig": "^2.12|^3.0"
+        "twig/twig": "^2.12|^3.0",
+        "twilio/sdk": "^8.11"
     },
     "config": {
         "allow-plugins": {

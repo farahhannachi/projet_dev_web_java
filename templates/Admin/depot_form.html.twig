@@ -21,6 +21,12 @@
                     {{ form_widget(form.responsableDepot) }}
                     {{ form_errors(form.responsableDepot) }}
                 </div>
+
+                <div class="form-group">
+                    {{ form_label(form.responsableTelephone) }}
+                    {{ form_widget(form.responsableTelephone) }}
+                    {{ form_errors(form.responsableTelephone) }}
+                </div>
                 
                 <div class="form-group">
                     {{ form_label(form.capaciteDepot) }}
@@ -45,6 +51,19 @@
                     {{ form_widget(form.ville) }}
                     {{ form_errors(form.ville) }}
                 </div>
+
+                <div class="form-group">
+                    {{ form_label(form.latitude) }}
+                    {{ form_widget(form.latitude) }}
+                    {{ form_errors(form.latitude) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.longitude) }}
+                    {{ form_widget(form.longitude) }}
+                    {{ form_errors(form.longitude) }}
+                </div>
+
             </div>
             
             <div class="form-actions">

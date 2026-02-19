@@ -98,6 +98,20 @@
                 </a>
             </div>
         {{ form_end(form) }}
+
+        {% if stock is not null and stock.qrCodePayload %}
+            <div style="margin-top: 2rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 12px;">
+                <h3 style="margin-top: 0;"><i class="fas fa-qrcode"></i> QR Code du lot</h3>
+                <img
+                    src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={{ stock.qrCodePayload|url_encode }}"
+                    alt="QR Code stock"
+                    style="border: 1px solid #ddd; border-radius: 8px;"
+                >
+                <p style="margin-top: 0.75rem; font-size: 0.85rem; color: #4b5563; word-break: break-all;">
+                    {{ stock.qrCodePayload }}
+                </p>
+            </div>
+        {% endif %}
     </div>
 </div>
 

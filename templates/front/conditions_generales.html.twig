@@ -1,0 +1,351 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Conditions Générales et Politique de Confidentialité - CURAVITA{% endblock %}
+
+{% block main %}
+<style>
+    /* Hero Section */
+    .hero-support {
+        min-height: 60vh;
+        background: linear-gradient(135deg, #0a1628 0%, #16563f 50%, #0f3d2a 100%);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .hero-support::before {
+        content: '';
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(40, 167, 69, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(22, 86, 63, 0.4) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(244, 196, 48, 0.1) 0%, transparent 30%);
+        animation: nebula 20s ease-in-out infinite;
+    }
+
+    @keyframes nebula {
+        0%, 100% { transform: translate(-10%, -10%) rotate(0deg); }
+        50% { transform: translate(10%, 10%) rotate(180deg); }
+    }
+
+    .particles {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        animation: float-particle 15s infinite;
+    }
+
+    .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+    .particle:nth-child(2) { left: 20%; animation-delay: 2s; }
+    .particle:nth-child(3) { left: 30%; animation-delay: 4s; }
+    .particle:nth-child(4) { left: 40%; animation-delay: 1s; }
+    .particle:nth-child(5) { left: 50%; animation-delay: 3s; }
+    .particle:nth-child(6) { left: 60%; animation-delay: 5s; }
+    .particle:nth-child(7) { left: 70%; animation-delay: 2.5s; }
+    .particle:nth-child(8) { left: 80%; animation-delay: 4.5s; }
+
+    @keyframes float-particle {
+        0% { transform: translateY(100vh) scale(0); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+    }
+
+    .hero-content-support {
+        position: relative;
+        z-index: 10;
+        text-align: center;
+        padding: 2rem;
+        max-width: 900px;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #f4c430;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+        animation: slideDown 1s ease;
+    }
+
+    .hero-title-support {
+        font-size: clamp(2.5rem, 8vw, 4rem);
+        font-weight: 800;
+        color: white;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        animation: slideUp 1s ease 0.2s both;
+    }
+
+    .hero-title-support span {
+        background: linear-gradient(135deg, #f4c430 0%, #ffd700 50%, #f4c430 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        background-size: 200% auto;
+        animation: shimmer 3s linear infinite;
+    }
+
+    @keyframes shimmer {
+        0% { background-position: 0% center; }
+        100% { background-position: 200% center; }
+    }
+
+    .hero-subtitle-support {
+        font-size: 1.25rem;
+        color: rgba(255,255,255,0.8);
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.8;
+        animation: slideUp 1s ease 0.4s both;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .conditions-container {
+        background-color: #f8f9fa;
+        min-height: 80vh;
+        padding: 0 0 3rem;
+        margin-top: -80px;
+        position: relative;
+        z-index: 3;
+    }
+    
+    .conditions-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        background: linear-gradient(to bottom right, transparent 49%, #f8f9fa 50%);
+    }
+
+    .content-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        padding: 3rem;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .section-title {
+        color: var(--primary-color);
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid var(--primary-color);
+        padding-bottom: 0.5rem;
+        margin-top: 2.5rem;
+    }
+
+    .section-title:first-of-type {
+        margin-top: 0;
+    }
+
+    .content-text {
+        color: #333;
+        line-height: 1.8;
+        margin-bottom: 1rem;
+    }
+
+    .content-list {
+        color: #333;
+        line-height: 1.8;
+        margin-left: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .content-list li {
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #145239 100%);
+        color: white;
+        padding: 1rem 2.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-block;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(22, 86, 63, 0.3);
+    }
+
+    .btn-back:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(22, 86, 63, 0.4);
+        text-decoration: none;
+        color: white;
+    }
+
+    .update-date {
+        text-align: center;
+        color: #666;
+        margin-bottom: 3rem;
+        font-size: 0.95rem;
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero-support">
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+    
+    <div class="hero-content-support">
+        <div class="hero-badge">📋 Informations Légales</div>
+        <h1 class="hero-title-support">Conditions <span>Générales</span></h1>
+        <p class="hero-subtitle-support">Politique de confidentialité et conditions d'utilisation</p>
+    </div>
+</section>
+
+<div class="conditions-container">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 5rem 1rem;">
+        <div class="content-card">
+            <p class="update-date">Dernière mise à jour : {{ "now"|date("d/m/Y") }}</p>
+
+            <section>
+                <h2 class="section-title">1. Objet</h2>
+                <p class="content-text">
+                    Les présentes conditions générales régissent l'utilisation de la plateforme CURAVITA et les services de demande de traitement en ligne. En utilisant nos services, vous acceptez ces conditions dans leur intégralité.
+                </p>
+            </section>
+
+            <section>
+                <h2 class="section-title">2. Services Proposés</h2>
+                <p class="content-text">
+                    CURAVITA propose un service de demande de traitement en ligne permettant aux utilisateurs de :
+                </p>
+                <ul class="content-list">
+                    <li>Soumettre une demande de traitement avec description des symptômes</li>
+                    <li>Sélectionner un produit pharmaceutique adapté</li>
+                    <li>Recevoir une validation par un pharmacien qualifié</li>
+                    <li>Suivre l'état de leur demande en ligne</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="section-title">3. Responsabilités de l'Utilisateur</h2>
+                <p class="content-text">
+                    L'utilisateur s'engage à :
+                </p>
+                <ul class="content-list">
+                    <li>Fournir des informations exactes et complètes concernant son état de santé</li>
+                    <li>Décrire ses symptômes de manière précise et détaillée</li>
+                    <li>Ne pas utiliser le service en cas d'urgence médicale</li>
+                    <li>Consulter un médecin en cas de symptômes graves ou persistants</li>
+                    <li>Respecter les posologies et recommandations fournies</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="section-title">4. Validation Pharmaceutique</h2>
+                <p class="content-text">
+                    Toute demande de traitement est soumise à validation par un pharmacien diplômé. Le pharmacien se réserve le droit de :
+                </p>
+                <ul class="content-list">
+                    <li>Refuser une demande si elle présente un risque pour la santé</li>
+                    <li>Demander des informations complémentaires</li>
+                    <li>Proposer une alternative thérapeutique</li>
+                    <li>Recommander une consultation médicale</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="section-title">5. Politique de Confidentialité</h2>
+                <p class="content-text">
+                    CURAVITA s'engage à protéger vos données personnelles conformément au RGPD :
+                </p>
+                <ul class="content-list">
+                    <li><strong>Données collectées :</strong> nom, prénom, email, date de naissance, symptômes, historique de traitements</li>
+                    <li><strong>Finalité :</strong> traitement de votre demande, suivi médical, amélioration des services</li>
+                    <li><strong>Conservation :</strong> les données sont conservées pendant 5 ans conformément à la réglementation</li>
+                    <li><strong>Sécurité :</strong> vos données sont chiffrées et stockées sur des serveurs sécurisés</li>
+                    <li><strong>Droits :</strong> vous disposez d'un droit d'accès, de rectification et de suppression de vos données</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="section-title">6. Secret Médical</h2>
+                <p class="content-text">
+                    Toutes les informations médicales communiquées sont couvertes par le secret professionnel. Elles ne seront jamais communiquées à des tiers sans votre consentement explicite, sauf obligation légale.
+                </p>
+            </section>
+
+            <section>
+                <h2 class="section-title">7. Limitation de Responsabilité</h2>
+                <p class="content-text">
+                    CURAVITA ne peut être tenu responsable :
+                </p>
+                <ul class="content-list">
+                    <li>Des informations inexactes fournies par l'utilisateur</li>
+                    <li>De l'utilisation inappropriée des produits délivrés</li>
+                    <li>Des réactions allergiques non déclarées</li>
+                    <li>Des interactions médicamenteuses non signalées</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="section-title">8. Modifications des Conditions</h2>
+                <p class="content-text">
+                    CURAVITA se réserve le droit de modifier ces conditions à tout moment. Les utilisateurs seront informés de toute modification significative par email.
+                </p>
+            </section>
+
+            <section>
+                <h2 class="section-title">9. Contact</h2>
+                <p class="content-text">
+                    Pour toute question concernant ces conditions ou vos données personnelles, contactez-nous :
+                </p>
+                <ul class="content-list">
+                    <li><strong>Email :</strong> contact@curavita.tn</li>
+                    <li><strong>Téléphone :</strong> +216 XX XXX XXX</li>
+                    <li><strong>Adresse :</strong> Tunis, Tunisie</li>
+                </ul>
+            </section>
+
+            <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #dee2e6;">
+                <a href="{{ path('app_demande_traitement') }}" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

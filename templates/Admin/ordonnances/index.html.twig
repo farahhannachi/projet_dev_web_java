@@ -316,5 +316,135 @@
             statsModal.style.display = 'none';
         }
     });
+    
+    // ========================================
+    // PUSHER - Notifications en temps réel
+    // ========================================
+    // pusherKey est déjà déclaré dans _base_modern.html.twig
+    
+    if (pusherKey && pusherKey !== '') {
+        console.log('🔌 Initialisation de Pusher pour les notifications...');
+        
+        const pusher = new Pusher(pusherKey, {
+            cluster: '{{ app.request.server.get('PUSHER_APP_CLUSTER') ?? 'eu' }}'
+        });
+        
+        const channel = pusher.subscribe('admin-channel');
+        
+        // Écouter les nouvelles ordonnances
+        channel.bind('new-ordonnance', function(data) {
+            console.log('📬 Nouvelle ordonnance reçue:', data);
+            
+            // Créer la notification
+            showOrdonnanceNotification(data);
+        });
+        
+        // Demander la permission pour les notifications navigateur
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+        
+        console.log('✅ Pusher initialisé - En attente de notifications...');
+    } else {
+        console.warn('⚠️ Pusher non configuré - Vérification des nouvelles ordonnances toutes les 10 secondes...');
+        
+        // Mode sans Pusher: vérifier périodiquement les nouvelles ordonnances
+        let lastOrdonnanceId = {{ ordonnances|length > 0 ? ordonnances|first.id : 0 }};
+        
+        setInterval(async function() {
+            try {
+                const response = await fetch('{{ path('admin_ordonnances_check_new') }}?lastId=' + lastOrdonnanceId);
+                const data = await response.json();
+                
+                if (data.hasNew && data.ordonnance) {
+                    showOrdonnanceNotification({
+                        numero: data.ordonnance.numero,
+                        patient: data.ordonnance.patient,
+                        date: data.ordonnance.date
+                    });
+                    lastOrdonnanceId = data.ordonnance.id;
+                }
+            } catch (error) {
+                console.error('Erreur lors de la vérification des nouvelles ordonnances:', error);
+            }
+        }, 10000); // Vérifier toutes les 10 secondes
+    }
+    
+    // Fonction pour afficher la notification
+    function showOrdonnanceNotification(data) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(40, 167, 69, 0.4);
+            z-index: 10000;
+            min-width: 350px;
+            animation: slideInRight 0.5s ease-out;
+        `;
+        
+        notification.innerHTML = `
+            <div style="display: flex; align-items: start; gap: 1rem;">
+                <div style="font-size: 2rem;">🔔</div>
+                <div style="flex: 1;">
+                    <strong style="display: block; font-size: 1.125rem; margin-bottom: 0.5rem;">Nouvelle Ordonnance!</strong>
+                    <div style="font-size: 0.95rem; opacity: 0.95; line-height: 1.5;">
+                        <div><strong>N°:</strong> ${data.numero}</div>
+                        <div><strong>Patient:</strong> ${data.patient}</div>
+                        <div><strong>Date:</strong> ${data.date}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Supprimer après 6 secondes
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.5s ease-in';
+            setTimeout(() => notification.remove(), 500);
+        }, 6000);
+        
+        // Notification navigateur si autorisée
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Nouvelle Ordonnance', {
+                body: `${data.numero} - ${data.patient}`,
+                icon: '/assets/img/curavita-logo.png'
+            });
+        }
+        
+        // Recharger la page après 6.5 secondes pour afficher la nouvelle ordonnance
+        setTimeout(() => {
+            window.location.reload();
+        }, 6500);
+    }
 </script>
+
+<style>
+    @keyframes slideInRight {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+</style>
 {% endblock %}

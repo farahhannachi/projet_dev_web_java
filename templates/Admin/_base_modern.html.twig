@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -568,7 +568,7 @@
         }
         
         .form-error-message::before, .invalid-feedback::before {
-            content: "⚠️ ";
+            content: "âš ï¸ ";
         }
         
         ul.form-error-list li {
@@ -576,7 +576,7 @@
         }
         
         ul.form-error-list li::before {
-            content: "⚠️ ";
+            content: "âš ï¸ ";
         }
 
         .form-grid {
@@ -674,6 +674,124 @@
         </main>
     </div>
     
+    <!-- Pusher JS pour notifications en temps réel -->
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <script>
+        // Configuration Pusher (remplacer par vos vraies clés)
+        const pusherKey = '{{ app.request.server.get('PUSHER_APP_KEY') }}';
+        
+        if (pusherKey && pusherKey !== '') {
+            const pusher = new Pusher(pusherKey, {
+                cluster: '{{ app.request.server.get('PUSHER_APP_CLUSTER') ?? 'eu' }}'
+            });
+
+            const channel = pusher.subscribe('admin-channel');
+            
+            // Écouter les nouvelles ordonnances
+            channel.bind('new-ordonnance', function(data) {
+                console.log('Nouvelle ordonnance reçue:', data);
+                
+                // Créer une notification visuelle
+                showNotification(
+                    'Nouvelle Ordonnance',
+                    data.message,
+                    'success',
+                    function() {
+                        window.location.href = '/index.php/admin/ordonnances';
+                    }
+                );
+                
+                // Notification navigateur si autorisée
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Nouvelle Ordonnance', {
+                        body: data.message,
+                        icon: '/public/assets/img/curavita-logo.png',
+                        badge: '/public/assets/img/curavita-logo.png'
+                    });
+                }
+            });
+            
+            // Demander la permission pour les notifications navigateur
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+        
+        // Fonction pour afficher une notification dans la page
+        function showNotification(title, message, type = 'info', onClick = null) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#28a745' : '#17a2b8'};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10000;
+                min-width: 300px;
+                cursor: ${onClick ? 'pointer' : 'default'};
+                animation: slideIn 0.3s ease;
+            `;
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: start; gap: 1rem;">
+                    <i class="fas fa-bell" style="font-size: 1.5rem;"></i>
+                    <div style="flex: 1;">
+                        <strong style="display: block; margin-bottom: 0.25rem;">${title}</strong>
+                        <span style="font-size: 0.9rem;">${message}</span>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
+                </div>
+            `;
+            
+            if (onClick) {
+                notification.addEventListener('click', function(e) {
+                    if (e.target.tagName !== 'BUTTON') {
+                        onClick();
+                    }
+                });
+            }
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove après 10 secondes
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 10000);
+        }
+        
+        // Animations CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+    
     {% block javascripts %}{% endblock %}
 </body>
 </html>
+
+

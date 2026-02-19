@@ -23,7 +23,7 @@ class Commande
     private ?string $statut = 'en_attente';
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => 0])]
-    private ?float $total = 0.0;
+    private ?string $total = '0.00';
 
     #[ORM\Column(name: 'mode_paiement', length: 50)]
     private ?string $modePaiement = null;
@@ -51,7 +51,7 @@ class Commande
     private ?string $couponCode = null;
 
     #[ORM\Column(name: 'coupon_discount', type: 'decimal', precision: 10, scale: 2, options: ['default' => 0])]
-    private ?float $couponDiscount = 0.0;
+    private ?string $couponDiscount = '0.00';
 
     #[ORM\Column(name: 'estimated_delivery_date', nullable: true)]
     private ?\DateTimeImmutable $estimatedDeliveryDate = null;
@@ -60,7 +60,7 @@ class Commande
     private int $fraudScore = 0;
 
     #[ORM\Column(name: 'base_shipping_cost', type: 'decimal', precision: 10, scale: 2, options: ['default' => 0])]
-    private ?float $baseShippingCost = 0.0;
+    private ?string $baseShippingCost = '0.00';
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(name: 'id_utilisateur', referencedColumnName: 'id_utilisateur', nullable: true, onDelete: 'SET NULL')]
@@ -73,10 +73,10 @@ class Commande
     {
         $this->dateCommande = new \DateTime();
         $this->statut = 'en_attente';
-        $this->total = 0.0;
-        $this->couponDiscount = 0.0;
+        $this->total = '0.00';
+        $this->couponDiscount = '0.00';
         $this->fraudScore = 0;
-        $this->baseShippingCost = 0.0;
+        $this->baseShippingCost = '0.00';
         $this->shipments = new ArrayCollection();
     }
 

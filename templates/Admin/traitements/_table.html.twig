@@ -4,6 +4,7 @@
             <th>ID</th>
             <th>Ordonnance</th>
             <th>Patient</th>
+            <th>Produit</th>
             <th>Dosage</th>
             <th>Fréquence</th>
             <th>Durée (jours)</th>
@@ -19,6 +20,29 @@
             <td>{{ traitement.id }}</td>
             <td>{{ traitement.ordonnance.numeroOrdonnance }}</td>
             <td>{{ traitement.utilisateur.nom }} {{ traitement.utilisateur.prenom }}</td>
+            <td>
+                {% if traitement.produit %}
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        {% if traitement.produit.image %}
+                            <img src="{{ asset('uploads/produits/' ~ traitement.produit.image) }}" 
+                                 alt="{{ traitement.produit.nom }}" 
+                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 2px solid #e5e7eb;">
+                        {% else %}
+                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.25rem;">
+                                {{ traitement.produit.nom|slice(0, 1)|upper }}
+                            </div>
+                        {% endif %}
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: 600; color: #1f2937; font-size: 0.875rem;">{{ traitement.produit.nom }}</span>
+                            {% if traitement.produit.description %}
+                                <span style="font-size: 0.75rem; color: #6b7280;">{{ traitement.produit.description|slice(0, 40) }}{% if traitement.produit.description|length > 40 %}...{% endif %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% else %}
+                    <span style="color: #9ca3af; font-style: italic; font-size: 0.875rem;">Aucun produit</span>
+                {% endif %}
+            </td>
             <td>{{ traitement.dosage }}</td>
             <td>{{ traitement.frequence }}</td>
             <td>{{ traitement.dureeJours }}</td>
@@ -30,22 +54,118 @@
                 </span>
             </td>
             <td>
-                <a href="{{ path('admin_traitement_edit', {id: traitement.id}) }}" class="btn-sm btn-primary">
-                    <i class="fas fa-edit"></i> Modifier
-                </a>
-                <form method="post" action="{{ path('admin_traitement_delete', {id: traitement.id}) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce traitement ?');">
-                    <button type="submit" class="btn-sm btn-danger">
-                        <i class="fas fa-trash"></i> Supprimer
-                    </button>
-                </form>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <a href="{{ path('admin_traitement_edit', {id: traitement.id}) }}" class="btn-sm btn-primary">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                    <a href="{{ path('admin_audit_history', {entityType: 'Traitement', entityId: traitement.id}) }}" class="btn-audit" title="Voir l'historique des modifications">
+                        <span class="btn-audit-icon">📊</span>
+                        <span class="btn-audit-text">Historique</span>
+                        <span class="btn-audit-shine"></span>
+                    </a>
+                    <form method="post" action="{{ path('admin_traitement_delete', {id: traitement.id}) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce traitement ?');">
+                        <button type="submit" class="btn-sm btn-danger">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                    </form>
+                </div>
             </td>
         </tr>
         {% else %}
         <tr>
-            <td colspan="10" style="text-align: center; padding: 2rem;">
+            <td colspan="11" style="text-align: center; padding: 2rem;">
                 Aucun traitement trouvé
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+
+<style>
+.btn-audit {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border: none;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-audit::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.btn-audit:hover::before {
+    left: 100%;
+}
+
+.btn-audit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+
+.btn-audit:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-audit-icon {
+    font-size: 1.25rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.btn-audit-text {
+    position: relative;
+    z-index: 1;
+}
+
+.btn-audit-shine {
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 20px;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(45deg);
+    animation: shine 3s ease-in-out infinite;
+}
+
+@keyframes shine {
+    0% {
+        right: -50%;
+    }
+    20% {
+        right: 150%;
+    }
+    100% {
+        right: 150%;
+    }
+}
+</style>

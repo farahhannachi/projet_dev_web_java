@@ -825,10 +825,10 @@
                         <a href="{{ path('front_stocks') }}" class="nav-link {{ app.request.get('_route') == 'front_stocks' ? 'active' : '' }}">Stocks</a>
                     {% endif %}
                     <div class="dropdown">
-                        <a href="{{ path('app_ordonnance') }}" class="nav-link nav-link-green {{ app.request.get('_route') == 'app_ordonnance' ? 'active' : '' }}">Ordonnance & Traitement</a>
+                        <a href="{{ path('app_formulaire_ordonnance') }}" class="nav-link nav-link-green {{ app.request.get('_route') == 'app_formulaire_ordonnance' ? 'active' : '' }}">Ordonnance & Traitement</a>
                         <div class="dropdown-menu">
                             <a href="{{ path('app_demande_traitement') }}" class="dropdown-item">Demande de traitement</a>
-                            <a href="{{ path('app_ordonnance') }}" class="dropdown-item">Créer une ordonnance</a>
+                            <a href="{{ path('app_formulaire_ordonnance') }}" class="dropdown-item">Créer une ordonnance</a>
                             <a href="{{ path('app_mes_traitements') }}" class="dropdown-item">Mes traitements</a>
                         </div>
                     </div>
@@ -1067,7 +1067,7 @@
                 <div>
                     <h4>Services</h4>
                     <ul class="space-y-2 text-sm text-white opacity-90">
-                        <li><a href="{{ path('app_ordonnance') }}">Envoi d'ordonnance</a></li>
+                        <li><a href="{{ path('app_formulaire_ordonnance') }}">Envoi d'ordonnance</a></li>
                         <li><a href="{{ path('app_contact') }}">Click & Collect</a></li>
                         <li><a href="{{ path('app_contact') }}">Livraison Express</a></li>
                     </ul>

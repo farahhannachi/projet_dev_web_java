@@ -1,0 +1,271 @@
+{% extends 'Admin/_base_modern.html.twig' %}
+
+{% block title %}Test Pusher - Admin{% endblock %}
+
+{% block page_title %}Test des Notifications Pusher{% endblock %}
+{% block page_subtitle %}Vérifiez que les notifications en temps réel fonctionnent correctement{% endblock %}
+
+{% block main %}
+<style>
+    .test-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .status-box {
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .status-box.success {
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        border: 2px solid #28a745;
+        color: #155724;
+    }
+    
+    .status-box.error {
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        border: 2px solid #dc3545;
+        color: #721c24;
+    }
+    
+    .status-box.warning {
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        border: 2px solid #ffc107;
+        color: #856404;
+    }
+    
+    .status-box i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+    
+    .status-box h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .test-button {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1.25rem 2rem;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.125rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .test-button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    }
+    
+    .test-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .instructions {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        border-left: 4px solid var(--primary-color);
+        margin-bottom: 2rem;
+    }
+    
+    .instructions h4 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+    }
+    
+    .instructions ol {
+        margin-left: 1.5rem;
+        line-height: 1.8;
+    }
+    
+    .instructions li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .code-block {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        margin: 1rem 0;
+        border: 1px solid #dee2e6;
+    }
+    
+    .notification-log {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 1.5rem;
+        border-radius: 12px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.875rem;
+        max-height: 300px;
+        overflow-y: auto;
+        margin-top: 2rem;
+    }
+    
+    .notification-log .log-entry {
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        border-left: 3px solid #28a745;
+        padding-left: 1rem;
+    }
+    
+    .notification-log .log-time {
+        color: #858585;
+        margin-right: 0.5rem;
+    }
+</style>
+
+<div class="test-container">
+    <div id="statusBox" class="status-box warning">
+        <i class="fas fa-question-circle"></i>
+        <h3>Statut: En attente de test</h3>
+        <p>Cliquez sur le bouton ci-dessous pour tester les notifications</p>
+    </div>
+    
+    <div class="instructions">
+        <h4><i class="fas fa-info-circle"></i> Instructions</h4>
+        <ol>
+            <li><strong>Configurez Pusher</strong> dans votre fichier <code>.env</code> (voir docs/PUSHER_CONFIGURATION.md)</li>
+            <li><strong>Ouvrez cette page</strong> dans un onglet du navigateur</li>
+            <li><strong>Cliquez sur "Envoyer une notification de test"</strong></li>
+            <li><strong>Vérifiez</strong> qu'une notification apparaît en haut à droite de la page</li>
+            <li><strong>Vérifiez aussi</strong> la notification système du navigateur (si autorisée)</li>
+        </ol>
+        
+        <div class="code-block">
+            PUSHER_APP_ID=votre_app_id<br>
+            PUSHER_APP_KEY=votre_app_key<br>
+            PUSHER_APP_SECRET=votre_app_secret<br>
+            PUSHER_APP_CLUSTER=eu
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin: 2rem 0;">
+        <button id="testButton" class="test-button">
+            <i class="fas fa-paper-plane"></i>
+            Envoyer une notification de test
+        </button>
+    </div>
+    
+    <div class="notification-log" id="logContainer" style="display: none;">
+        <div style="margin-bottom: 1rem; color: #28a745; font-weight: bold;">
+            <i class="fas fa-terminal"></i> Journal des événements
+        </div>
+        <div id="logEntries"></div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const testButton = document.getElementById('testButton');
+    const statusBox = document.getElementById('statusBox');
+    const logContainer = document.getElementById('logContainer');
+    const logEntries = document.getElementById('logEntries');
+    
+    function addLog(message, type = 'info') {
+        logContainer.style.display = 'block';
+        const time = new Date().toLocaleTimeString();
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerHTML = `<span class="log-time">[${time}]</span> ${message}`;
+        logEntries.insertBefore(entry, logEntries.firstChild);
+    }
+    
+    function updateStatus(type, icon, title, message) {
+        statusBox.className = `status-box ${type}`;
+        statusBox.innerHTML = `
+            <i class="fas ${icon}"></i>
+            <h3>${title}</h3>
+            <p>${message}</p>
+        `;
+    }
+    
+    testButton.addEventListener('click', async function() {
+        testButton.disabled = true;
+        testButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+        
+        addLog('🚀 Envoi de la notification de test...');
+        updateStatus('warning', 'fa-spinner fa-spin', 'Test en cours...', 'Envoi de la notification via Pusher');
+        
+        try {
+            const response = await fetch('{{ path('admin_test_pusher_send') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                addLog('✅ ' + data.message);
+                updateStatus('success', 'fa-check-circle', 'Test réussi!', data.message);
+                
+                // Attendre 2 secondes pour voir la notification
+                setTimeout(() => {
+                    addLog('👀 Vérifiez qu\'une notification est apparue en haut à droite');
+                }, 2000);
+            } else {
+                addLog('❌ ' + data.message);
+                updateStatus('error', 'fa-times-circle', 'Test échoué', data.message);
+            }
+        } catch (error) {
+            addLog('❌ Erreur: ' + error.message);
+            updateStatus('error', 'fa-times-circle', 'Erreur', 'Une erreur est survenue: ' + error.message);
+        } finally {
+            testButton.disabled = false;
+            testButton.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer une autre notification de test';
+        }
+    });
+    
+    // Écouter les notifications Pusher
+    const pusherKey = '{{ app.request.server.get('PUSHER_APP_KEY') }}';
+    
+    if (pusherKey && pusherKey !== '') {
+        addLog('🔌 Connexion à Pusher...');
+        
+        const pusher = new Pusher(pusherKey, {
+            cluster: '{{ app.request.server.get('PUSHER_APP_CLUSTER') ?? 'eu' }}'
+        });
+        
+        pusher.connection.bind('connected', function() {
+            addLog('✅ Connecté à Pusher avec succès!');
+        });
+        
+        pusher.connection.bind('error', function(err) {
+            addLog('❌ Erreur de connexion Pusher: ' + err.error.data.message);
+        });
+
+        const channel = pusher.subscribe('admin-channel');
+        
+        channel.bind('pusher:subscription_succeeded', function() {
+            addLog('✅ Abonné au canal admin-channel');
+        });
+        
+        channel.bind('new-ordonnance', function(data) {
+            addLog('📬 Notification reçue: ' + data.message);
+        });
+    } else {
+        addLog('⚠️ Pusher non configuré - Veuillez configurer les clés dans .env');
+        updateStatus('error', 'fa-exclamation-triangle', 'Pusher non configuré', 'Veuillez configurer les clés PUSHER dans votre fichier .env');
+    }
+});
+</script>
+{% endblock %}

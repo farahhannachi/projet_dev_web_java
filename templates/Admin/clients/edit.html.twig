@@ -33,6 +33,16 @@
             </div>
 
             <div>
+                <label for="telephone" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">
+                    📱 Téléphone (pour SMS)
+                </label>
+                <input type="tel" id="telephone" name="telephone" value="{{ client.telephone }}" placeholder="+21626581955" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                <small style="color: #666; display: block; margin-top: 0.25rem;">
+                    Format international avec + (ex: +21626581955). Nécessaire pour recevoir les SMS de notification.
+                </small>
+            </div>
+
+            <div>
                 <label for="mot_de_passe" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">
                     Nouveau mot de passe (laisser vide pour ne pas changer)
                 </label>

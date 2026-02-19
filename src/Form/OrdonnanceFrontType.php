@@ -18,50 +18,23 @@ class OrdonnanceFrontType extends AbstractType
         $builder
             ->add('numeroOrdonnance', TextType::class, [
                 'label' => 'Numéro d\'ordonnance',
-                'attr' => ['class' => 'input', 'placeholder' => 'Ex: ORD-2024-001'],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'Le numéro d\'ordonnance est obligatoire']),
-                    new Assert\Length([
-                        'max' => 100,
-                        'maxMessage' => 'Le numéro ne peut pas dépasser {{ limit }} caractères'
-                    ])
-                ]
+                'attr' => ['class' => 'input', 'placeholder' => 'Ex: ORD-2024-001']
             ])
             ->add('dateOrdonnance', DateType::class, [
                 'label' => 'Date de l\'ordonnance',
                 'widget' => 'single_text',
                 'attr' => ['class' => 'input'],
-                'data' => new \DateTime(),
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'La date de l\'ordonnance est obligatoire']),
-                    new Assert\LessThanOrEqual([
-                        'value' => 'today',
-                        'message' => 'La date ne peut pas être dans le futur'
-                    ])
-                ]
+                'data' => new \DateTime()
             ])
             ->add('dateExpiration', DateType::class, [
                 'label' => 'Date d\'expiration',
                 'widget' => 'single_text',
-                'attr' => ['class' => 'input'],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'La date d\'expiration est obligatoire']),
-                    new Assert\GreaterThan([
-                        'value' => 'today',
-                        'message' => 'La date d\'expiration doit être dans le futur'
-                    ])
-                ]
+                'attr' => ['class' => 'input']
             ])
             ->add('noteMedical', TextareaType::class, [
                 'label' => 'Message pour le pharmacien (Optionnel)',
                 'required' => false,
-                'attr' => ['class' => 'input h-24', 'placeholder' => 'Précisez un dosage, une allergie...', 'rows' => 5],
-                'constraints' => [
-                    new Assert\Length([
-                        'max' => 5000,
-                        'maxMessage' => 'La note ne peut pas dépasser {{ limit }} caractères'
-                    ])
-                ]
+                'attr' => ['class' => 'input h-24', 'placeholder' => 'Précisez un dosage, une allergie...', 'rows' => 5]
             ])
         ;
     }

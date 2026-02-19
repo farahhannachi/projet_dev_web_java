@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\TraitementRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TraitementRepository::class)]
 #[ORM\Table(name: 'traitement')]
@@ -14,12 +15,14 @@ class Traitement
     #[ORM\Column(name: 'id_traitement')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Ordonnance::class)]
+    #[ORM\ManyToOne(targetEntity: Ordonnance::class, inversedBy: 'traitements')]
     #[ORM\JoinColumn(name: 'id_ordonnance', referencedColumnName: 'id_ordonnance', nullable: false)]
+    #[Assert\NotBlank(message: 'L\'ordonnance est obligatoire')]
     private ?Ordonnance $ordonnance = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(name: 'id_utilisateur', referencedColumnName: 'id_utilisateur', nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotBlank(message: 'Le patient est obligatoire')]
     private ?Utilisateur $utilisateur = null;
 
     #[ORM\ManyToOne(targetEntity: Produit::class)]
@@ -27,12 +30,26 @@ class Traitement
     private ?Produit $produit = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: 'Le dosage ne peut pas dépasser {{ limit }} caractères'
+    )]
     private ?string $dosage = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: 'La fréquence ne peut pas dépasser {{ limit }} caractères'
+    )]
     private ?string $frequence = null;
 
     #[ORM\Column(name: 'duree_jours', nullable: true)]
+    #[Assert\Positive(message: 'La durée doit être positive')]
+    #[Assert\Range(
+        min: 1,
+        max: 365,
+        notInRangeMessage: 'La durée doit être entre {{ min }} et {{ max }} jours'
+    )]
     private ?int $dureeJours = null;
 
     #[ORM\Column(name: 'date_debut', nullable: true)]
@@ -42,9 +59,18 @@ class Traitement
     private ?\DateTime $dateFin = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank(message: 'Le statut est obligatoire')]
+    #[Assert\Choice(
+        choices: ['en attente', 'validé', 'rejeté', 'actif', 'terminé', 'suspendu', 'annulé'],
+        message: 'Statut invalide'
+    )]
     private ?string $status = 'actif';
 
     #[ORM\Column(type: 'text', nullable: true)]
+    #[Assert\Length(
+        max: 5000,
+        maxMessage: 'Les notes ne peuvent pas dépasser {{ limit }} caractères'
+    )]
     private ?string $notes = null;
 
     public function getId(): ?int

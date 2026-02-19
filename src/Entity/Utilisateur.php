@@ -49,6 +49,12 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'last_activity_at', nullable: true)]
     private ?\DateTimeImmutable $lastActivityAt = null;
 
+    #[ORM\Column(name: 'date_naissance', type: 'date', nullable: true)]
+    private ?\DateTimeInterface $dateNaissance = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $telephone = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -202,6 +208,28 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastActivityAt(?\DateTimeImmutable $lastActivityAt): static
     {
         $this->lastActivityAt = $lastActivityAt;
+        return $this;
+    }
+
+    public function getDateNaissance(): ?\DateTimeInterface
+    {
+        return $this->dateNaissance;
+    }
+
+    public function setDateNaissance(?\DateTimeInterface $dateNaissance): static
+    {
+        $this->dateNaissance = $dateNaissance;
+        return $this;
+    }
+
+    public function getTelephone(): ?string
+    {
+        return $this->telephone;
+    }
+
+    public function setTelephone(?string $telephone): static
+    {
+        $this->telephone = $telephone;
         return $this;
     }
 }

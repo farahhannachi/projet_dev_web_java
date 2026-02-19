@@ -5,18 +5,34 @@
 
 {% block main %}
 <style>
-    .form-error {
-        background: #fee2e2;
-        border: 1px solid #ef4444;
-        color: #991b1b;
-        padding: 0.5rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.875rem;
-        margin-top: 0.5rem;
+    /* Style pour les erreurs de champs individuels - en noir sous le champ */
+    .invalid-feedback, 
+    ul.invalid-feedback,
+    li {
         display: block;
+        color: #1f2937 !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        margin-top: 0.5rem !important;
+        font-size: 0.875rem !important;
+        font-weight: 400 !important;
+        list-style: none !important;
     }
-    .form-error::before {
-        content: "⚠️ ";
+    
+    ul.invalid-feedback {
+        padding-left: 0 !important;
+    }
+    
+    .invalid-feedback::before,
+    li::before {
+        content: "" !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Bordure rouge pour les champs invalides */
+    .is-invalid {
+        border-color: #ef4444 !important;
     }
 </style>
 

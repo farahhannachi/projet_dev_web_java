@@ -83,6 +83,10 @@
             <td>{{ depot.responsableDepot }}</td>
         </tr>
         <tr>
+            <td class="label">Telephone responsable</td>
+            <td>{{ depot.responsableTelephone ?? '-' }}</td>
+        </tr>
+        <tr>
             <td class="label">Date de création</td>
             <td>{{ depot.dateCreation ? depot.dateCreation|date('d/m/Y') : 'Non définie' }}</td>
         </tr>

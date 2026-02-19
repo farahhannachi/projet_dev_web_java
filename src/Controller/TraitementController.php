@@ -400,4 +400,56 @@ class TraitementController extends AbstractController
 
         return $this->redirectToRoute('admin_traitements');
     }
+
+    #[Route('/admin/traitement/suggerer-dosage', name: 'admin_traitement_suggerer_dosage', methods: ['POST'])]
+    public function suggererDosage(
+        Request $request,
+        \App\Repository\ProduitRepository $produitRepository,
+        \App\Service\IADosageService $iaDosageService
+    ): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            $produitId = $data['produit_id'] ?? null;
+            $noteMedicale = $data['note_medicale'] ?? '';
+
+            if (!$produitId) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'ID du produit manquant'
+                ], 400);
+            }
+
+            if (empty($noteMedicale)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Note médicale manquante'
+                ], 400);
+            }
+
+            $produit = $produitRepository->find($produitId);
+            if (!$produit) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Produit introuvable'
+                ], 404);
+            }
+
+            // Obtenir les suggestions de l'IA
+            $suggestions = $iaDosageService->suggererDosage($produit, $noteMedicale);
+
+            return $this->json([
+                'success' => true,
+                'suggestions' => $suggestions
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

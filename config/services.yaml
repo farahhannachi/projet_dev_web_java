@@ -4,6 +4,12 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    depot_health_weights:
+        rupture: 0.40
+        expiration: 0.25
+        rotation: 0.20
+        seuils: 0.15
+    docusign_default_url: 'https://demo.docusign.net/restapi'
 
 services:
     # default configuration for services in *this* file
@@ -28,5 +34,79 @@ services:
             $brevoSmsApiKey: '%env(default::BREVO_SMS_API_KEY)%'
             $brevoSmsSender: '%env(default::BREVO_SMS_SENDER)%'
 
+    App\EventSubscriber\StockThresholdSubscriber:
+        tags:
+            - { name: doctrine.event_subscriber }
+
+    App\EventSubscriber\StockAlertMailSubscriber:
+        tags:
+            - { name: doctrine.event_subscriber }
+
+    App\Service\DepotHealthScoreService:
+        arguments:
+            $weights: '%depot_health_weights%'
+
+    App\Service\IARecommandationService:
+        arguments:
+            $openaiApiKey: '%env(default::OPENAI_API_KEY)%'
+            $huggingfaceApiKey: '%env(default::HUGGINGFACE_API_KEY)%'
+
+    App\Service\PusherNotificationService:
+        arguments:
+            $appId: '%env(default::PUSHER_APP_ID)%'
+            $appKey: '%env(default::PUSHER_APP_KEY)%'
+            $appSecret: '%env(default::PUSHER_APP_SECRET)%'
+            $appCluster: '%env(PUSHER_APP_CLUSTER)%'
+
+    App\Service\TwilioSmsService:
+        arguments:
+            $accountSid: '%env(default::TWILIO_ACCOUNT_SID)%'
+            $authToken: '%env(default::TWILIO_AUTH_TOKEN)%'
+            $fromNumber: '%env(default::TWILIO_FROM_NUMBER)%'
+
+    App\Service\IAInteractionMedicamenteuse:
+        arguments:
+            $apiKey: '%env(default::OPENAI_API_KEY)%'
+
+    App\Service\IADosageService:
+        arguments:
+            $apiKey: '%env(default::OPENAI_API_KEY)%'
+
+    App\Service\IAAnalyseNoteMedicaleService:
+        arguments:
+            $apiKey: '%env(default::OPENAI_API_KEY)%'
+
+    # Event Subscriber pour corriger l'encodage des formulaires
+    App\EventSubscriber\FormEncodingSubscriber:
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # Extension de formulaire pour forcer UTF-8
+    App\Form\Extension\FormTypeExtension:
+        tags:
+            - { name: form.type_extension }
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Service\DocuSignService:
+        arguments:
+            $apiKey: '%env(default::DOCUSIGN_API_KEY)%'
+            $accountId: '%env(default::DOCUSIGN_ACCOUNT_ID)%'
+            $baseUrl: '%env(default:docusign_default_url:DOCUSIGN_BASE_URL)%'
+
+
+    # Service d'audit pour l'historique des modifications
+    App\Service\AuditService:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+            $security: '@security.helper'
+            $requestStack: '@request_stack'
+            $logger: '@logger'
+
+    # Event Subscriber pour capturer automatiquement les modifications
+    App\EventSubscriber\AuditSubscriber:
+        arguments:
+            $auditService: '@App\Service\AuditService'
+        tags:
+            - { name: doctrine.event_subscriber }

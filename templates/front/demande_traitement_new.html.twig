@@ -1,0 +1,1168 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Demande de Traitement - CURAVITA{% endblock %}
+
+{% block main %}
+<style>
+    /* Hero Section - Style Contact */
+    .hero-support {
+        min-height: 60vh;
+        background: linear-gradient(135deg, #0a1628 0%, #16563f 50%, #0f3d2a 100%);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .hero-support::before {
+        content: '';
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(40, 167, 69, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(22, 86, 63, 0.4) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(244, 196, 48, 0.1) 0%, transparent 30%);
+        animation: nebula 20s ease-in-out infinite;
+    }
+
+    @keyframes nebula {
+        0%, 100% { transform: translate(-10%, -10%) rotate(0deg); }
+        50% { transform: translate(10%, 10%) rotate(180deg); }
+    }
+
+    .particles {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        animation: float-particle 15s infinite;
+    }
+
+    .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+    .particle:nth-child(2) { left: 20%; animation-delay: 2s; }
+    .particle:nth-child(3) { left: 30%; animation-delay: 4s; }
+    .particle:nth-child(4) { left: 40%; animation-delay: 1s; }
+    .particle:nth-child(5) { left: 50%; animation-delay: 3s; }
+    .particle:nth-child(6) { left: 60%; animation-delay: 5s; }
+    .particle:nth-child(7) { left: 70%; animation-delay: 2.5s; }
+    .particle:nth-child(8) { left: 80%; animation-delay: 4.5s; }
+
+    @keyframes float-particle {
+        0% { transform: translateY(100vh) scale(0); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+    }
+
+    .hero-content-support {
+        position: relative;
+        z-index: 10;
+        text-align: center;
+        padding: 2rem;
+        max-width: 900px;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #f4c430;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+        animation: slideDown 1s ease;
+    }
+
+    .hero-title-support {
+        font-size: clamp(2.5rem, 8vw, 4rem);
+        font-weight: 800;
+        color: white;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        animation: slideUp 1s ease 0.2s both;
+    }
+
+    .hero-title-support span {
+        background: linear-gradient(135deg, #f4c430 0%, #ffd700 50%, #f4c430 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        background-size: 200% auto;
+        animation: shimmer 3s linear infinite;
+    }
+
+    @keyframes shimmer {
+        0% { background-position: 0% center; }
+        100% { background-position: 200% center; }
+    }
+
+    .hero-subtitle-support {
+        font-size: 1.25rem;
+        color: rgba(255,255,255,0.8);
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.8;
+        animation: slideUp 1s ease 0.4s both;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .traitement-container {
+        background-color: #f8f9fa;
+        min-height: 80vh;
+        padding: 0 0 3rem;
+        margin-top: -80px;
+        position: relative;
+        z-index: 3;
+    }
+    
+    .traitement-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        background: linear-gradient(to bottom right, transparent 49%, #f8f9fa 50%);
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        padding: 2.5rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(22, 86, 63, 0.1);
+    }
+
+    .form-control:read-only {
+        background: #f5f5f5;
+        cursor: not-allowed;
+    }
+
+    .form-control:invalid {
+        box-shadow: none;
+        border-color: #e5e7eb;
+    }
+
+    .form-control:invalid:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(22, 86, 63, 0.1);
+    }
+
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        padding-right: 2.5rem;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .form-error {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .required {
+        color: #dc3545;
+    }
+
+    .form-help {
+        color: #6b7280;
+        font-size: 0.875rem;
+        display: block;
+        margin-top: 0.25rem;
+    }
+
+    .checkbox-wrapper {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 2px solid #dee2e6;
+        margin-bottom: 2rem;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: start;
+        gap: 0.75rem;
+        cursor: pointer;
+    }
+
+    .checkbox-input {
+        width: 20px;
+        height: 20px;
+        margin-top: 0.25rem;
+        cursor: pointer;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #145239 100%);
+        color: white;
+        padding: 1rem 2.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(22, 86, 63, 0.3);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(22, 86, 63, 0.4);
+    }
+
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+        padding: 1rem 2.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s;
+        margin-left: 1rem;
+    }
+
+    .btn-cancel:hover {
+        background: #5a6268;
+        text-decoration: none;
+        color: white;
+    }
+
+    .alert {
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border-color: #28a745;
+    }
+
+    .alert-danger {
+        background: #f8d7da;
+        color: #721c24;
+        border-color: #dc3545;
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero-support">
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+    
+    <div class="hero-content-support">
+        <div class="hero-badge">💊 Demande de Traitement</div>
+        <h1 class="hero-title-support">Demande de <span>Traitement</span></h1>
+        <p class="hero-subtitle-support">Remplissez le formulaire ci-dessous pour demander un traitement personnalisé</p>
+    </div>
+</section>
+
+<div class="traitement-container">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 5rem 1rem;">
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> {{ message }}
+            </div>
+        {% endfor %}
+
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> {{ message }}
+            </div>
+        {% endfor %}
+
+        <div style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem; align-items: start;">
+            <!-- Formulaire principal -->
+            <div class="form-card">
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'needs-validation'}}) }}
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        {{ form_label(form.nom) }}
+                    </label>
+                    {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.nom) }}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        {{ form_label(form.email) }}
+                    </label>
+                    {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.email) }}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        {{ form_label(form.dateNaissance) }}
+                    </label>
+                    {{ form_widget(form.dateNaissance, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.dateNaissance) }}
+                    <small class="form-help">
+                        <i class="fas fa-info-circle"></i> Cette information est nécessaire pour votre dossier médical
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                        {{ form_label(form.antecedentsMedicaux) }}
+                        <span style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: 700;">🎤 Vocal</span>
+                    </label>
+                    <div style="position: relative;">
+                        {{ form_widget(form.antecedentsMedicaux, {'attr': {'class': 'form-control', 'id': 'antecedents-input', 'style': 'padding-right: 50px;'}}) }}
+                        <button type="button" id="btn-voice-antecedents" class="btn-voice" title="Reconnaissance vocale">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                    </div>
+                    {{ form_errors(form.antecedentsMedicaux) }}
+                    <small class="form-help">
+                        <i class="fas fa-info-circle"></i> Minimum 5 caractères, maximum 1000 caractères. Cliquez sur 🎤 pour dicter
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                        {{ form_label(form.symptomes) }}
+                        <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: 700;">🤖 IA</span>
+                        <span style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: 700;">🎤 Vocal</span>
+                    </label>
+                    <div style="position: relative;">
+                        {{ form_widget(form.symptomes, {'attr': {'class': 'form-control', 'id': 'symptomes-input', 'placeholder': 'Exemple: J\'ai mal à la tête depuis ce matin, avec de la fièvre...', 'style': 'padding-right: 50px;'}}) }}
+                        <button type="button" id="btn-voice-symptomes" class="btn-voice" title="Reconnaissance vocale">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                    </div>
+                    {{ form_errors(form.symptomes) }}
+                    <small class="form-help">
+                        <i class="fas fa-info-circle"></i> Décrivez vos symptômes en détail pour obtenir une recommandation IA personnalisée. Cliquez sur 🎤 pour dicter
+                    </small>
+                    
+                    <!-- Bouton de recommandation IA -->
+                    <button type="button" id="btn-recommander-ia" class="btn-recommander-ia" style="margin-top: 1rem; width: 100%; padding: 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.3s;">
+                        <span>🤖</span>
+                        <span id="btn-text">Recommandation IA - Choisir automatiquement</span>
+                        <div id="loading-spinner" style="display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        {{ form_label(form.produit) }}
+                    </label>
+                    {{ form_widget(form.produit, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.produit) }}
+                    <small class="form-help" id="produit-help">
+                        <i class="fas fa-lightbulb"></i> Utilisez la recommandation IA ci-dessus pour sélectionner automatiquement le produit adapté
+                    </small>
+                </div>
+
+                <div class="checkbox-wrapper">
+                    <label class="checkbox-label" for="{{ form.accepteConditions.vars.id }}">
+                        {{ form_widget(form.accepteConditions, {'attr': {'class': 'checkbox-input'}}) }}
+                        <span style="flex: 1; color: #333; font-size: 0.95rem;">
+                            J'accepte les 
+                            <a href="{{ path('app_conditions_generales') }}" target="_blank" style="color: var(--primary-color); text-decoration: underline; font-weight: 600;">
+                                conditions générales et la politique de confidentialité
+                            </a>
+                        </span>
+                    </label>
+                    {{ form_errors(form.accepteConditions) }}
+                </div>
+
+                <div style="text-align: center;">
+                    <button type="submit" class="btn-submit" id="submitBtnDemande">
+                        <i class="fas fa-paper-plane"></i> Envoyer la demande
+                    </button>
+                    <a href="{{ path('app_home') }}" class="btn-cancel">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+
+            <!-- Carte d'information -->
+            <div style="position: sticky; top: 2rem;">
+                <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 2rem; margin-bottom: 1.5rem;">
+                    <div style="text-align: center; margin-bottom: 1.5rem;">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary-color) 0%, #145239 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; box-shadow: 0 4px 12px rgba(22, 86, 63, 0.3);">
+                            <i class="fas fa-user-md" style="font-size: 2.5rem; color: white;"></i>
+                        </div>
+                        <h3 style="color: var(--primary-color); font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Validation Pharmaceutique</h3>
+                        <p style="color: #6b7280; font-size: 0.9rem;">Votre demande sera examinée par un pharmacien qualifié</p>
+                    </div>
+
+                    <div style="border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
+                        <div style="display: flex; align-items: start; gap: 1rem; margin-bottom: 1.25rem;">
+                            <div style="width: 40px; height: 40px; background: rgba(22, 86, 63, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-clock" style="color: var(--primary-color); font-size: 1.25rem;"></i>
+                            </div>
+                            <div>
+                                <h4 style="color: #1f2937; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem;">Réponse rapide</h4>
+                                <p style="color: #6b7280; font-size: 0.85rem; line-height: 1.5; margin: 0;">Traitement de votre demande sous 24h ouvrées</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: start; gap: 1rem; margin-bottom: 1.25rem;">
+                            <div style="width: 40px; height: 40px; background: rgba(22, 86, 63, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-shield-alt" style="color: var(--primary-color); font-size: 1.25rem;"></i>
+                            </div>
+                            <div>
+                                <h4 style="color: #1f2937; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem;">Confidentialité</h4>
+                                <p style="color: #6b7280; font-size: 0.85rem; line-height: 1.5; margin: 0;">Vos données sont protégées et sécurisées</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: start; gap: 1rem;">
+                            <div style="width: 40px; height: 40px; background: rgba(22, 86, 63, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-check-circle" style="color: var(--primary-color); font-size: 1.25rem;"></i>
+                            </div>
+                            <div>
+                                <h4 style="color: #1f2937; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem;">Suivi en ligne</h4>
+                                <p style="color: #6b7280; font-size: 0.85rem; line-height: 1.5; margin: 0;">Consultez l'état de votre demande à tout moment</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: linear-gradient(135deg, rgba(22, 86, 63, 0.05) 0%, rgba(22, 86, 63, 0.1) 100%); border-radius: 16px; padding: 1.5rem; border: 2px solid rgba(22, 86, 63, 0.2);">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                        <i class="fas fa-info-circle" style="color: var(--primary-color); font-size: 1.5rem;"></i>
+                        <h4 style="color: var(--primary-color); font-size: 1rem; font-weight: 700; margin: 0;">Informations importantes</h4>
+                    </div>
+                    <ul style="color: #374151; font-size: 0.85rem; line-height: 1.6; margin: 0; padding-left: 1.25rem;">
+                        <li style="margin-bottom: 0.5rem;">Remplissez tous les champs avec précision</li>
+                        <li style="margin-bottom: 0.5rem;">Décrivez vos symptômes en détail</li>
+                        <li style="margin-bottom: 0.5rem;">Mentionnez toutes vos allergies</li>
+                        <li>En cas d'urgence, contactez le 190</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media (max-width: 968px) {
+        .traitement-container .container > div {
+            grid-template-columns: 1fr !important;
+        }
+        .traitement-container .container > div > div:last-child {
+            position: static !important;
+        }
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .btn-recommander-ia:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-recommander-ia:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+</style>
+
+<script>
+console.log('=== DÉBUT DU SCRIPT IA ===');
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✓ DOM chargé, initialisation du script IA...');
+    
+    // Protection contre la double soumission
+    const formDemande = document.querySelector('form[name="demande_traitement"]');
+    const submitBtnDemande = document.getElementById('submitBtnDemande');
+    let isSubmittingDemande = false;
+    
+    if (formDemande && submitBtnDemande) {
+        formDemande.addEventListener('submit', function(e) {
+            if (isSubmittingDemande) {
+                e.preventDefault();
+                return false;
+            }
+            
+            isSubmittingDemande = true;
+            submitBtnDemande.disabled = true;
+            submitBtnDemande.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+            submitBtnDemande.style.opacity = '0.7';
+            submitBtnDemande.style.cursor = 'not-allowed';
+        });
+    }
+    
+    const btnRecommander = document.getElementById('btn-recommander-ia');
+    const symptomesInput = document.querySelector('textarea[name="demande_traitement[symptomes]"]');
+    const antecedentsInput = document.querySelector('textarea[name="demande_traitement[antecedentsMedicaux]"]');
+    const produitSelect = document.querySelector('select[name="demande_traitement[produit]"]');
+    const btnText = document.getElementById('btn-text');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const produitHelp = document.getElementById('produit-help');
+
+    console.log('Éléments trouvés:', {
+        btnRecommander: !!btnRecommander,
+        symptomesInput: !!symptomesInput,
+        produitSelect: !!produitSelect,
+        btnText: !!btnText,
+        loadingSpinner: !!loadingSpinner,
+        produitHelp: !!produitHelp
+    });
+
+    if (!btnRecommander) {
+        console.error('❌ Bouton recommander introuvable!');
+        return;
+    }
+    if (!symptomesInput) {
+        console.error('❌ Champ symptômes introuvable!');
+        console.log('Tous les textareas:', document.querySelectorAll('textarea'));
+        return;
+    }
+    if (!produitSelect) {
+        console.error('❌ Select produit introuvable!');
+        console.log('Tous les selects:', document.querySelectorAll('select'));
+        return;
+    }
+
+    console.log('✓ Tous les éléments sont présents');
+
+    btnRecommander.addEventListener('click', async function(e) {
+        e.preventDefault();
+        console.log('🤖 === BOUTON IA CLIQUÉ ===');
+        
+        const symptomes = symptomesInput.value.trim();
+        const antecedents = antecedentsInput ? antecedentsInput.value.trim() : '';
+
+        console.log('Symptômes saisis:', symptomes);
+        console.log('Longueur:', symptomes.length);
+
+        if (symptomes.length < 10) {
+            console.warn('⚠️ Symptômes trop courts');
+            alert('Veuillez décrire vos symptômes (au moins 10 caractères) pour obtenir une recommandation.');
+            symptomesInput.focus();
+            return;
+        }
+
+        // Afficher le loading
+        btnRecommander.disabled = true;
+        btnText.textContent = 'Analyse en cours...';
+        loadingSpinner.style.display = 'block';
+        console.log('⏳ Loading activé');
+
+        try {
+            const formData = new FormData();
+            formData.append('description', symptomes);
+            formData.append('antecedents', antecedents);
+
+            const url = '{{ path('app_recommandation_traitement_api') }}';
+            console.log('📡 Envoi requête vers:', url);
+
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            console.log('📥 Réponse reçue - Status:', response.status);
+            console.log('📥 Content-Type:', response.headers.get('content-type'));
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Erreur serveur:', errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log('📦 Données JSON:', data);
+
+            if (data.success && data.recommandations && data.recommandations.length > 0) {
+                console.log('✅ Recommandations trouvées:', data.recommandations.length);
+                
+                const meilleurProduit = data.recommandations[0];
+                console.log('🏆 Meilleur produit:', meilleurProduit);
+                
+                produitSelect.value = meilleurProduit.id;
+                console.log('✓ Produit sélectionné dans le select:', meilleurProduit.id);
+                
+                produitSelect.dispatchEvent(new Event('change'));
+                
+                produitSelect.style.border = '3px solid #28a745';
+                produitSelect.style.background = '#d4edda';
+                
+                setTimeout(() => {
+                    produitSelect.style.border = '';
+                    produitSelect.style.background = '';
+                }, 2000);
+                
+                produitHelp.innerHTML = `
+                    <i class="fas fa-check-circle" style="color: #28a745;"></i> 
+                    <strong style="color: #28a745;">Produit sélectionné automatiquement par l'IA:</strong> 
+                    ${meilleurProduit.nom} 
+                    <span style="background: #d4edda; color: #155724; padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.75rem; margin-left: 0.5rem;">
+                        ⭐ Score: ${Math.round(meilleurProduit.score)}%
+                    </span>
+                    <br>
+                    <span style="color: #6b7280; font-style: italic; font-size: 0.85rem;">
+                        ${meilleurProduit.raison}
+                    </span>
+                `;
+                produitHelp.style.color = '#28a745';
+                
+                produitSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                alert(`✓ Produit recommandé: ${meilleurProduit.nom}\n\nRaison: ${meilleurProduit.raison}\n\nScore de pertinence: ${Math.round(meilleurProduit.score)}%`);
+                
+            } else {
+                console.warn('⚠️ Aucune recommandation trouvée');
+                alert('Aucun produit correspondant trouvé. Veuillez reformuler votre description ou sélectionner manuellement un produit.');
+                produitHelp.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i> Aucune recommandation trouvée. Veuillez sélectionner manuellement un produit.';
+                produitHelp.style.color = '#ffc107';
+            }
+        } catch (error) {
+            console.error('❌ ERREUR:', error);
+            console.error('Stack:', error.stack);
+            alert('Une erreur est survenue: ' + error.message);
+            produitHelp.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #dc3545;"></i> Erreur: ' + error.message;
+            produitHelp.style.color = '#dc3545';
+        } finally {
+            btnRecommander.disabled = false;
+            btnText.textContent = 'Recommandation IA - Choisir automatiquement';
+            loadingSpinner.style.display = 'none';
+            console.log('✓ Loading désactivé');
+        }
+    });
+
+    console.log('✓ Event listener ajouté au bouton');
+});
+
+console.log('=== FIN DU SCRIPT IA ===');
+</script>
+
+<!-- ========================================
+     🎤 RECONNAISSANCE VOCALE WEB SPEECH API
+     ======================================== -->
+
+<!-- Styles pour la reconnaissance vocale -->
+<style>
+    /* Boutons de reconnaissance vocale */
+    .btn-voice {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        z-index: 10;
+    }
+
+    .btn-voice:hover {
+        transform: translateY(-50%) scale(1.1);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+    }
+
+    .btn-voice.listening {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .btn-voice.listening i {
+        animation: microphone-pulse 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+        50% {
+            box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+        }
+    }
+
+    @keyframes microphone-pulse {
+        0% {
+            transform: scale(1);
+        }
+        100% {
+            transform: scale(1.2);
+        }
+    }
+
+    .voice-status {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        display: none;
+        align-items: center;
+        gap: 1rem;
+        z-index: 1000;
+        border: 2px solid #10b981;
+    }
+
+    .voice-status.active {
+        display: flex;
+    }
+
+    .voice-status .pulse-dot {
+        width: 12px;
+        height: 12px;
+        background: #10b981;
+        border-radius: 50%;
+        animation: pulse-dot 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.5;
+            transform: scale(1.2);
+        }
+    }
+</style>
+
+<!-- Indicateur de statut vocal -->
+<div class="voice-status" id="voice-status">
+    <div class="pulse-dot"></div>
+    <span style="color: #10b981; font-weight: 600;">🎤 Écoute en cours... Parlez maintenant</span>
+</div>
+
+<script>
+// ========================================
+// 🎤 RECONNAISSANCE VOCALE WEB SPEECH API
+// ========================================
+(function() {
+    console.log('=== INITIALISATION RECONNAISSANCE VOCALE ===');
+
+    // Vérifier la compatibilité du navigateur
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        console.warn('⚠️ La reconnaissance vocale n\'est pas supportée par ce navigateur');
+        // Masquer les boutons vocaux si non supporté
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btn-voice').forEach(btn => {
+                btn.style.display = 'none';
+            });
+        });
+        return;
+    }
+    
+    console.log('✓ Reconnaissance vocale supportée');
+    
+    // Créer une instance de reconnaissance vocale
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'fr-FR'; // Langue française
+    recognition.continuous = false; // Arrêt automatique après une phrase
+    recognition.interimResults = false; // Pas de résultats intermédiaires
+    recognition.maxAlternatives = 1;
+
+    let currentInput = null;
+    let currentButton = null;
+    let isRecognizing = false; // Flag pour éviter les démarrages multiples
+
+    // Fonction pour démarrer la reconnaissance
+    function startVoiceRecognition(inputElement, buttonElement) {
+        console.log('🎤 Tentative de démarrage de la reconnaissance vocale');
+        
+        // Vérifier si déjà en cours
+        if (isRecognizing) {
+            console.warn('⚠️ Reconnaissance déjà en cours, arrêt puis redémarrage');
+            recognition.stop();
+            setTimeout(() => {
+                startVoiceRecognition(inputElement, buttonElement);
+            }, 300);
+            return;
+        }
+        
+        currentInput = inputElement;
+        currentButton = buttonElement;
+
+        try {
+            isRecognizing = true;
+            recognition.start();
+            buttonElement.classList.add('listening');
+            const statusElement = document.getElementById('voice-status');
+            if (statusElement) {
+                statusElement.classList.add('active');
+            }
+            console.log('✓ Reconnaissance démarrée');
+        } catch (error) {
+            console.error('❌ Erreur lors du démarrage:', error);
+            isRecognizing = false;
+            buttonElement.classList.remove('listening');
+            alert('Erreur: ' + error.message);
+        }
+    }
+
+    // Événement: Résultat de la reconnaissance
+    recognition.onresult = function(event) {
+        console.log('✓ Résultat reçu');
+        const transcript = event.results[0][0].transcript;
+        console.log('Texte reconnu:', transcript);
+        console.log('currentInput:', currentInput);
+        console.log('currentInput existe?', !!currentInput);
+
+        if (currentInput) {
+            console.log('✓ currentInput trouvé, valeur actuelle:', currentInput.value);
+            
+            // Ajouter le texte au champ (ou remplacer si vide)
+            if (currentInput.value.trim() === '') {
+                currentInput.value = transcript;
+                console.log('✓ Texte ajouté (champ vide)');
+            } else {
+                currentInput.value += ' ' + transcript;
+                console.log('✓ Texte ajouté (champ non vide)');
+            }
+            
+            console.log('✓ Nouvelle valeur:', currentInput.value);
+            
+            // Déclencher l'événement input pour la validation
+            currentInput.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Animation de succès
+            currentInput.style.border = '3px solid #10b981';
+            currentInput.style.background = '#d1fae5';
+            setTimeout(() => {
+                currentInput.style.border = '';
+                currentInput.style.background = '';
+            }, 1500);
+        } else {
+            console.error('❌ currentInput est null ou undefined!');
+        }
+    };
+
+    // Événement: Fin de la reconnaissance
+    recognition.onend = function() {
+        console.log('🛑 Reconnaissance terminée');
+        isRecognizing = false;
+        if (currentButton) {
+            currentButton.classList.remove('listening');
+        }
+        const statusElement = document.getElementById('voice-status');
+        if (statusElement) {
+            statusElement.classList.remove('active');
+        }
+    };
+
+    // Événement: Erreur
+    recognition.onerror = function(event) {
+        console.error('❌ Erreur de reconnaissance:', event.error);
+        isRecognizing = false;
+        if (currentButton) {
+            currentButton.classList.remove('listening');
+        }
+        const statusElement = document.getElementById('voice-status');
+        if (statusElement) {
+            statusElement.classList.remove('active');
+        }
+
+        let errorMessage = 'Erreur de reconnaissance vocale';
+        switch(event.error) {
+            case 'no-speech':
+                errorMessage = 'Aucune parole détectée. Veuillez réessayer.';
+                break;
+            case 'audio-capture':
+                errorMessage = 'Microphone non détecté. Vérifiez vos paramètres.';
+                break;
+            case 'not-allowed':
+                errorMessage = 'Permission microphone refusée. Autorisez l\'accès au microphone.';
+                break;
+            case 'network':
+                errorMessage = 'Erreur réseau. Vérifiez votre connexion internet.';
+                break;
+        }
+        alert(errorMessage);
+    };
+
+    // Attacher les événements aux boutons
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🎤 DOM chargé - Configuration des boutons vocaux');
+        
+        const btnVoiceAntecedents = document.getElementById('btn-voice-antecedents');
+        const btnVoiceSymptomes = document.getElementById('btn-voice-symptomes');
+        
+        // Chercher les inputs par leur attribut name (généré par Symfony)
+        const antecedentsInput = document.querySelector('textarea[name="demande_traitement[antecedentsMedicaux]"]');
+        const symptomesInput = document.querySelector('textarea[name="demande_traitement[symptomes]"]');
+
+        console.log('Éléments trouvés:', {
+            btnVoiceAntecedents: !!btnVoiceAntecedents,
+            btnVoiceSymptomes: !!btnVoiceSymptomes,
+            antecedentsInput: !!antecedentsInput,
+            symptomesInput: !!symptomesInput
+        });
+
+        if (antecedentsInput) {
+            console.log('ID réel antecedents:', antecedentsInput.id);
+        }
+        if (symptomesInput) {
+            console.log('ID réel symptomes:', symptomesInput.id);
+        }
+
+        if (btnVoiceAntecedents && antecedentsInput) {
+            btnVoiceAntecedents.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🎤 Clic sur bouton antécédents');
+                startVoiceRecognition(antecedentsInput, btnVoiceAntecedents);
+            });
+            console.log('✓ Bouton vocal antécédents configuré');
+        } else {
+            console.error('❌ Bouton ou input antécédents non trouvé');
+            if (!btnVoiceAntecedents) console.error('  - Bouton manquant');
+            if (!antecedentsInput) console.error('  - Input manquant');
+        }
+
+        if (btnVoiceSymptomes && symptomesInput) {
+            btnVoiceSymptomes.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🎤 Clic sur bouton symptômes');
+                startVoiceRecognition(symptomesInput, btnVoiceSymptomes);
+            });
+            console.log('✓ Bouton vocal symptômes configuré');
+        } else {
+            console.error('❌ Bouton ou input symptômes non trouvé');
+            if (!btnVoiceSymptomes) console.error('  - Bouton manquant');
+            if (!symptomesInput) console.error('  - Input manquant');
+        }
+    });
+
+    console.log('=== FIN INITIALISATION RECONNAISSANCE VOCALE ===');
+})();
+</script>
+
+<!-- ========================================
+     🔍 DÉTECTION INTERACTIONS MÉDICAMENTEUSES
+     ======================================== -->
+<script>
+(function() {
+    console.log('=== INITIALISATION DÉTECTION INTERACTIONS ===');
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const formDemande = document.querySelector('form[name="demande_traitement"]');
+        const submitBtn = document.getElementById('submitBtnDemande');
+        
+        if (!formDemande || !submitBtn) {
+            console.error('❌ Formulaire ou bouton submit introuvable');
+            return;
+        }
+
+        console.log('✓ Formulaire trouvé, interception de la soumission');
+
+        // Intercepter la soumission du formulaire
+        formDemande.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('🔍 Soumission interceptée - Vérification des interactions...');
+
+            // Récupérer les données du formulaire
+            const produitSelect = document.querySelector('select[name="demande_traitement[produit]"]');
+            const symptomesInput = document.querySelector('textarea[name="demande_traitement[symptomes]"]');
+            const antecedentsInput = document.querySelector('textarea[name="demande_traitement[antecedentsMedicaux]"]');
+
+            if (!produitSelect || !symptomesInput || !antecedentsInput) {
+                console.error('❌ Champs manquants');
+                formDemande.submit();
+                return;
+            }
+
+            const produitId = produitSelect.value;
+            const symptomes = symptomesInput.value.trim();
+            const antecedents = antecedentsInput.value.trim();
+
+            if (!produitId || !symptomes || !antecedents) {
+                console.log('⚠️ Données incomplètes, soumission directe');
+                formDemande.submit();
+                return;
+            }
+
+            // Désactiver le bouton pendant la vérification
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification des interactions...';
+
+            try {
+                console.log('📡 Envoi requête API vérification interactions');
+                
+                const response = await fetch('{{ path('app_verifier_interactions') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        produit_id: produitId,
+                        symptomes: symptomes,
+                        antecedents: antecedents
+                    })
+                });
+
+                const data = await response.json();
+                console.log('📥 Réponse reçue:', data);
+
+                if (data.success && data.analyse) {
+                    const analyse = data.analyse;
+                    
+                    // Si dangereux ou risque élevé/critique
+                    if (analyse.dangereux || analyse.niveau_risque === 'élevé' || analyse.niveau_risque === 'critique') {
+                        console.warn('⚠️ ALERTE: Interaction dangereuse détectée!');
+                        
+                        // Construire le message d'alerte
+                        let alertMessage = '⚠️ ALERTE MÉDICAMENTEUSE\n\n';
+                        alertMessage += `Niveau de risque: ${analyse.niveau_risque.toUpperCase()}\n\n`;
+                        
+                        if (analyse.raisons && analyse.raisons.length > 0) {
+                            alertMessage += 'Problèmes détectés:\n';
+                            analyse.raisons.forEach((raison, index) => {
+                                alertMessage += `${index + 1}. ${raison}\n`;
+                            });
+                            alertMessage += '\n';
+                        }
+                        
+                        alertMessage += `Recommandation: ${analyse.recommandation}\n\n`;
+                        
+                        if (analyse.peut_continuer) {
+                            alertMessage += 'Voulez-vous continuer malgré cet avertissement?';
+                        } else {
+                            alertMessage += '❌ VOUS NE POUVEZ PAS CONTINUER.\nVeuillez consulter un médecin avant de prendre ce médicament.';
+                        }
+
+                        // Afficher l'alerte
+                        const continuer = analyse.peut_continuer ? confirm(alertMessage) : (alert(alertMessage), false);
+                        
+                        if (continuer) {
+                            console.log('✓ Utilisateur a accepté de continuer malgré l\'alerte');
+                            formDemande.submit();
+                        } else {
+                            console.log('🛑 Utilisateur a annulé la soumission');
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer la demande';
+                        }
+                    } else {
+                        // Pas de danger détecté
+                        console.log('✓ Aucune interaction dangereuse détectée');
+                        
+                        if (analyse.niveau_risque === 'moyen') {
+                            const message = `ℹ️ Information:\n\n${analyse.recommandation}\n\nVoulez-vous continuer?`;
+                            if (confirm(message)) {
+                                formDemande.submit();
+                            } else {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer la demande';
+                            }
+                        } else {
+                            formDemande.submit();
+                        }
+                    }
+                } else {
+                    console.warn('⚠️ Erreur analyse, soumission directe');
+                    formDemande.submit();
+                }
+
+            } catch (error) {
+                console.error('❌ Erreur lors de la vérification:', error);
+                alert('Erreur lors de la vérification des interactions. La demande sera soumise sans vérification.');
+                formDemande.submit();
+            }
+        });
+
+        console.log('✓ Détection des interactions configurée');
+    });
+
+    console.log('=== FIN INITIALISATION DÉTECTION INTERACTIONS ===');
+})();
+</script>
+
+{% endblock %}

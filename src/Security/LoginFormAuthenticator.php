@@ -49,10 +49,11 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
         /** @var UserInterface $user */
         $user = $token->getUser();
 
-        if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
-            return new RedirectResponse(
-                $this->urlGenerator->generate('admin_dashboard')
-            );
+        // Vérifier si l'utilisateur a le rôle ROLE_ADMIN
+        $roles = $user->getRoles();
+        
+        if (in_array('ROLE_ADMIN', $roles, true)) {
+            return new RedirectResponse('/index.php/admin');
         }
 
         return new RedirectResponse(
