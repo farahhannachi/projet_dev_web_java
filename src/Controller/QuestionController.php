@@ -9,6 +9,7 @@ use App\Form\ResponseQuestionType;
 use App\Repository\QuestionRepository;
 use App\Repository\ResponseQuestionRepository;
 use App\Service\MailerService;
+use App\Service\TicketPriorityAssigner;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -77,73 +78,80 @@ class QuestionController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'app_question_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, MailerService $mailerService): Response
-    {
-        // Vérifier que l'utilisateur est connecté
-        if (!$this->getUser()) {
-            $this->addFlash('error', 'Vous devez être connecté pour créer un ticket.');
-            return $this->redirectToRoute('app_login');
-        }
-
-        $question = new Question();
-        // Définir l'utilisateur et le statut AVANT la création du formulaire
-        $question->setUtilisateur($this->getUser());
-        $question->setStatut('ouvert');
-        
-        $form = $this->createForm(QuestionType::class, $question);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            // L'utilisateur et le statut sont déjà définis au-dessus
-            
-            // Gérer le fichier uploadé
-            $fichier = $form->get('fichier')->getData();
-            if ($fichier) {
-                // Récupérer les infos du fichier AVANT le déplacement
-                $originalName = $fichier->getClientOriginalName();
-                $mimeType = $fichier->getMimeType();
-                $fileSize = $fichier->getSize();
-                
-                $originalFilename = pathinfo($originalName, PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$fichier->guessExtension();
-
-                try {
-                    $uploadDir = $this->getParameter('kernel.project_dir').'/public/uploads/questions';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0777, true);
-                    }
-                    
-                    // Déplacer le fichier
-                    $fichier->move($uploadDir, $newFilename);
-                    
-                    // Utiliser les valeurs sauvegardées AVANT le déplacement
-                    $question->setFileName($originalName);
-                    $question->setFilePath('/uploads/questions/'.$newFilename);
-                    $question->setFileType($mimeType);
-                    $question->setFileSize($fileSize);
-                } catch (FileException $e) {
-                    $this->addFlash('error', 'Erreur lors de l\'upload du fichier');
-                }
-            }
-
-            $entityManager->persist($question);
-            $entityManager->flush();
-
-            // Envoyer l'email de confirmation au client
-            $mailerService->sendTicketCreatedEmail($question);
-
-            $this->addFlash('success', 'Votre ticket a été créé avec succès ! Un email de confirmation vous a été envoyé.');
-
-            return $this->redirectToRoute('app_question_show', ['id' => $question->getId()]);
-        }
-
-        return $this->render('front/ticket_new.html.twig', [
-            'question' => $question,
-            'form' => $form,
-        ]);
+  #[Route('/new', name: 'app_question_new', methods: ['GET', 'POST'])]
+public function new(
+    Request $request,
+    EntityManagerInterface $entityManager,
+    SluggerInterface $slugger,
+    MailerService $mailerService,
+    TicketPriorityAssigner $priorityAssigner
+): Response
+{
+    if (!$this->getUser()) {
+        $this->addFlash('error', 'Vous devez être connecté pour créer un ticket.');
+        return $this->redirectToRoute('app_login');
     }
+
+    $question = new Question();
+    $question->setUtilisateur($this->getUser());
+    $question->setStatut('ouvert');
+    
+    $isAdmin = $this->isGranted('ROLE_ADMIN');
+    $form = $this->createForm(QuestionType::class, $question, ['is_admin' => $isAdmin]);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+
+        // ✅ AUTO PRIORITY (LLM) - BEFORE persist/flush
+        try {
+            $autoPriority = $priorityAssigner->assignPriority($question);
+            $question->setPriorite($autoPriority); // basse|normale|haute
+        } catch (\Throwable $e) {
+            $question->setPriorite('normale'); // fallback
+        }
+
+        // --- your existing file upload code ---
+        $fichier = $form->get('fichier')->getData();
+        if ($fichier) {
+            $originalName = $fichier->getClientOriginalName();
+            $mimeType = $fichier->getMimeType();
+            $fileSize = $fichier->getSize();
+
+            $originalFilename = pathinfo($originalName, PATHINFO_FILENAME);
+            $safeFilename = $slugger->slug($originalFilename);
+            $newFilename = $safeFilename.'-'.uniqid().'.'.$fichier->guessExtension();
+
+            try {
+                $uploadDir = $this->getParameter('kernel.project_dir').'/public/uploads/questions';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                $fichier->move($uploadDir, $newFilename);
+
+                $question->setFileName($originalName);
+                $question->setFilePath('/uploads/questions/'.$newFilename);
+                $question->setFileType($mimeType);
+                $question->setFileSize($fileSize);
+            } catch (FileException $e) {
+                $this->addFlash('error', 'Erreur lors de l\'upload du fichier');
+            }
+        }
+
+        $entityManager->persist($question);
+        $entityManager->flush();
+
+        $mailerService->sendTicketCreatedEmail($question);
+
+        $this->addFlash('success', 'Votre ticket a été créé avec succès ! Un email de confirmation vous a été envoyé.');
+        return $this->redirectToRoute('app_question_show', ['id' => $question->getId()]);
+    }
+
+    return $this->render('front/ticket_new.html.twig', [
+        'question' => $question,
+        'form' => $form,
+    ]);
+}
 
     #[Route('/{id}', name: 'app_question_show', methods: ['GET', 'POST'])]
     public function show(
@@ -395,8 +403,9 @@ class QuestionController extends AbstractController
         }
         
         error_log("[EDIT] Vérifications OK, affichage du formulaire");
-
-        $form = $this->createForm(QuestionType::class, $question);
+        
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+        $form = $this->createForm(QuestionType::class, $question, ['is_admin' => $isAdmin]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
