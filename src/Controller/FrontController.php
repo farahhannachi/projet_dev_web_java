@@ -287,6 +287,14 @@ class FrontController extends AbstractController
             // Handle edit mode - load existing question
             $question = $this->handleEditMode($editQuestionId, $questionRepository, $editMode);
             
+            // Critical fix: Set user before validation because Question entity requires it
+            if (!$editMode) {
+                $user = $this->getUser();
+                if ($user instanceof Utilisateur) {
+                    $question->setUtilisateur($user);
+                }
+            }
+
             // Create and handle form
             $form = $this->createForm(QuestionType::class, $question);
             $form->handleRequest($request);
@@ -300,6 +308,8 @@ class FrontController extends AbstractController
                     $entityManager,
                     $mailerService
                 );
+            } elseif ($form->isSubmitted()) {
+                $this->addFlash('error', 'Le formulaire contient des erreurs. Veuillez vérifier vos informations.');
             }
 
             // Get user's questions
