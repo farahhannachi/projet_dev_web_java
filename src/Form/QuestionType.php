@@ -18,6 +18,8 @@ class QuestionType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $isAdmin = $options['is_admin'];
+
         $builder
             ->add('typeTicket', ChoiceType::class, [
                 'label' => 'Type de ticket',
@@ -39,18 +41,32 @@ class QuestionType extends AbstractType
                     'rows' => 6,
                     'placeholder' => 'Décrivez votre problème en détail...',
                 ],
-            ])
-            ->add('priorite', ChoiceType::class, [
-                'label' => 'Priorité',
-                'choices' => [
-                    'Basse' => 'basse',
-                    'Normale' => 'normale',
-                    'Haute' => 'haute',
-                ],
-                'attr' => ['class' => 'form-select'],
-                'data' => 'normale',
-            ])
-            ->add('fichier', FileType::class, [
+            ]);
+
+        if ($isAdmin) {
+            $builder
+                ->add('priorite', ChoiceType::class, [
+                    'label' => 'Priorité',
+                    'choices' => [
+                        'Basse' => 'basse',
+                        'Normale' => 'normale',
+                        'Haute' => 'haute',
+                    ],
+                    'attr' => ['class' => 'form-select'],
+                ])
+                ->add('statut', ChoiceType::class, [
+                    'label' => 'Statut',
+                    'choices' => [
+                        'Ouvert' => 'ouvert',
+                        'En cours' => 'en_cours',
+                        'Résolu' => 'resolu',
+                        'Fermé' => 'ferme',
+                    ],
+                    'attr' => ['class' => 'form-select'],
+                ]);
+        }
+
+        $builder->add('fichier', FileType::class, [
                 'label' => 'Pièce jointe (optionnelle)',
                 'mapped' => false,
                 'required' => false,
@@ -76,6 +92,7 @@ class QuestionType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Question::class,
+            'is_admin' => false,
         ]);
     }
 }
