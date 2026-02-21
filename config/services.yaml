@@ -119,3 +119,12 @@ services:
 
     # Twig encoding extension for fixing UTF-8 mojibake
     App\Twig\EncodingExtension:
+
+    App\Service\GroqLlmService:
+        arguments:
+            $groqApiKey: '%env(default::GROQ_API_KEY)%'
+            $groqModel: '%env(default::GROQ_MODEL)%'
+    App\Service\TicketPriorityAssigner: ~
+    App\Service\OcrService:
+        arguments:
+            $apiKey: '%env(GEMINI_API_KEY)%'
