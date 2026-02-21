@@ -132,73 +132,75 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(22, 86, 63, 0.3);
         }
-        .btn-back {
-            background: #e0e0e0;
-            color: #333;
-            padding: 10px 20px;
-            border-radius: 6px;
-            text-decoration: none;
+        .btn-back, .btn-edit, .btn-delete, .btn-pdf {
+            height: 42px;
+            padding: 0 20px;
+            border-radius: 8px;
             font-weight: 600;
-            display: inline-block;
-            margin-bottom: 20px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            text-decoration: none;
+            cursor: pointer;
+            border: 1px solid transparent;
+            font-family: inherit;
+        }
+
+        .btn-back {
+            background: #f8f9fa;
+            color: #444;
+            border-color: #ddd;
         }
         .btn-back:hover {
-            background: #d0d0d0;
+            background: #e9ecef;
             color: #333;
         }
+
         .btn-edit {
             background: linear-gradient(135deg, #16563f, #0f3d2a);
             color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            display: inline-block;
-            margin-left: 10px;
-            transition: all 0.3s ease;
             box-shadow: 0 2px 8px rgba(22, 86, 63, 0.2);
         }
         .btn-edit:hover {
             background: linear-gradient(135deg, #1e6b47, #16563f);
-            color: white;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(22, 86, 63, 0.3);
         }
+
         .btn-delete {
-            background: #dc3545;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-left: 10px;
+            background: #fff;
+            color: #dc3545;
+            border-color: #dc3545;
         }
         .btn-delete:hover {
-            background: #c82333;
-        }
-        .btn-pdf {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            background: #dc3545;
             color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            display: inline-block;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
+        }
+
+        .btn-pdf {
+            background: #16563f;
+            color: white;
+            border-color: #0f3d2a;
         }
         .btn-pdf:hover {
-            background: linear-gradient(135deg, #c0392b, #a93226);
-            color: white;
+            background: #0f3d2a;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
         }
+
         .action-buttons {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+        }
+
+        .action-buttons form {
+            margin: 0;
+            display: inline-flex;
         }
         .action-badge {
             background: #FFF9C4;
@@ -221,6 +223,55 @@
         .file-link:hover {
             background: #e0e0e0;
             color: #0f3d2a;
+        }
+
+        /* AI SUGGESTION STYLES */
+        .ai-suggestion-box {
+            background: linear-gradient(135deg, #0f3d2a 0%, #16563f 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(22, 160, 133, 0.4);
+            color: white;
+            display: none;
+            animation: fadeInDown 0.4s ease;
+        }
+        .ai-suggestion-box.active { display: block; }
+        .ai-suggestion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+        .btn-ai-apply {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        .btn-ai-apply:hover { background: #2ecc71; transform: scale(1.05); }
+        .ai-meta-suggestion {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+        .ai-meta-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 4px;
+            border-left: 3px solid #27ae60;
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 {% endblock %}
@@ -261,9 +312,29 @@
                 <h3>Description du problème</h3>
                 <p style="color: #333; line-height: 1.7; white-space: pre-wrap;">{{ question.description }}</p>
                 {% if question.fileName %}
-                    <a href="{{ question.filePath }}" target="_blank" class="file-link">
-                        📎 {{ question.fileName }}
-                    </a>
+                    {% if question.fileType starts with 'image/' %}
+                        <div style="margin: 15px 0;">
+                            <img src="{{ question.filePath }}" alt="Pièce jointe" style="max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee;">
+                        </div>
+                    {% endif %}
+                    <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+                        <a href="{{ question.filePath }}" target="_blank" class="file-link" style="margin-top: 0;">
+                            📎 {{ question.fileName }}
+                        </a>
+                        {% if question.fileType starts with 'image/' %}
+                            <button type="button" id="btnOcrExtract" class="btn-primary" style="background: #16563f; color: white; padding: 6px 14px; font-size: 0.85rem; box-shadow: none;">
+                                <i class="fas fa-eye"></i> Analyser l'image (AI)
+                            </button>
+                        {% endif %}
+                    </div>
+                    
+                    {# AI Analysis Result Box #}
+                    <div id="ocrResultBox" style="display: none; background: #f0f7f4; border: 1px dashed #16563f; border-radius: 8px; padding: 15px; margin-top: 15px; position: relative; animation: fadeInDown 0.3s ease;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-weight: 700; color: #16563f; font-size: 0.9rem;"><i class="fas fa-robot"></i> Description de l'image par Gemini</span>
+                        </div>
+                        <div id="ocrTextContent" style="font-size: 0.9rem; color: #444; line-height: 1.5; white-space: pre-wrap;"></div>
+                    </div>
                 {% endif %}
             </div>
 
@@ -320,44 +391,63 @@
 
             {# Formulaire de réponse #}
             {% if question.statut != 'ferme' %}
-                <div class="card">
-                    <h3>Ajouter une réponse</h3>
-                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
-                        {{ form_errors(form) }}
-                        <div class="form-group">
-                            {{ form_label(form.reponseText, 'Votre réponse') }}
-                            {{ form_widget(form.reponseText, {'attr': {'class': 'form-control', 'placeholder': 'Tapez votre réponse au client...'}}) }}
-                            {{ form_errors(form.reponseText) }}
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; border: none;">Ajouter une réponse</h3>
+                            <button type="button" id="btnAiSuggest" class="btn-primary" style="background: #16563f; color: white; padding: 8px 16px; font-size: 0.9rem;">
+                                <i class="fas fa-wand-magic-sparkles"></i> ✨ Suggestion AI
+                            </button>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-                            <div class="form-group">
-                                {{ form_label(form.reponseRole, 'Type de réponse') }}
-                                {{ form_widget(form.reponseRole, {'attr': {'class': 'form-select'}}) }}
-                                {{ form_errors(form.reponseRole) }}
+                        {# AI Suggestion Preview #}
+                        <div id="aiSuggestionBox" class="ai-suggestion-box">
+                            <div class="ai-suggestion-header">
+                                <span style="font-weight: 800; color: #27ae60;"><i class="fas fa-robot"></i> Proposition de l'Intelligence Artificielle</span>
+                                <button type="button" id="btnApplyAi" class="btn-ai-apply">Appliquer cette réponse</button>
                             </div>
-
-                            <div class="form-group">
-                                {{ form_label(form.actionType, 'Action') }}
-                                {{ form_widget(form.actionType, {'attr': {'class': 'form-select'}}) }}
-                                {{ form_errors(form.actionType) }}
-                            </div>
-
-                            <div class="form-group">
-                                {{ form_label(form.impactStatut, 'Impact sur statut') }}
-                                {{ form_widget(form.impactStatut, {'attr': {'class': 'form-select'}}) }}
-                                {{ form_errors(form.impactStatut) }}
-                                <small style="color: #666; font-size: 0.85em;">Changera le statut du ticket automatiquement</small>
+                            <div id="aiTextPreview" style="font-style: italic; line-height: 1.6; opacity: 0.95;"></div>
+                            <div class="ai-meta-suggestion">
+                                <div class="ai-meta-item">🎯 Rôle: <span id="aiRolePreview" style="font-weight: 700;"></span></div>
+                                <div class="ai-meta-item">⚙️ Action: <span id="aiActionPreview" style="font-weight: 700;"></span></div>
+                                <div class="ai-meta-item">🚦 Statut: <span id="aiStatusPreview" style="font-weight: 700;"></span></div>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            {{ form_label(form.fichier, 'Pièce jointe (optionnelle)') }}
-                            {{ form_widget(form.fichier, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(form.fichier) }}
-                        </div>
+                        {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'replyForm'}}) }}
+                            {{ form_errors(form) }}
+                            <div class="form-group">
+                                {{ form_label(form.reponseText, 'Votre réponse') }}
+                                {{ form_widget(form.reponseText, {'attr': {'class': 'form-control', 'placeholder': 'Tapez votre réponse au client...'}}) }}
+                                {{ form_errors(form.reponseText) }}
+                            </div>
 
-                        <button type="submit" class="btn-primary">📤 Envoyer la réponse</button>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                                <div class="form-group">
+                                    {{ form_label(form.reponseRole, 'Type de réponse') }}
+                                    {{ form_widget(form.reponseRole, {'attr': {'class': 'form-select'}}) }}
+                                    {{ form_errors(form.reponseRole) }}
+                                </div>
+
+                                <div class="form-group">
+                                    {{ form_label(form.actionType, 'Action') }}
+                                    {{ form_widget(form.actionType, {'attr': {'class': 'form-select'}}) }}
+                                    {{ form_errors(form.actionType) }}
+                                </div>
+
+                                <div class="form-group">
+                                    {{ form_label(form.impactStatut, 'Impact sur statut') }}
+                                    {{ form_widget(form.impactStatut, {'attr': {'class': 'form-select'}}) }}
+                                    {{ form_errors(form.impactStatut) }}
+                                    <small style="color: #666; font-size: 0.85em;">Changera le statut du ticket automatiquement</small>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {{ form_label(form.fichier, 'Pièce jointe (optionnelle)') }}
+                                {{ form_widget(form.fichier, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.fichier) }}
+                            </div>
+
+                            <button type="submit" class="btn-primary">📤 Envoyer la réponse</button>
                     {{ form_end(form) }}
                 </div>
             {% else %}
@@ -441,4 +531,117 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnAi = document.getElementById('btnAiSuggest');
+    const aiBox = document.getElementById('aiSuggestionBox');
+    const btnApply = document.getElementById('btnApplyAi');
+    
+    // Form fields
+    const textField = document.querySelector('[name*="reponseText"]');
+    const roleField = document.querySelector('[name*="reponseRole"]');
+    const actionField = document.querySelector('[name*="actionType"]');
+    const statusField = document.querySelector('[name*="impactStatut"]');
+
+    let currentSuggestion = null;
+
+    btnAi.addEventListener('click', async function() {
+        btnAi.disabled = true;
+        btnAi.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération...';
+        aiBox.classList.remove('active');
+
+        try {
+            const response = await fetch('{{ path("admin_api_generate_reply", {id: question.id}) }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+            
+            btnAi.disabled = false;
+            btnAi.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> ✨ Suggestion AI';
+
+            if (data.success) {
+                currentSuggestion = data.suggestion;
+                
+                document.getElementById('aiTextPreview').innerText = currentSuggestion.reply;
+                document.getElementById('aiRolePreview').innerText = currentSuggestion.role;
+                document.getElementById('aiActionPreview').innerText = currentSuggestion.action;
+                document.getElementById('aiStatusPreview').innerText = currentSuggestion.status_impact;
+                
+                aiBox.classList.add('active');
+            } else {
+                alert("Erreur: " + data.response);
+            }
+        } catch (error) {
+            btnAi.disabled = false;
+            btnAi.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> ✨ Suggestion AI';
+            alert("Erreur de connexion au serveur AI.");
+        }
+    });
+
+    btnApply.addEventListener('click', function() {
+        if (!currentSuggestion) return;
+
+        textField.value = currentSuggestion.reply;
+        roleField.value = currentSuggestion.role;
+        actionField.value = currentSuggestion.action;
+        statusField.value = currentSuggestion.status_impact;
+
+        aiBox.classList.remove('active');
+        textField.focus();
+        
+        // Visual feedback - Flash for all fields
+        const fields = [textField, roleField, actionField, statusField];
+        fields.forEach(f => {
+            f.style.backgroundColor = "rgba(212, 175, 55, 0.2)";
+            f.style.borderColor = "#d4af37";
+            f.style.transition = "all 0.5s ease";
+            
+            setTimeout(() => {
+                f.style.backgroundColor = "";
+                f.style.borderColor = "";
+            }, 1200);
+        });
+    });
+
+    // ========== OCR LOGIC ==========
+    const btnOcr = document.getElementById('btnOcrExtract');
+    const ocrBox = document.getElementById('ocrResultBox');
+    const ocrContent = document.getElementById('ocrTextContent');
+    const btnCopyOcr = document.getElementById('btnCopyOcr');
+
+    if (btnOcr) {
+        btnOcr.addEventListener('click', async function() {
+            btnOcr.disabled = true;
+            btnOcr.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyse en cours...';
+            ocrBox.style.display = 'none';
+
+            try {
+                const response = await fetch('{{ path("admin_api_ocr_ticket", {id: question.id}) }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                
+                btnOcr.disabled = false;
+                btnOcr.innerHTML = '<i class="fas fa-eye"></i> Analyser l\'image (AI)';
+
+                if (data.success) {
+                    ocrContent.innerText = data.text;
+                    ocrBox.style.display = 'block';
+                } else {
+                    alert("Erreur Analyse: " + data.response);
+                }
+            } catch (error) {
+                btnOcr.disabled = false;
+                btnOcr.innerHTML = '<i class="fas fa-eye"></i> Analyser l\'image (AI)';
+                alert("Erreur lors de la communication avec le service d'analyse.");
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

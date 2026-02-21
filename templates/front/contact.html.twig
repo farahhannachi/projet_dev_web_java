@@ -17,6 +17,51 @@
         overflow-x: hidden;
     }
 
+    /* ========== KILL OLD CHATBOT (GLOBAL) ========== */
+    #chatbot-widget, .chatbot-widget, #chatbot-toggle, .chatbot-toggle, #chatbot-window { 
+        display: none !important; 
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        height: 0 !important;
+        width: 0 !important;
+        overflow: hidden !important;
+    }
+
+    /* ========== NEW GOLD ASSISTANT STYLES ========== */
+    .curavita-assistant-wrapper { position: fixed; bottom: 30px; right: 30px; z-index: 100000; font-family: 'Inter', sans-serif; }
+    .assistant-btn-toggle { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #16563f 0%, #d4af37 100%); border: 2px solid #fff; color: white; cursor: pointer; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); position: relative; transition: all 0.4s ease; display: flex; align-items: center; justify-content: center; }
+    .assistant-btn-toggle:hover { transform: scale(1.1) rotate(-5deg); box-shadow: 0 15px 40px rgba(212, 175, 55, 0.4); }
+    .assistant-pulse-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: #d4af37; opacity: 0.6; z-index: -1; animation: assistant-pulse 2s infinite; }
+    @keyframes assistant-pulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.8); opacity: 0; } }
+    .assistant-chat-panel { position: absolute; bottom: 90px; right: 0; width: 400px; height: 600px; background: white; border-radius: 28px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; transform: translateY(30px) scale(0.85); opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.19,1,0.22,1); border: 1px solid rgba(212,175,55,0.2); }
+    .assistant-chat-panel.active { transform: translateY(0) scale(1); opacity: 1; pointer-events: all; }
+    .assistant-panel-header { padding: 25px; background: linear-gradient(135deg, #0f3d2a 0%, #16563f 100%); color: white; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #d4af37; }
+    .assistant-header-content { display: flex; align-items: center; gap: 15px; }
+    .assistant-header-avatar { background: #d4af37; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    .assistant-header-text h3 { margin: 0; font-size: 17px; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.5px; }
+    .assistant-status-label { font-size: 11px; color: #2ecc71; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+    .assistant-status-label::before { content: ''; width: 8px; height: 8px; background: #2ecc71; border-radius: 50%; box-shadow: 0 0 10px #2ecc71; animation: blink 1.5s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .assistant-panel-close { background: rgba(255,255,255,0.1); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; transition: all 0.3s; }
+    .assistant-panel-close:hover { background: rgba(255,0,0,0.3); transform: rotate(90deg); }
+    .assistant-chat-scroll { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; background: #fbfcfb; }
+    .assistant-msg { max-width: 85%; padding: 14px 18px; border-radius: 20px; font-size: 14px; line-height: 1.6; box-shadow: 0 3px 10px rgba(0,0,0,0.03); }
+    .assistant-bot { background: white; color: #2c3e50; align-self: flex-start; border-bottom-left-radius: 4px; border-left: 3px solid #d4af37; }
+    .assistant-user { background: linear-gradient(135deg, #16563f, #0f3d2a); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .assistant-footer-input { padding: 20px; background: #fff; border-top: 1px solid #eee; display: flex; gap: 12px; }
+    .assistant-footer-input input { flex: 1; border: 2px solid #f0f0f0; padding: 12px 18px; border-radius: 15px; outline: none; font-size: 14px; transition: border-color 0.3s; }
+    .assistant-footer-input input:focus { border-color: #d4af37; }
+    .assistant-footer-input button { background: #d4af37; color: white; border: none; width: 50px; height: 50px; border-radius: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+    .assistant-footer-input button:hover { transform: translateY(-2px); background: #c5a02c; }
+    .assistant-typing { display: flex; gap: 5px; padding: 5px; }
+    .assistant-dot { width: 7px; height: 7px; background: #d4af37; border-radius: 50%; animation: assistant-type 1s infinite alternate; }
+    .assistant-dot:nth-child(2) { animation-delay: 0.2s; }
+    .assistant-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes assistant-type { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+    @media (max-width: 480px) { .assistant-chat-panel { width: calc(100vw - 40px); height: 500px; } }
+
+
     /* ========== HERO SECTION ========== */
     .hero-support {
         min-height: 60vh;
@@ -130,7 +175,7 @@
     }
 
     .hero-badge::before {
-        content: 'ðŸ’¬';
+        content: '';
     }
 
     .hero-title-support {
@@ -1141,7 +1186,7 @@
         <div class="hero-content-support">
             <div class="hero-badge">Centre de Support</div>
             <h1 class="hero-title-support">Besoin d'<span>Aide</span> ?</h1>
-            <p class="hero-subtitle-support">Notre Ã©quipe d'experts est Ã  votre Ã©coute 24h/24. CrÃ©ez un ticket et recevez une rÃ©ponse personnalisÃ©e rapidement.</p>
+            <p class="hero-subtitle-support">Notre équipe d'experts est à votre écoute 24h/24. Créez un ticket et recevez une réponse personnalisée rapidement.</p>
         </div>
     </section>
 
@@ -1152,17 +1197,17 @@
             <!-- FORM -->
             <div class="form-card">
                 <div class="form-header">
-                    <div class="form-icon">{% if editMode %}âœï¸{% else %}ðŸ“©{% endif %}</div>
+                    <div class="form-icon"></div>
                     <div>
                         <h2 class="form-title">{% if editMode %}Modifier le ticket{% else %}Nouveau Ticket{% endif %}</h2>
-                        <p class="form-subtitle">{% if editMode %}Mettez Ã  jour votre demande{% else %}DÃ©crivez votre problÃ¨me en dÃ©tail{% endif %}</p>
+                        <p class="form-subtitle">{% if editMode %}Mettez à jour votre demande{% else %}Décrivez votre problème en détail{% endif %}</p>
                     </div>
                 </div>
 
                 {{ form_start(form, {'attr': {'id': 'ticketForm', 'novalidate': 'novalidate'}}) }}
                 
                 <div class="form-group">
-                    <label class="form-label">ðŸ“Œ Objet de la demande</label>
+                    <label class="form-label">Objet de la demande</label>
                     <div class="input-with-speech">
                         {{ form_widget(form.objet, {'attr': {'placeholder': 'Ex: Question sur ma commande ', 'id': 'question_objet'}}) }}
                         <button type="button" class="speech-btn" onclick="toggleSpeech('question_objet', this)" title="Dicter avec la voix">
@@ -1174,13 +1219,13 @@
                             </svg>
                         </button>
                     </div>
-                    <div class="speech-status" id="speech-status-question_objet">Ã‰coute en cours...</div>
+                    <div class="speech-status" id="speech-status-question_objet">Écoute en cours...</div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">ðŸ“ Description dÃ©taillÃ©e</label>
+                    <label class="form-label">Description détaillée</label>
                     <div class="input-with-speech">
-                        {{ form_widget(form.description, {'attr': {'placeholder': 'Expliquez votre problÃ¨me ou question en dÃ©tail...', 'id': 'question_description'}}) }}
+                        {{ form_widget(form.description, {'attr': {'placeholder': 'Expliquez votre problème ou question en détail...', 'id': 'question_description'}}) }}
                         <button type="button" class="speech-btn" onclick="toggleSpeech('question_description', this)" title="Dicter avec la voix">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -1190,32 +1235,29 @@
                             </svg>
                         </button>
                     </div>
-                    <div class="speech-status" id="speech-status-question_description">Ã‰coute en cours...</div>
+                    <div class="speech-status" id="speech-status-question_description">Écoute en cours...</div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">ðŸ“Ž PiÃ¨ce jointe (optionnel)</label>
+                    <label class="form-label">Pièce jointe (optionnel)</label>
                     <div class="upload-zone" onclick="document.getElementById('question_fichier').click()">
-                        <div class="upload-icon">ðŸ“‚</div>
+                        <div class="upload-icon"><i class="fas fa-file-upload"></i></div>
                         <p class="upload-text">Cliquez pour ajouter un fichier</p>
-                        <p class="upload-hint">PDF, JPG, PNG âDT¢ Maximum 5 Mo</p>
+                        <p class="upload-hint">PDF, JPG, PNG - Maximum 5 Mo</p>
                         {{ form_widget(form.fichier, {'attr': {'onchange': 'displayFileName(this)'}}) }}
                     </div>
                     <div id="fileDisplay"></div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">ðŸ·ï¸ Type de ticket</label>
+                    <label class="form-label">Type de ticket</label>
                     {{ form_widget(form.typeTicket) }}
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">âš¡ PrioritÃ©</label>
-                    {{ form_widget(form.priorite) }}
-                </div>
+
 
                 <button type="submit" class="btn-submit">
-                    {% if editMode %}ðŸ’¾ Sauvegarder les modifications{% else %}ðŸšDT Envoyer le ticket{% endif %}
+                    {% if editMode %}Sauvegarder les modifications{% else %}Envoyer le ticket{% endif %}
                 </button>
 
                 {{ form_end(form) }}
@@ -1224,15 +1266,15 @@
             <!-- TICKETS -->
             <div class="tickets-card">
                 <div class="tickets-header">
-                    <h2 class="tickets-title">ðŸ“‹ Mes Tickets</h2>
+                    <h2 class="tickets-title">Mes Tickets</h2>
                     <span class="tickets-count">{{ mesQuestions|length }}</span>
                 </div>
 
                 {% for msg in app.flashes('success') %}
-                    <div class="flash-msg success">âœ… {{ msg }}</div>
+                    <div class="flash-msg success">{{ msg }}</div>
                 {% endfor %}
                 {% for msg in app.flashes('error') %}
-                    <div class="flash-msg error">âŒ {{ msg }}</div>
+                    <div class="flash-msg error">{{ msg }}</div>
                 {% endfor %}
 
                 <div class="tickets-list">
@@ -1247,7 +1289,7 @@
                                 </svg>
                             </div>
                             <h3 class="empty-title">Aucun ticket</h3>
-                            <p class="empty-text">CrÃ©ez votre premier ticket de support.</p>
+                            <p class="empty-text">Créez votre premier ticket de support.</p>
                         </div>
                     {% else %}
                         {% for q in mesQuestions %}
@@ -1260,15 +1302,15 @@
                                 <p class="ticket-desc">{{ q.description }}</p>
                                 {% if q.fileName %}
                                     <a href="{{ q.filePath }}" target="_blank" class="ticket-file" onclick="event.stopPropagation();">
-                                        ðŸ“„ {{ q.fileName }}
+                                        Fichier: {{ q.fileName }}
                                     </a>
                                 {% endif %}
                                 <div class="ticket-bottom">
                                     <span class="status-badge {{ q.statut }}">
-                                        {% if q.statut == 'ouvert' %}ðŸŸ¢ Ouvert
-                                        {% elseif q.statut == 'en_cours' %}ðŸŸ  En cours
-                                        {% elseif q.statut == 'ferme' %}ðŸ”’ FermÃ©
-                                        {% elseif q.statut == 'resolu' %}âœ… RÃ©solu
+                                        {% if q.statut == 'ouvert' %}Ouvert
+                                        {% elseif q.statut == 'en_cours' %}En cours
+                                        {% elseif q.statut == 'ferme' %}Fermé
+                                        {% elseif q.statut == 'resolu' %}Résolu
                                         {% else %}{{ q.statut }}{% endif %}
                                     </span>
                                 </div>
@@ -1305,16 +1347,16 @@
                     <circle cx="95" cy="85" r="3" fill="#28a745" opacity="0.5"/>
                     <circle cx="90" cy="25" r="5" fill="#16563f" opacity="0.3"/>
                 </svg>
-                <span class="faq-badge">â“ FAQ</span>
-                <h2 class="faq-title">Questions FrÃ©quentes</h2>
-                <p class="faq-subtitle">Trouvez rapidement des rÃ©ponses Ã  vos questions</p>
+                <span class="faq-badge">FAQ</span>
+                <h2 class="faq-title">Questions Fréquentes</h2>
+                <p class="faq-subtitle">Trouvez rapidement des réponses à vos questions</p>
             </div>
 
             <div class="faq-list">
                 <div class="faq-item">
                     <div class="faq-question" onclick="toggleFaq(this)">
                         <span class="faq-question-text">
-                            <span class="faq-question-icon">ðŸ“¦</span>
+                            <span class="faq-question-icon"></span>
                             Comment suivre ma commande ?
                         </span>
                         <span class="faq-toggle">
@@ -1323,7 +1365,7 @@
                     </div>
                     <div class="faq-answer">
                         <div class="faq-answer-content">
-                            Connectez-vous Ã  votre compte et accÃ©dez Ã  la section "Mes Commandes". Vous y trouverez le statut en temps rÃ©el de toutes vos commandes ainsi que le numÃ©ro de suivi pour les livraisons en cours.
+                            Connectez-vous à votre compte et accédez à la section "Mes Commandes". Vous y trouverez le statut en temps réel de toutes vos commandes ainsi que le numéro de suivi pour les livraisons en cours.
                         </div>
                     </div>
                 </div>
@@ -1331,7 +1373,7 @@
                 <div class="faq-item">
                     <div class="faq-question" onclick="toggleFaq(this)">
                         <span class="faq-question-text">
-                            <span class="faq-question-icon">ðŸ”„</span>
+                            <span class="faq-question-icon"></span>
                             Quelle est la politique de retour ?
                         </span>
                         <span class="faq-toggle">
@@ -1340,7 +1382,7 @@
                     </div>
                     <div class="faq-answer">
                         <div class="faq-answer-content">
-                            Vous disposez de 14 jours aprÃ¨s rÃ©ception pour retourner un produit non ouvert dans son emballage d'origine. Les mÃ©dicaments sur ordonnance ne peuvent pas Ãªtre retournÃ©s pour des raisons de sÃ©curitÃ© sanitaire.
+                            Vous disposez de 14 jours après réception pour retourner un produit non ouvert dans son emballage d'origine. Les médicaments sur ordonnance ne peuvent pas être retournés pour des raisons de sécurité sanitaire.
                         </div>
                     </div>
                 </div>
@@ -1348,7 +1390,7 @@
                 <div class="faq-item">
                     <div class="faq-question" onclick="toggleFaq(this)">
                         <span class="faq-question-text">
-                            <span class="faq-question-icon">ðŸ’³</span>
+                            <span class="faq-question-icon"></span>
                             Quels moyens de paiement acceptez-vous ?
                         </span>
                         <span class="faq-toggle">
@@ -1357,7 +1399,7 @@
                     </div>
                     <div class="faq-answer">
                         <div class="faq-answer-content">
-                            Nous acceptons les cartes bancaires (Visa, Mastercard), PayPal, et le paiement Ã  la livraison. Tous les paiements sont sÃ©curisÃ©s par cryptage SSL.
+                            Nous acceptons les cartes bancaires (Visa, Mastercard), PayPal, et le paiement à la livraison. Tous les paiements sont sécurisés par cryptage SSL.
                         </div>
                     </div>
                 </div>
@@ -1365,8 +1407,8 @@
                 <div class="faq-item">
                     <div class="faq-question" onclick="toggleFaq(this)">
                         <span class="faq-question-text">
-                            <span class="faq-question-icon">ðŸšš</span>
-                            Quels sont les dÃ©lais de livraison ?
+                            <span class="faq-question-icon"></span>
+                            Quels sont les délais de livraison ?
                         </span>
                         <span class="faq-toggle">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
@@ -1374,7 +1416,7 @@
                     </div>
                     <div class="faq-answer">
                         <div class="faq-answer-content">
-                            La livraison standard prend 2-4 jours ouvrÃ©s. La livraison express (24-48h) est disponible pour les commandes passÃ©es avant 14h. La livraison est gratuite Ã  partir de 50â‚¬ d'achat.
+                            La livraison standard prend 2-4 jours ouvrés. La livraison express (24-48h) est disponible pour les commandes passées avant 14h. La livraison est gratuite à partir de 50€ d'achat.
                         </div>
                     </div>
                 </div>
@@ -1382,7 +1424,7 @@
                 <div class="faq-item">
                     <div class="faq-question" onclick="toggleFaq(this)">
                         <span class="faq-question-text">
-                            <span class="faq-question-icon">ðŸ“‹</span>
+                            <span class="faq-question-icon"></span>
                             Comment envoyer mon ordonnance ?
                         </span>
                         <span class="faq-toggle">
@@ -1391,7 +1433,7 @@
                     </div>
                     <div class="faq-answer">
                         <div class="faq-answer-content">
-                            Vous pouvez tÃ©lÃ©charger votre ordonnance directement lors de la commande ou l'envoyer par email Ã  ordonnance@curavita.com. Notre Ã©quipe de pharmaciens la vÃ©rifiera sous 24h.
+                            Vous pouvez télécharger votre ordonnance directement lors de la commande ou l'envoyer par email à ordonnance@curavita.com. Notre équipe de pharmaciens la vérifiera sous 24h.
                         </div>
                     </div>
                 </div>
@@ -1399,8 +1441,8 @@
                 <div class="faq-item">
                     <div class="faq-question" onclick="toggleFaq(this)">
                         <span class="faq-question-text">
-                            <span class="faq-question-icon">â°</span>
-                            Quel est le dÃ©lai de rÃ©ponse du support ?
+                            <span class="faq-question-icon"></span>
+                            Quel est le délai de réponse du support ?
                         </span>
                         <span class="faq-toggle">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
@@ -1408,7 +1450,7 @@
                     </div>
                     <div class="faq-answer">
                         <div class="faq-answer-content">
-                            Notre Ã©quipe rÃ©pond gÃ©nÃ©ralement sous 24 heures ouvrÃ©es. Pour les urgences, vous pouvez nous appeler directement au 01 23 45 67 89 du lundi au vendredi de 9h Ã  18h.
+                            Notre équipe répond généralement sous 24 heures ouvrées. Pour les urgences, vous pouvez nous appeler directement au 01 23 45 67 89 du lundi au vendredi de 9h à 18h.
                         </div>
                     </div>
                 </div>
@@ -1429,7 +1471,7 @@ const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecogni
 function toggleSpeech(targetId, button) {
     // Check browser support
     if (!SpeechRecognition) {
-        alert('DÃ©solÃ©, votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome, Edge ou Safari.');
+        alert('Désolé, votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome, Edge ou Safari.');
         return;
     }
 
@@ -1495,7 +1537,7 @@ function startSpeech(targetId, button) {
     recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         if (event.error === 'not-allowed') {
-            alert('Veuillez autoriser l\'accÃ¨s au microphone pour utiliser cette fonctionnalitÃ©.');
+            alert('Veuillez autoriser l\'accès au microphone pour utiliser cette fonctionnalité.');
         }
         stopSpeech();
     };
@@ -1534,7 +1576,7 @@ function stopSpeech() {
 function displayFileName(input) {
     const display = document.getElementById('fileDisplay');
     if (input.files && input.files[0]) {
-        display.textContent = 'âœ… ' + input.files[0].name;
+        display.textContent =  input.files[0].name;
         display.classList.add('show');
     } else {
         display.classList.remove('show');
@@ -1569,7 +1611,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadingOverlay.className = 'form-loading';
     loadingOverlay.innerHTML = `
         <div class="loading-spinner"></div>
-        <div class="loading-text">VÃ©rification du contenu...</div>
+        <div class="loading-text">Vérification du contenu...</div>
     `;
     formCard.appendChild(loadingOverlay);
 
@@ -1579,11 +1621,11 @@ document.addEventListener('DOMContentLoaded', function() {
     profanityModal.id = 'profanityModal';
     profanityModal.innerHTML = `
         <div class="profanity-modal">
-            <div class="profanity-icon">ðŸš«</div>
-            <h3 class="profanity-title">Contenu inappropriÃ© dÃ©tectÃ©</h3>
-            <p class="profanity-message">Votre message contient des termes inappropriÃ©s. Veuillez reformuler votre texte avant de soumettre.</p>
+            <div class="profanity-icon"></div>
+            <h3 class="profanity-title">Contenu inapproprié détecté</h3>
+            <p class="profanity-message">Votre message contient des termes inappropriés. Veuillez reformuler votre texte avant de soumettre.</p>
             <div class="profanity-field" id="profanityFieldInfo">
-                <div class="profanity-field-label">Champ concernÃ©</div>
+                <div class="profanity-field-label">Champ concerné</div>
                 <div class="profanity-field-text" id="profanityFieldText"></div>
             </div>
             <button class="profanity-btn" onclick="closeProfanityModal()">Compris, je corrige</button>
@@ -1688,4 +1730,131 @@ function closeProfanityModal() {
     }
 }
 </script>
+
+{# ========== PREMIUM AI ASSISTANT UI ========== #}
+<div class="curavita-assistant-wrapper">
+    <!-- Assistant Toggle Button -->
+    <button class="assistant-btn-toggle" id="assistantToggle" aria-label="Open Assistant">
+        <div class="assistant-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+        </div>
+        <span class="assistant-pulse-ring"></span>
+    </button>
+
+    <!-- Assistant Chat Window -->
+    <div class="assistant-chat-panel" id="assistantWindow">
+        <div class="assistant-panel-header">
+            <div class="assistant-header-content">
+                <div class="assistant-header-avatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <path d="M8 11h8"></path>
+                        <path d="M12 7v8"></path>
+                    </svg>
+                </div>
+                <div class="assistant-header-text">
+                    <h3>Expert CURAVITA</h3>
+                    <span class="assistant-status-label">Support IA Premium</span>
+                </div>
+            </div>
+            <button class="assistant-panel-close" id="assistantClose">&times;</button>
+        </div>
+        
+        <div class="assistant-chat-scroll" id="assistantMessages">
+            <div class="assistant-msg assistant-bot">
+                Bonjour ! Je suis votre assistant virtuel CURAVITA. Je peux vous aider avec vos stocks, vos tickets ou toute question sur la plateforme. Comment puis-je vous assister ?
+            </div>
+        </div>
+
+        <div class="assistant-footer-input">
+            <input type="text" id="assistantInput" placeholder="Posez votre question..." autocomplete="off">
+            <button id="assistantSend">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('assistantToggle');
+    const panel = document.getElementById('assistantWindow');
+    const closeBtn = document.getElementById('assistantClose');
+    const input = document.getElementById('assistantInput');
+    const sendBtn = document.getElementById('assistantSend');
+    const messagesCont = document.getElementById('assistantMessages');
+
+    // EXTREME NUKE for 5 seconds (ensures old widget is killed even if lazy-loaded)
+    const nukeAction = () => {
+        ['chatbot-widget', 'chatbot-toggle', 'chatbot-window'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        });
+        document.querySelectorAll('.chatbot-widget, .chatbot-toggle').forEach(el => el.remove());
+    };
+    nukeAction();
+    const interval = setInterval(nukeAction, 500);
+    setTimeout(() => clearInterval(interval), 5000);
+
+    toggleBtn.addEventListener('click', () => {
+        panel.classList.toggle('active');
+        if (panel.classList.contains('active')) input.focus();
+    });
+
+    closeBtn.addEventListener('click', () => panel.classList.remove('active'));
+
+    async function handleAssistantSend() {
+        const text = input.value.trim();
+        if (!text) return;
+
+        appendAssistantMsg(text, 'user');
+        input.value = '';
+
+        const tid = 'typing-' + Date.now();
+        const tMsg = document.createElement('div');
+        tMsg.id = tid;
+        tMsg.className = 'assistant-msg assistant-bot';
+        tMsg.innerHTML = '<div class="assistant-typing"><div class="assistant-dot"></div><div class="assistant-dot"></div><div class="assistant-dot"></div></div>';
+        messagesCont.appendChild(tMsg);
+        messagesCont.scrollTop = messagesCont.scrollHeight;
+
+        try {
+            const response = await fetch('{{ path("api_assistant_chat") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+
+            const data = await response.json();
+            document.getElementById(tid)?.remove();
+
+            if (data.success) {
+                appendAssistantMsg(data.response, 'bot');
+            } else {
+                appendAssistantMsg(data.response || "Désolé, une erreur technique est survenue.", 'bot');
+            }
+        } catch (error) {
+            document.getElementById(tid)?.remove();
+            appendAssistantMsg("Impossible de joindre l'Expert CURAVITA. Vérifiez votre connexion.", 'bot');
+        }
+    }
+
+    function appendAssistantMsg(text, side) {
+        const div = document.createElement('div');
+        div.className = `assistant-msg assistant-${side}`;
+        div.textContent = text;
+        messagesCont.appendChild(div);
+        messagesCont.scrollTop = messagesCont.scrollHeight;
+    }
+
+    sendBtn.addEventListener('click', handleAssistantSend);
+    input.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAssistantSend(); });
+});
+</script>
+{# ========== END ASSISTANT ========== #}
 {% endblock %}

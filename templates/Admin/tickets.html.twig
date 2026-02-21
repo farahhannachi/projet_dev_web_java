@@ -164,6 +164,79 @@
         font-size: 0.85rem;
     }
 
+    /* AI ASSISTANT ADMIN STYLES */
+    .ai-insights-container {
+        background: linear-gradient(135deg, #0f3d2a 0%, #16563f 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2.5rem;
+        color: white;
+        box-shadow: 0 15px 35px rgba(22, 86, 63, 0.2);
+        border: 1px solid rgba(212, 175, 55, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    .ai-insights-container::before {
+        content: 'AI';
+        position: absolute;
+        top: -20px;
+        right: -10px;
+        font-size: 8rem;
+        font-weight: 900;
+        opacity: 0.05;
+        color: #d4af37;
+    }
+    .ai-badge {
+        background: #d4af37;
+        color: #0f3d2a;
+        padding: 5px 15px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+    .ai-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .ai-summary-content {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        line-height: 1.7;
+        font-size: 0.95rem;
+        border-left: 4px solid #d4af37;
+        display: none;
+    }
+    .ai-summary-content.active { display: block; animation: fadeInUp 0.5s ease; }
+    .btn-ai-generate {
+        background: #d4af37;
+        color: #0f3d2a;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+    }
+    .btn-ai-generate:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4); }
+    .btn-ai-generate:disabled { opacity: 0.7; cursor: not-allowed; }
+    .typing-indicator-ai { display: none; gap: 5px; margin-top: 15px; }
+    .typing-dot { width: 8px; height: 8px; background: #d4af37; border-radius: 50%; animation: ai-bounce 1s infinite alternate; }
+    @keyframes ai-bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+
 </style>
 {% endblock %}
 
@@ -210,6 +283,32 @@
                 <h4 style="margin:0; font-size: 2.5rem; font-weight: 800; color: #dc3545;">{{ questions|filter(q => q.priorite == 'haute')|length }}</h4>
                 <p style="margin:0; color: #6c757d; font-weight: 600;">Urgent</p>
             </div>
+        </div>
+    </div>
+
+    <!-- AI INSIGHTS SECTION -->
+    <div class="ai-insights-container fade-in-up" style="animation-delay: 0.45s;">
+        <div class="ai-badge">Intelligence Artificielle Premium</div>
+        <div class="ai-title">
+            <i class="fas fa-robot" style="color: #d4af37;"></i>
+            Analyse Stratégique du Support
+        </div>
+        <p style="opacity: 0.8; margin-bottom: 1.5rem;">Demandez à l'IA de résumer les derniers tickets pour identifier les urgences et les tendances.</p>
+        
+        <button id="btnAiSummarize" class="btn-ai-generate">
+            <i class="fas fa-wand-magic-sparkles"></i>
+            Générer un Résumé Intelligent
+        </button>
+
+        <div id="aiTyping" class="typing-indicator-ai">
+            <div class="typing-dot" style="animation-delay: 0s"></div>
+            <div class="typing-dot" style="animation-delay: 0.2s"></div>
+            <div class="typing-dot" style="animation-delay: 0.4s"></div>
+            <span style="margin-left: 10px; font-size: 0.9rem; color: #d4af37; font-weight: 600;">L'IA analyse les conversations en cours...</span>
+        </div>
+
+        <div id="aiSummaryResult" class="ai-summary-content">
+            <!-- Summary will be injected here -->
         </div>
     </div>
 
@@ -337,4 +436,56 @@
         {# Pagination would go here #}
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnAi = document.getElementById('btnAiSummarize');
+    const resultDiv = document.getElementById('aiSummaryResult');
+    const typing = document.getElementById('aiTyping');
+
+    btnAi.addEventListener('click', async function() {
+        // UI State: Loading
+        btnAi.disabled = true;
+        btnAi.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyse en cours...';
+        typing.style.display = 'flex';
+        resultDiv.classList.remove('active');
+
+        try {
+            const response = await fetch('{{ path("admin_api_summarize_tickets") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ limit: 15 })
+            });
+
+            const data = await response.json();
+            
+            typing.style.display = 'none';
+            btnAi.disabled = false;
+            btnAi.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Régénérer l\'Analyse';
+
+            if (data.success) {
+                // Formatting the summary (interpreting markdown-like bullet points)
+                let formattedText = data.response
+                    .replace(/\n/g, '<br>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong style="color: #d4af37;">$1</strong>')
+                    .replace(/- /g, '<i class="fas fa-check-circle" style="color: #d4af37; font-size: 0.8rem; margin-right: 8px;"></i> ');
+                
+                resultDiv.innerHTML = formattedText;
+                resultDiv.classList.add('active');
+            } else {
+                resultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + (data.response || "Erreur lors de l'analyse.");
+                resultDiv.classList.add('active');
+                resultDiv.style.borderLeftColor = "#dc3545";
+            }
+
+        } catch (error) {
+            typing.style.display = 'none';
+            btnAi.disabled = false;
+            btnAi.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Réessayer';
+            resultDiv.innerHTML = '<i class="fas fa-wifi-slash"></i> Impossible de contacter le serveur d\'IA.';
+            resultDiv.classList.add('active');
+        }
+    });
+});
+</script>
 {% endblock %}
