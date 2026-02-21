@@ -1,0 +1,9 @@
+{
+  "name": "curavita-admin",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Curavita Healthcare Admin - HTML, CSS, JavaScript",
+  "scripts": {
+    "start": "npx serve ."
+  }
+}

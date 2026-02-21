@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}CuraVita{% endblock %}</title>
+        <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+        {% block stylesheets %}{% endblock %}
+    </head>
+    <body>
+        {% block body %}{% endblock %}
+        
+        {# AI Chatbot Widget - Only for authenticated users (clients & admins) #}
+        {% include 'components/chatbot-widget.html.twig' %}
+        
+        {% block javascripts %}{% endblock %}
+    </body>
+</html>

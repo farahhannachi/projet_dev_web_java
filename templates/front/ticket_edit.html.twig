@@ -1,0 +1,154 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Modifier le ticket #{{ question.id }} - CURAVITA{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        padding: 40px;
+    }
+    .form-group {
+        margin-bottom: 25px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    .form-select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 16px;
+        background: white;
+        cursor: pointer;
+    }
+    textarea.form-control {
+        resize: vertical;
+        min-height: 150px;
+    }
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 14px 32px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .btn-submit:hover {
+        transform: translateY(-2px);
+    }
+    .btn-back {
+        background: #e0e0e0;
+        color: #333;
+        padding: 14px 32px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .btn-back:hover {
+        background: #d0d0d0;
+        color: #333;
+    }
+    .form-error {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 5px;
+    }
+    .alert {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .alert-warning {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        color: #856404;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="form-container">
+    <h1 style="margin-bottom: 10px;">Modifier le ticket #{{ question.id }}</h1>
+    <p style="color: #666; margin-bottom: 30px;">Modifiez les informations de votre ticket.</p>
+
+    {% if question.statut != 'ouvert' %}
+        <div class="alert alert-warning">
+            ⚠️ Attention : Ce ticket a le statut "{{ question.statut }}". Les modifications peuvent ne pas être prises en compte.
+        </div>
+    {% endif %}
+
+    <div class="form-card">
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            <div class="form-group">
+                {{ form_label(form.typeTicket, 'Type de ticket') }}
+                {{ form_widget(form.typeTicket, {'attr': {'class': 'form-select'}}) }}
+                {{ form_errors(form.typeTicket) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.objet, 'Objet') }}
+                {{ form_widget(form.objet, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Problème avec ma commande #1234'}}) }}
+                {{ form_errors(form.objet) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.description, 'Description détaillée') }}
+                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'placeholder': 'Décrivez votre problème en détail...'}}) }}
+                {{ form_errors(form.description) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.priorite, 'Priorité') }}
+                {{ form_widget(form.priorite, {'attr': {'class': 'form-select'}}) }}
+                {{ form_errors(form.priorite) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.fichier, 'Nouvelle pièce jointe (optionnelle)') }}
+                {{ form_widget(form.fichier, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.fichier) }}
+                {% if question.fileName %}
+                    <small style="color: #666; display: block; margin-top: 5px;">
+                        Fichier actuel : {{ question.fileName }}
+                    </small>
+                {% endif %}
+                <small style="color: #999; display: block; margin-top: 5px;">
+                    Formats acceptés : JPG, PNG, GIF, PDF, DOC, DOCX (max 5 MB)
+                </small>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-top: 30px;">
+                <a href="{{ path('app_contact') }}" class="btn-back">← Annuler</a>
+                <button type="submit" class="btn-submit">💾 Enregistrer les modifications</button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

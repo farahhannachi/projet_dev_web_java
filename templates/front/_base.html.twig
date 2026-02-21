@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CURAVITA - Votre pharmacie en ligne{% endblock %}</title>
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/img/curavita-logo.png') }}">
+    {% block stylesheets %}{% endblock %}
+    
+    <!-- Styles pour le système de notifications -->
+    <style>
+        /* Main content padding for fixed navbar */
+        main {
+            padding-top: 90px;
+            min-height: 100vh;
+        }
+        
+        /* Notification Icon Container */
+        .notification-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-trigger {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .notification-trigger:hover {
+            transform: scale(1.1);
+        }
+
+        .notification-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .notification-icon:hover {
+            background: linear-gradient(135deg, #16563f 0%, #28a745 100%);
+            box-shadow: 0 4px 15px rgba(22, 86, 63, 0.3);
+        }
+
+        .notification-icon svg {
+            color: #16563f;
+            transition: all 0.3s ease;
+        }
+
+        .notification-icon:hover svg {
+            color: white;
+        }
+
+        /* Badge de notification */
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(238, 90, 111, 0.4);
+            border: 2px solid white;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification-badge.pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite, slideIn 0.3s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.05); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: scale(0) translateY(-10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .notification-badge::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 3px;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            animation: shine 2s ease infinite;
+        }
+
+        @keyframes shine {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+
+        /* ========= MESSENGER-STYLE NOTIFICATION PANEL (IMPROVED) ========= */
+        .notif-panel {
+            position: absolute;
+            top: calc(100% + 15px);
+            right: -60px;
+            width: 400px;
+            max-height: 550px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 25px 80px rgba(22, 86, 63, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-15px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .notif-panel.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Petite flèche pointant vers le haut */
+        .notif-panel::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            right: 72px;
+            width: 12px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.98);
+            transform: rotate(45deg);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            border-left: 1px solid rgba(0, 0, 0, 0.05);
+            z-index: 1;
+        }
+
+        /* Header du panel */
+        .notif-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px 14px;
+            border-bottom: 1px solid #f0f0f0;
+            background: linear-gradient(135deg, #16563f 0%, #28a745 100%);
+            position: relative;
+            z-index: 2;
+        }
+
+        .notif-panel-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notif-panel-header .notif-count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 7px;
+            background: rgba(255, 255, 255, 0.25);
+            color: #fff;
+            border-radius: 11px;
+            font-size: 12px;
+            font-weight: 700;
+            backdrop-filter: blur(4px);
+        }
+
+        .notif-panel-header .notif-see-all {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .notif-panel-header .notif-see-all:hover {
+            color: #fff;
+        }
+
+        /* Body du panel (liste des notifications) */
+        .notif-panel-body {
+            max-height: 400px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .notif-panel-body::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .notif-panel-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .notif-panel-body::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+
+        .notif-panel-body::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Notification Item */
+        .notif-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 20px;
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.15s ease;
+            border-bottom: 1px solid #f5f5f5;
+            position: relative;
+        }
+
+        .notif-item:hover {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+
+        .notif-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Non-lu : fond léger + texte plus foncé */
+        .notif-item.notif-unread {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        }
+
+        .notif-item.notif-unread:hover {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        }
+
+        .notif-item.notif-unread .notif-message-preview {
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* Avatar de l'agent */
+        .notif-avatar {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #16563f 0%, #28a745 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            position: relative;
+        }
+
+        .notif-avatar .online-dot {
+            position: absolute;
+            bottom: 1px;
+            right: 1px;
+            width: 12px;
+            height: 12px;
+            background: #10b981;
+            border: 2.5px solid white;
+            border-radius: 50%;
+        }
+
+        /* Contenu de la notification */
+        .notif-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notif-ticket-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .notif-ticket-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #16563f;
+            background: #ecfdf5;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .notif-ticket-subject {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a2e;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .notif-message-preview {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.45;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-top: 3px;
+        }
+
+        .notif-message-preview strong {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .notif-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .notif-time {
+            font-size: 11px;
+            color: #16563f;
+            font-weight: 600;
+        }
+
+        .notif-action-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .notif-action-badge.remboursement { background: #dcfce7; color: #166534; }
+        .notif-action-badge.remplacement { background: #dbeafe; color: #1e40af; }
+        .notif-action-badge.escalade { background: #fef3c7; color: #92400e; }
+        .notif-action-badge.retour_accepte { background: #d1fae5; color: #065f46; }
+        .notif-action-badge.retour_refuse { background: #fce7f3; color: #9d174d; }
+
+        /* Unread dot */
+        .notif-unread-dot {
+            position: absolute;
+            top: 50%;
+            right: 16px;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(135deg, #16563f 0%, #28a745 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 0 3px rgba(22, 86, 63, 0.2);
+        }
+
+        /* Panel vide */
+        .notif-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 30px;
+            text-align: center;
+        }
+
+        .notif-empty-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .notif-empty-icon svg {
+            color: #16563f;
+            opacity: 0.6;
+        }
+
+        .notif-empty h4 {
+            margin: 0 0 6px;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .notif-empty p {
+            margin: 0;
+            color: #888;
+            font-size: 13px;
+        }
+
+        /* Footer du panel */
+        .notif-panel-footer {
+            padding: 12px 20px;
+            border-top: 1px solid #f0f0f0;
+            text-align: center;
+            background: #fafbfc;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .notif-panel-footer a {
+            color: #16563f;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: opacity 0.2s;
+        }
+
+        .notif-panel-footer a:hover {
+            opacity: 0.8;
+        }
+
+        /* ========== NOTIFICATION DETAIL MODAL ========== */
+        .notif-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .notif-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .notif-modal {
+            width: 92%;
+            max-width: 600px;
+            max-height: 85vh;
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            transform: scale(0.9) translateY(30px);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+        }
+
+        .notif-modal-overlay.active .notif-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .notif-modal-header {
+            background: linear-gradient(135deg, #16563f 0%, #28a745 100%);
+            padding: 28px 28px 22px;
+            color: white;
+            position: relative;
+        }
+
+        .notif-modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            backdrop-filter: blur(4px);
+        }
+
+        .notif-modal-close:hover {
+            background: rgba(255,255,255,0.35);
+            transform: rotate(90deg);
+        }
+
+        .notif-modal-ticket-id {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0.85;
+            margin-bottom: 6px;
+        }
+
+        .notif-modal-subject {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .notif-modal-agent {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .notif-modal-agent-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            backdrop-filter: blur(4px);
+        }
+
+        .notif-modal-agent-info {
+            font-size: 13px;
+        }
+
+        .notif-modal-agent-info .agent-name {
+            font-weight: 600;
+        }
+
+        .notif-modal-agent-info .agent-role {
+            opacity: 0.8;
+            font-size: 12px;
+        }
+
+        .notif-modal-body {
+            padding: 28px;
+            overflow-y: auto;
+            max-height: calc(85vh - 200px);
+        }
+
+        .notif-modal-body::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .notif-modal-body::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+
+        .notif-modal-section {
+            margin-bottom: 22px;
+        }
+
+        .notif-modal-section-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #16563f;
+            margin-bottom: 8px;
+        }
+
+        .notif-modal-message {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid #16563f;
+            padding: 18px 20px;
+            border-radius: 0 12px 12px 0;
+            font-size: 15px;
+            line-height: 1.7;
+            color: #333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .notif-modal-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .notif-modal-action.remboursement { background: #dcfce7; color: #166534; }
+        .notif-modal-action.remplacement { background: #dbeafe; color: #1e40af; }
+        .notif-modal-action.escalade { background: #fef3c7; color: #92400e; }
+        .notif-modal-action.retour_accepte { background: #d1fae5; color: #065f46; }
+        .notif-modal-action.retour_refuse { background: #fce7f3; color: #9d174d; }
+        .notif-modal-action.aucune { background: #f3f4f6; color: #6b7280; }
+
+        .notif-modal-file {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .notif-modal-file:hover {
+            border-color: #16563f;
+            background: #ecfdf5;
+        }
+
+        .notif-modal-file-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #16563f, #28a745);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .notif-modal-file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notif-modal-file-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .notif-modal-file-meta {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .notif-modal-file-dl {
+            padding: 8px 16px;
+            background: #16563f;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .notif-modal-file-dl:hover {
+            background: #0f3d2a;
+            color: white;
+        }
+
+        .notif-modal-date {
+            font-size: 13px;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .notif-modal-footer {
+            padding: 18px 28px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafbfc;
+        }
+
+        .notif-modal-btn-ticket {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            background: linear-gradient(135deg, #16563f 0%, #28a745 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .notif-modal-btn-ticket:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(22, 86, 63, 0.4);
+            color: white;
+        }
+
+        .notif-modal-btn-close {
+            padding: 10px 22px;
+            background: #f3f4f6;
+            color: #555;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .notif-modal-btn-close:hover {
+            background: #e5e7eb;
+        }
+
+        @media (max-width: 768px) {
+            .notif-modal {
+                width: 96%;
+                max-height: 90vh;
+                border-radius: 16px;
+            }
+            .notif-modal-header { padding: 20px; }
+            .notif-modal-body { padding: 20px; }
+            .notif-modal-footer { padding: 14px 20px; flex-direction: column; gap: 10px; }
+            .notif-modal-btn-ticket, .notif-modal-btn-close { width: 100%; justify-content: center; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .notification-icon {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .notification-badge {
+                min-width: 18px;
+                height: 18px;
+                font-size: 10px;
+            }
+
+            .notif-panel {
+                width: 320px;
+                right: -20px;
+                max-height: 460px;
+            }
+
+            .notif-panel::before {
+                right: 32px;
+            }
+
+            .notif-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
+        }
+
+        /* Message de nouvelle réponse dans les tickets */
+        .new-response-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: linear-gradient(135deg, #16563f 0%, #28a745 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            animation: slideIn 0.5s ease;
+        }
+
+        .new-response-indicator::before {
+            content: '🔔';
+            animation: swing 1s ease infinite;
+        }
+
+        @keyframes swing {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(15deg); }
+            75% { transform: rotate(-15deg); }
+        }
+
+        /* ============================================
+           MODERN NAVBAR - SaaS Dashboard 2026 Style
+           ============================================ */
+        
+        /* Navbar Container - Rounded */
+        header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            padding: 10px 0;
+            width: 100%;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+        
+        header > .container {
+            position: relative;
+            padding: 0 1rem;
+        }
+        
+        .nav-container {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 56px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 16px;
+            max-width: 100%;
+            border: none;
+        }
+        
+        header.scrolled .nav-container {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Logo */
+        .logo-link {
+            display: inline-block;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            flex-shrink: 0;
+        }
+        
+        .logo-link:hover {
+            transform: scale(1.03);
+        }
+        
+        /* Navigation Menu - Inside rounded container */
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 14px;
+            flex: 1;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 100%;
+        }
+        
+        /* Navigation Links - Pill Style */
+        .nav-link {
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #4b5563;
+            padding: 10px 14px;
+            position: relative;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 10px;
+            background: transparent;
+            white-space: nowrap;
+        }
+        
+        .nav-link:hover {
+            color: #1f2937;
+            background: rgba(0, 0, 0, 0.03);
+            transform: translateY(-2px);
+        }
+        
+        /* Active Link - Modern Green Pill */
+        .nav-link.active {
+            color: white;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            box-shadow: 
+                0 2px 8px rgba(34, 197, 94, 0.3),
+                0 0 20px rgba(34, 197, 94, 0.15);
+        }
+        
+        .nav-link.active:hover {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            color: white;
+        }
+        
+        /* Right Side - Icons */
+        .nav-right, .flex.items-center.gap-4 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        /* Cart & User Icons */
+        .notification-wrapper {
+            position: relative;
+        }
+        
+        .notification-trigger {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            border-radius: 14px;
+        }
+        
+        .notification-trigger:hover {
+            background: rgba(0, 0, 0, 0.04);
+            transform: scale(1.05);
+        }
+        
+        .notification-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+        }
+        
+        .notification-trigger:hover .notification-icon {
+            background: rgba(34, 197, 94, 0.1);
+            box-shadow: 0 2px 12px rgba(34, 197, 94, 0.2);
+        }
+        
+        .notification-icon svg {
+            color: #4b5563;
+            transition: color 0.3s ease;
+        }
+        
+        .notification-trigger:hover .notification-icon svg {
+            color: #16a34a;
+        }
+        
+        /* Badge */
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+            border: 2px solid white;
+        }
+        
+        /* ============================================
+           PROFILE SECTION - Modern Circular Avatar
+           ============================================ */
+        
+        /* Profile Dropdown - Outside nav container */
+        .user-dropdown {
+            position: relative;
+            margin-left: 8px;
+        }
+        
+        .user-dropdown-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px 6px 6px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(34, 197, 94, 0.15);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        
+        .user-dropdown-btn:hover {
+            background: white;
+            transform: scale(1.02);
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.08),
+                0 0 20px rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+        
+        /* Circular Avatar */
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #16a34a;
+            overflow: hidden;
+            border: 2px solid rgba(34, 197, 94, 0.2);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            flex-shrink: 0;
+        }
+        
+        .user-dropdown-btn:hover .user-avatar {
+            transform: scale(1.05);
+            border-color: rgba(34, 197, 94, 0.4);
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.25);
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .user-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #374151;
+            white-space: nowrap;
+        }
+        
+        /* Dropdown Menu */
+        .user-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 12px);
+            right: 0;
+            min-width: 260px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 
+                0 15px 50px rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(0, 0, 0, 0.04);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 9999;
+            overflow: visible;
+        }
+        
+        .user-dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+        
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: #4b5563;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 100%);
+            color: #16a34a;
+        }
+        
+        /* User Dropdown Header */
+        .user-dropdown-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .user-avatar.large {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid rgba(34, 197, 94, 0.25);
+        }
+        
+        .user-details {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .user-name-large {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1f2937;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .user-email {
+            font-size: 0.75rem;
+            color: #6b7280;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .nav-menu {
+                position: fixed;
+                top: 80px;
+                left: 12px;
+                right: 12px;
+                background: white;
+                flex-direction: column;
+                padding: 16px;
+                gap: 4px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+                border-radius: 16px;
+                transform: translateY(-100%);
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 999;
+            }
+        
+            .nav-menu.active {
+                transform: translateY(0);
+                opacity: 1;
+                visibility: visible;
+            }
+            
+            .nav-container {
+                border-radius: 16px;
+                margin: 8px;
+                padding: 8px 16px;
+            }
+            
+            .user-name {
+                display: none;
+            }
+            
+            .hidden-mobile {
+                display: none !important;
+            }
+        }
+        
+        @media (min-width: 1025px) {
+            .mobile-menu-btn {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+    
+        <div class="container">
+            <div class="nav-container">
+                <a href="{{ path('app_home') }}" class="logo-link">
+                    <img src="{{ asset('assets/img/curavita-logo.png') }}" alt="Curavita Logo" class="logo">
+                </a>
+                <nav class="nav-menu" id="mainNavMenu">
+                    <a href="{{ path('app_home') }}" class="nav-link {{ app.request.get('_route') == 'app_home' ? 'active' : '' }}">Accueil</a>
+                    <div class="dropdown">
+                        <a href="{{ path('app_products') }}" class="nav-link {{ app.request.get('_route') == 'app_products' ? 'active' : '' }}">Produits</a>
+                    </div>
+                    <a href="{{ path('app_ordonnances') }}" class="nav-link {{ app.request.get('_route') == 'app_ordonnances' ? 'active' : '' }}">Commande</a>
+                    <a href="{{ path('app_panier') }}" class="nav-link {{ app.request.get('_route') starts with 'app_panier' ? 'active' : '' }}">Adresses</a>
+                    {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
+                        <a href="{{ path('front_depots') }}" class="nav-link {{ app.request.get('_route') == 'front_depots' ? 'active' : '' }}">Dépôts</a>
+                        <a href="{{ path('app_products') }}" class="nav-link {{ app.request.get('_route') == 'front_stocks' ? 'active' : '' }}">Stocks</a>
+                    {% endif %}
+                    <div class="dropdown">
+                        <a href="{{ path('app_formulaire_ordonnance') }}" class="nav-link nav-link-green {{ app.request.get('_route') == 'app_formulaire_ordonnance' ? 'active' : '' }}">Ordonnance & Traitement</a>
+                        <div class="dropdown-menu">
+                            <a href="{{ path('app_demande_traitement') }}" class="dropdown-item">Demande de traitement</a>
+                            <a href="{{ path('app_formulaire_ordonnance') }}" class="dropdown-item">Créer une ordonnance</a>
+                            <a href="{{ path('app_ordonnances') }}" class="dropdown-item">Mes traitements</a>
+                        </div>
+                    </div>
+                    <a href="{{ path('app_about') }}" class="nav-link {{ app.request.get('_route') == 'app_guide_sante' ? 'active' : '' }}">Guide Santé</a>
+                    <a href="{{ path('app_contact') }}" class="nav-link {{ app.request.get('_route') == 'app_contact' or app.request.get('_route') starts with 'app_question' ? 'active' : '' }}">Contact</a>
+                    <a href="{{ path('app_about') }}" class="nav-link {{ app.request.get('_route') == 'app_about' ? 'active' : '' }}">À propos</a>
+                </nav>
+                <div class="flex items-center gap-4 hidden-mobile">
+                    {% if app.user %}
+                        <!-- Icône Panier -->
+                        <div class="notification-wrapper">
+                            <a href="{{ path('app_panier') }}" class="notification-trigger" title="Mon panier">
+                                <div class="notification-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="9" cy="21" r="1"></circle>
+                                        <circle cx="20" cy="21" r="1"></circle>
+                                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                    </svg>
+                                    {% if nombre_articles_panier is defined and nombre_articles_panier > 0 %}
+                                        <span class="notification-badge pulse">{{ nombre_articles_panier }}</span>
+                                    {% endif %}
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <!-- Notification Dropdown (Pour les clients uniquement) -->
+                        {% if not is_granted('ROLE_ADMIN') %}
+                            <div class="notification-wrapper">
+                                <button class="notification-trigger" onclick="toggleNotifPanel(event)" title="Mes notifications">
+                                    <div class="notification-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                        </svg>
+                                        {% if unread_notifications_count > 0 %}
+                                            <span class="notification-badge pulse">{{ unread_notifications_count }}</span>
+                                        {% endif %}
+                                    </div>
+                                </button>
+
+                                <!-- Messenger-style Notification Panel -->
+                                <div class="notif-panel" id="notifPanel">
+                                    <div class="notif-panel-header">
+                                        <h3>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                            </svg>
+                                            Notifications
+                                            {% if unread_notifications_count > 0 %}
+                                                <span class="notif-count-badge">{{ unread_notifications_count }}</span>
+                                            {% endif %}
+                                        </h3>
+                                        <a href="{{ path('app_contact') }}" class="notif-see-all">Voir tout</a>
+                                    </div>
+
+                                    <div class="notif-panel-body">
+                                        {% if all_notifications is defined and all_notifications|length > 0 %}
+                                            {% for notif in all_notifications %}
+                                                <div class="notif-item {% if not notif.luParClient %}notif-unread{% endif %}"
+                                                     onclick="openNotifDetail(this)"
+                                                     data-ticket-id="{{ notif.question.id }}"
+                                                     data-ticket-objet="{{ notif.question.objet|e('html_attr') }}"
+                                                     data-agent-nom="{{ notif.utilisateur ? notif.utilisateur.nom|e('html_attr') : 'Support' }}"
+                                                     data-agent-prenom="{{ notif.utilisateur ? notif.utilisateur.prenom|e('html_attr') : '' }}"
+                                                     data-agent-initials="{{ notif.utilisateur ? notif.utilisateur.nom|first|upper ~ notif.utilisateur.prenom|first|upper : 'SP' }}"
+                                                     data-message="{{ notif.reponseText|e('html_attr') }}"
+                                                     data-date="{{ notif.createdAt|date('d/m/Y à H:i') }}"
+                                                     data-action="{{ notif.actionType }}"
+                                                     data-file-name="{{ notif.fileName|default('') }}"
+                                                     data-file-path="{{ notif.filePath|default('') }}"
+                                                     data-show-url="{{ path('app_question_show', {id: notif.question.id}) }}"
+                                                     data-is-unread="{{ not notif.luParClient ? '1' : '0' }}"
+                                                     style="cursor: pointer;"
+                                                >
+                                                    <div class="notif-avatar">
+                                                        {% if notif.utilisateur %}
+                                                            {{ notif.utilisateur.nom|first|upper }}{{ notif.utilisateur.prenom|first|upper }}
+                                                        {% else %}
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                                <circle cx="12" cy="7" r="4"></circle>
+                                                            </svg>
+                                                        {% endif %}
+                                                        <span class="online-dot"></span>
+                                                    </div>
+                                                    <div class="notif-content">
+                                                        <div class="notif-ticket-info">
+                                                            <span class="notif-ticket-label">Ticket #{{ notif.question.id }}</span>
+                                                            <span class="notif-ticket-subject">{{ notif.question.objet|length > 28 ? notif.question.objet|slice(0, 28) ~ '...' : notif.question.objet }}</span>
+                                                        </div>
+                                                        <div class="notif-message-preview">
+                                                            <strong>{{ notif.utilisateur ? notif.utilisateur.nom : 'Support' }} :</strong>
+                                                            {{ notif.reponseText|length > 80 ? notif.reponseText|slice(0, 80) ~ '...' : notif.reponseText }}
+                                                        </div>
+                                                        <div class="notif-meta">
+                                                            <span class="notif-time">{{ notif.createdAt|date('d/m H:i') }}</span>
+                                                            {% if notif.actionType is defined and notif.actionType != 'aucune' %}
+                                                                <span class="notif-action-badge {{ notif.actionType }}">
+                                                                    {{ notif.actionType|replace({'_': ' '})|capitalize }}
+                                                                </span>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    {% if not notif.luParClient %}
+                                                        <span class="notif-unread-dot"></span>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="notif-empty">
+                                                <div class="notif-empty-icon">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                                    </svg>
+                                                </div>
+                                                <h4>Aucune réponse</h4>
+                                                <p>Vous n'avez pas encore reçu de réponses de notre équipe.</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if all_notifications is defined and all_notifications|length > 0 %}
+                                        <div class="notif-panel-footer">
+                                            <a href="{{ path('app_contact') }}">
+                                                Voir tous mes tickets
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="9,18 15,12 9,6"></polyline>
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- User Profile Dropdown -->
+                        <div class="user-dropdown">
+                            <button class="user-dropdown-btn" onclick="toggleUserDropdown()">
+                                <div class="user-avatar">
+                                    {% if app.user.avatarUrl %}
+                                        <img src="{{ app.user.avatarUrl }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                    {% else %}
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                        </svg>
+                                    {% endif %}
+                                    <span class="online-indicator"></span>
+                                </div>
+                                <span class="user-name">{{ app.user.nom }} {{ app.user.prenom }}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="dropdown-arrow">
+                                    <polyline points="6,9 12,15 18,9"></polyline>
+                                </svg>
+                            </button>
+                            
+                            <div class="user-dropdown-menu" id="userDropdown">
+                                <div class="user-dropdown-header">
+                                    <div class="user-info">
+                                        <div class="user-avatar large">
+                                            {% if app.user.avatarUrl %}
+                                                <img src="{{ app.user.avatarUrl }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                            {% else %}
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                    <circle cx="12" cy="7" r="4"></circle>
+                                                </svg>
+                                            {% endif %}
+                                            <span class="online-indicator large"></span>
+                                        </div>
+                                        <div class="user-details">
+                                            <div class="user-name-large">{{ app.user.nom }} {{ app.user.prenom }}</div>
+                                            <div class="user-email">{{ app.user.email }}</div>
+                                            <div class="user-role">
+                                                {% if is_granted('ROLE_ADMIN') %}
+                                                    <span class="role-badge admin">Administrateur</span>
+                                                {% else %}
+                                                    <span class="role-badge user">Client</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="user-dropdown-divider"></div>
+                                
+                                <div class="user-dropdown-actions">
+                                    <a href="{{ path('app_profile') }}" class="dropdown-item">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                        </svg>
+                                        Mon Profil
+                                    </a>
+                                    {% if is_granted('ROLE_ADMIN') %}
+                                        <a href="{{ path('admin_dashboard') }}" class="dropdown-item">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                                <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                                            </svg>
+                                            Tableau de bord
+                                        </a>
+                                    {% endif %}
+                                    <a href="{{ path('app_logout') }}" class="dropdown-item logout">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                            <polyline points="16,17 21,12 16,7"></polyline>
+                                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                                        </svg>
+                                            Déconnexion
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="btn btn-sm btn-outline">Connexion</a>
+                        <a href="{{ path('app_register') }}" class="btn btn-sm btn-primary">Inscription</a>
+                    {% endif %}
+                </div>
+                <button class="burger-menu" type="button" aria-label="Ouvrir le menu" aria-controls="mainNavMenu" aria-expanded="false">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% block main %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <img src="{{ asset('assets/img/curavita-logo.png') }}" alt="Curavita Logo" class="footer-logo">
+                    <p>Votre santé, notre priorité. Pharmacie en ligne agréée et sécurisée.</p>
+                    <p class="text-sm mt-4 opacity-75">📍 123 Avenue de la Santé, 75001 Paris<br>📞 01 23 45 67 89</p>
+                </div>
+                <div>
+                    <h4>Navigation</h4>
+                    <ul class="space-y-2 text-sm text-white opacity-90">
+                        <li><a href="{{ path('app_home') }}">Accueil</a></li>
+                        <li><a href="{{ path('app_products') }}">Nos Produits</a></li>
+                        <li><a href="{{ path('app_about') }}">Conseils Santé</a></li>
+                        <li><a href="{{ path('app_contact') }}">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Services</h4>
+                    <ul class="space-y-2 text-sm text-white opacity-90">
+                        <li><a href="{{ path('app_formulaire_ordonnance') }}">Envoi d'ordonnance</a></li>
+                        <li><a href="{{ path('app_contact') }}">Click & Collect</a></li>
+                        <li><a href="{{ path('app_contact') }}">Livraison Express</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Aide</h4>
+                    <ul class="space-y-2 text-sm text-white opacity-90">
+                        <li><a href="{{ path('app_contact') }}">FAQ</a></li>
+                        <li><a href="{{ path('app_contact') }}">Mon Compte</a></li>
+                        <li><a href="{{ path('app_contact') }}">Suivi de commande</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 CuraVita. Tous droits réservés.</p>
+                <div class="flex gap-4">
+                    {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('admin_dashboard') }}">Espace Admin</a>{% endif %}
+                    <a href="#">Mentions Légales</a>
+                    <a href="#">CGV</a>
+                    <a href="#">Confidentialité</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ asset('assets/js/main.js') }}"></script>
+    
+    <!-- Scroll to section script -->
+    <script>
+        function scrollToTraitements(event) {
+            // Si on est déjà sur la page ordonnance
+            if (window.location.pathname.includes('ordonnance')) {
+                event.preventDefault();
+                const element = document.getElementById('mes-traitements');
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+            // Sinon, laisser le lien normal fonctionner
+        }
+        
+        // Au chargement de la page, vérifier si on a un hash
+        window.addEventListener('DOMContentLoaded', function() {
+            if (window.location.hash === '#mes-traitements') {
+                setTimeout(function() {
+                    const element = document.getElementById('mes-traitements');
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100);
+            }
+        });
+    </script>
+    
+    <!-- User Dropdown Styles -->
+    <style>
+        .user-dropdown {
+            position: relative;
+        }
+        
+        .user-dropdown-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-main);
+        }
+        
+        .user-dropdown-btn:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .user-avatar {
+            position: relative;
+            width: 32px;
+            height: 32px;
+            background-color: #e5e7eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+        }
+        
+        .user-avatar.large {
+            width: 48px;
+            height: 48px;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .online-indicator {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            background-color: #10b981;
+            border: 2px solid white;
+            border-radius: 50%;
+        }
+        
+        .online-indicator.large {
+            width: 14px;
+            height: 14px;
+            bottom: 2px;
+            right: 2px;
+        }
+        
+        .user-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+        
+        .dropdown-arrow {
+            transition: transform 0.3s ease;
+        }
+        
+        .user-dropdown-btn:hover .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+        
+        .user-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            width: 320px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+        
+        .user-dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .user-dropdown-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-details {
+            flex: 1;
+        }
+        
+        .user-name-large {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
+        }
+        
+        .user-email {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .role-badge.admin {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .role-badge.user {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .user-dropdown-divider {
+            height: 1px;
+            background-color: var(--border);
+        }
+        
+        .user-dropdown-actions {
+            padding: 0.5rem;
+        }
+        
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-main);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+            font-size: 0.875rem;
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .dropdown-item.logout {
+            color: #dc2626;
+        }
+        
+        .dropdown-item.logout:hover {
+            background-color: #fef2f2;
+        }
+        
+        @media (max-width: 768px) {
+            .user-dropdown-menu {
+                width: 280px;
+                right: -1rem;
+            }
+        }
+    </style>
+    
+    <!-- User Dropdown JavaScript -->
+    <script>
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            const notifPanel = document.getElementById('notifPanel');
+            // Fermer le panel de notifications si ouvert
+            if (notifPanel) notifPanel.classList.remove('show');
+            dropdown.classList.toggle('show');
+        }
+
+        // ===== Notification Panel Toggle =====
+        function toggleNotifPanel(event) {
+            event.stopPropagation();
+            const panel = document.getElementById('notifPanel');
+            const dropdown = document.getElementById('userDropdown');
+            // Fermer le dropdown user si ouvert
+            if (dropdown) dropdown.classList.remove('show');
+            panel.classList.toggle('show');
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const dropdownBtn = document.querySelector('.user-dropdown-btn');
+            const notifPanel = document.getElementById('notifPanel');
+            const notifWrapper = document.querySelector('.notification-wrapper');
+            
+            // Close user dropdown
+            if (dropdownBtn && dropdown && !dropdownBtn.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+            
+            // Close notification panel
+            if (notifPanel && notifWrapper && !notifWrapper.contains(event.target)) {
+                notifPanel.classList.remove('show');
+            }
+        });
+    </script>
+
+    <!-- ========== NOTIFICATION DETAIL MODAL ========== -->
+    <div id="notifModalOverlay" class="notif-modal-overlay" onclick="closeNotifDetail(event)">
+        <div class="notif-modal" onclick="event.stopPropagation()">
+            <div class="notif-modal-header">
+                <button class="notif-modal-close" onclick="closeNotifDetail()">&times;</button>
+                <div class="notif-modal-ticket-id" id="nm-ticket-id"></div>
+                <h2 class="notif-modal-subject" id="nm-subject"></h2>
+                <div class="notif-modal-agent">
+                    <div class="notif-modal-agent-avatar" id="nm-agent-avatar"></div>
+                    <div class="notif-modal-agent-info">
+                        <div class="agent-name" id="nm-agent-name"></div>
+                        <div class="agent-role">Agent Support CuraVita</div>
+                    </div>
+                </div>
+            </div>
+            <div class="notif-modal-body">
+                <div class="notif-modal-section">
+                    <div class="notif-modal-section-label">Réponse</div>
+                    <div class="notif-modal-message" id="nm-message"></div>
+                </div>
+                <div class="notif-modal-section" id="nm-action-section" style="display:none;">
+                    <div class="notif-modal-section-label">Action prise</div>
+                    <span class="notif-modal-action" id="nm-action"></span>
+                </div>
+                <div class="notif-modal-section" id="nm-file-section" style="display:none;">
+                    <div class="notif-modal-section-label">Pièce jointe</div>
+                    <div class="notif-modal-file">
+                        <div class="notif-modal-file-icon">📎</div>
+                        <div class="notif-modal-file-info">
+                            <div class="notif-modal-file-name" id="nm-file-name"></div>
+                            <div class="notif-modal-file-meta">Fichier joint à la réponse</div>
+                        </div>
+                        <a href="#" class="notif-modal-file-dl" id="nm-file-link" target="_blank">Ouvrir</a>
+                    </div>
+                </div>
+                <div class="notif-modal-section">
+                    <div class="notif-modal-section-label">Date de réponse</div>
+                    <div class="notif-modal-date">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12,6 12,12 16,14"></polyline></svg>
+                        <span id="nm-date"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="notif-modal-footer">
+                <button class="notif-modal-btn-close" onclick="closeNotifDetail()">Fermer</button>
+                <a href="#" class="notif-modal-btn-ticket" id="nm-ticket-link">
+                    Voir le ticket complet
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,18 15,12 9,6"></polyline></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== Open Notification Detail Modal =====
+        function openNotifDetail(el) {
+            const overlay = document.getElementById('notifModalOverlay');
+            const actionLabels = {
+                'aucune': 'Aucune action',
+                'remboursement': '💰 Remboursement',
+                'remplacement': '🔄 Remplacement',
+                'retour_accepte': '✅ Retour accepté',
+                'retour_refuse': '❌ Retour refusé',
+                'escalade': '⬆️ Escalade'
+            };
+
+            // Fill modal content from data attributes
+            document.getElementById('nm-ticket-id').textContent = 'Ticket #' + el.dataset.ticketId;
+            document.getElementById('nm-subject').textContent = el.dataset.ticketObjet;
+            document.getElementById('nm-agent-avatar').textContent = el.dataset.agentInitials;
+            document.getElementById('nm-agent-name').textContent = el.dataset.agentNom + (el.dataset.agentPrenom ? ' ' + el.dataset.agentPrenom : '');
+            document.getElementById('nm-message').textContent = el.dataset.message;
+            document.getElementById('nm-date').textContent = el.dataset.date;
+            document.getElementById('nm-ticket-link').href = el.dataset.showUrl;
+
+            // Action
+            const action = el.dataset.action;
+            const actionSection = document.getElementById('nm-action-section');
+            if (action && action !== 'aucune') {
+                actionSection.style.display = 'block';
+                const actionEl = document.getElementById('nm-action');
+                actionEl.textContent = actionLabels[action] || action.replace(/_/g, ' ');
+                actionEl.className = 'notif-modal-action ' + action;
+            } else {
+                actionSection.style.display = 'none';
+            }
+
+            // File attachment
+            const fileName = el.dataset.fileName;
+            const filePath = el.dataset.filePath;
+            const fileSection = document.getElementById('nm-file-section');
+            if (fileName && fileName.length > 0) {
+                fileSection.style.display = 'block';
+                document.getElementById('nm-file-name').textContent = fileName;
+                document.getElementById('nm-file-link').href = filePath;
+            } else {
+                fileSection.style.display = 'none';
+            }
+
+            // Close notification panel and show modal
+            const notifPanel = document.getElementById('notifPanel');
+            if (notifPanel) notifPanel.classList.remove('show');
+
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // ===== Close Notification Detail Modal =====
+        function closeNotifDetail(event) {
+            if (event && event.target !== event.currentTarget) return;
+            const overlay = document.getElementById('notifModalOverlay');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeNotifDetail();
+            }
+        });
+    </script>
+    
+    {# AI Chatbot Widget - Only for authenticated users #}
+    {% if is_granted('ROLE_USER') or is_granted('ROLE_ADMIN') %}
+        {% include 'components/chatbot-widget.html.twig' %}
+        {% include 'components/afk-modal.html.twig' %}
+        {% include 'components/afk-info-icon.html.twig' %}
+    {% endif %}
+    
+    {% block javascripts %}{% endblock %}
+    
+    {# AFK (Away From Keyboard) Detection - Only for authenticated users #}
+    {% if is_granted('ROLE_USER') or is_granted('ROLE_ADMIN') %}
+    <script>
+        (function() {
+            // Configuration
+            const INACTIVE_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
+            const WARNING_COUNTDOWN = 60; // seconds before auto-logout
+            const WARNING_CHECK_INTERVAL = 1000; // check every second
+            
+            let inactivityTimer = null;
+            let warningTimer = null;
+            let countdownInterval = null;
+            let warningShown = false;
+            let lastActivity = Date.now();
+            
+            const modal = document.getElementById('afk-modal');
+            const countdownEl = document.getElementById('afk-countdown');
+            const stayConnectedBtn = document.getElementById('afk-stay-connected');
+            
+            // Reset the inactivity timer
+            function resetInactivityTimer() {
+                lastActivity = Date.now();
+                
+                if (warningShown) {
+                    hideWarning();
+                }
+                
+                // Clear existing timers
+                if (inactivityTimer) {
+                    clearTimeout(inactivityTimer);
+                }
+                if (warningTimer) {
+                    clearTimeout(warningTimer);
+                }
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                }
+                
+                // Set new timer
+                inactivityTimer = setTimeout(showWarning, INACTIVE_TIMEOUT);
+            }
+            
+            // Show the AFK warning
+            function showWarning() {
+                warningShown = true;
+                
+                if (modal) {
+                    modal.style.display = 'flex';
+                    
+                    // Start countdown
+                    let remaining = WARNING_COUNTDOWN;
+                    if (countdownEl) {
+                        countdownEl.textContent = remaining;
+                    }
+                    
+                    countdownInterval = setInterval(function() {
+                        remaining--;
+                        if (countdownEl) {
+                            countdownEl.textContent = remaining;
+                        }
+                        
+                        if (remaining <= 0) {
+                            clearInterval(countdownInterval);
+                            performLogout();
+                        }
+                    }, WARNING_CHECK_INTERVAL);
+                }
+            }
+            
+            // Hide the AFK warning
+            function hideWarning() {
+                warningShown = false;
+                
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+                
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+                
+                // Reset the main timer
+                resetInactivityTimer();
+            }
+            
+            // Perform logout
+            function performLogout() {
+                window.location.href = '{{ path("app_logout") }}';
+            }
+            
+            // Event listeners for user activity
+            const activityEvents = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart', 'touchmove'];
+            
+            activityEvents.forEach(function(event) {
+                document.addEventListener(event, resetInactivityTimer, { passive: true });
+            });
+            
+            // Handle "Stay Connected" button
+            if (stayConnectedBtn) {
+                stayConnectedBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    hideWarning();
+                });
+            }
+            
+            // Start the inactivity timer when page loads
+            resetInactivityTimer();
+            
+        })();
+    </script>
+    {% endif %}
+    
+    <script>
+        // Navbar scroll behavior
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (header) {
+                if (window.scrollY > 20) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

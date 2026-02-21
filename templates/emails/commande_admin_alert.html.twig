@@ -1,0 +1,22 @@
+<!doctype html>
+<html><body style="font-family:Arial,sans-serif;background:#f7f9fb;padding:20px;color:#1f2937">
+    <div style="max-width:700px;margin:auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px">
+        <h2 style="margin-top:0">Nouvelle commande #{{ commande.id }}</h2>
+        <p><strong>Client:</strong> {{ commande.nom }} ({{ commande.email }})</p>
+        <p><strong>Telephone:</strong> {{ commande.telephone }}<br><strong>Adresse:</strong> {{ commande.adresseLivraison }}</p>
+        <p><strong>Paiement:</strong> {{ commande.modePaiement }} | <strong>Statut:</strong> {{ commande.statut }}</p>
+        <p><strong>Fraud score:</strong> {{ commande.fraudScore }}/100</p>
+        {% if commande.couponCode %}
+            <p><strong>Coupon:</strong> {{ commande.couponCode }} | <strong>Remise:</strong> {{ commande.couponDiscount|number_format(2, ',', ' ') }} DT</p>
+        {% endif %}
+        {% if commande.estimatedDeliveryDate %}
+            <p><strong>Livraison estimee:</strong> {{ commande.estimatedDeliveryDate|date('d/m/Y H:i') }}</p>
+        {% endif %}
+        <ul>
+            {% for item in items %}
+                <li>{{ item.name }} x{{ item.quantity }} - {{ item.lineTotal|number_format(2, ',', ' ') }} DT</li>
+            {% endfor %}
+        </ul>
+        <p><strong>Total:</strong> {{ commande.total|number_format(2, ',', ' ') }} DT</p>
+    </div>
+</body></html>

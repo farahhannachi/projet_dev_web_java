@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #16563f 0%, #0f3d2a 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .header .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            color: #16563f;
+            margin-bottom: 15px;
+        }
+        .message {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 25px;
+            line-height: 1.8;
+        }
+        .ordonnance-box {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .ordonnance-box .label {
+            font-size: 12px;
+            color: #065f46;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .ordonnance-box .numero {
+            font-size: 28px;
+            color: #16563f;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+        .ordonnance-box .status {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .info-item {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #16563f;
+        }
+        .info-item .label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .info-item .value {
+            font-size: 16px;
+            color: #1f2937;
+            font-weight: 600;
+        }
+        .traitements-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+        }
+        .traitements-section h2 {
+            font-size: 20px;
+            color: #16563f;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .traitement-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .traitement-card .produit-name {
+            font-size: 18px;
+            color: #16563f;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .traitement-card .detail {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 5px 0;
+        }
+        .traitement-card .detail strong {
+            color: #1f2937;
+        }
+        .note-box {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .note-box .label {
+            font-size: 12px;
+            color: #92400e;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .note-box .text {
+            font-size: 14px;
+            color: #78350f;
+            line-height: 1.6;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 25px 20px;
+            text-align: center;
+            border-top: 2px solid #e5e7eb;
+        }
+        .footer p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .footer .contact {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #16563f;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">🏥</div>
+            <h1>CURAVITA Pharmacie</h1>
+            <p style="margin: 10px 0 0 0; font-size: 14px; opacity: 0.9;">Votre ordonnance est prête !</p>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                Bonjour {{ user.prenom }} {{ user.nom }},
+            </div>
+
+            <div class="message">
+                Nous avons le plaisir de vous informer que votre ordonnance a été validée par notre équipe de pharmaciens et est maintenant prête à être récupérée.
+            </div>
+
+            <div class="ordonnance-box">
+                <div class="label">NUMÉRO D'ORDONNANCE</div>
+                <div class="numero">{{ ordonnance.numeroOrdonnance }}</div>
+                <div class="status">✓ Validée</div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="label">📅 Date d'ordonnance</div>
+                    <div class="value">{{ ordonnance.dateOrdonnance|date('d/m/Y') }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">⏰ Date d'expiration</div>
+                    <div class="value">{{ ordonnance.dateExpiration|date('d/m/Y') }}</div>
+                </div>
+            </div>
+
+            {% if ordonnance.noteMedical %}
+                <div class="note-box">
+                    <div class="label">💬 NOTE MÉDICALE</div>
+                    <div class="text">{{ ordonnance.noteMedicalFixed }}</div>
+                </div>
+            {% endif %}
+
+            {% if traitements is not empty %}
+                <div class="traitements-section">
+                    <h2>💊 Traitement(s) Prescrit(s) ({{ traitements|length }})</h2>
+
+                    {% for traitement in traitements %}
+                        <div class="traitement-card">
+                            {% if traitement.produit %}
+                                <div class="produit-name">{{ traitement.produit.nom }}</div>
+                                {% if traitement.produit.description %}
+                                    <div class="detail" style="margin-bottom: 10px; color: #6b7280;">{{ traitement.produit.description }}</div>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if traitement.dosage %}
+                                <div class="detail"><strong>Dosage:</strong> {{ traitement.dosage }}</div>
+                            {% endif %}
+
+                            {% if traitement.frequence %}
+                                <div class="detail"><strong>Fréquence:</strong> {{ traitement.frequence }}</div>
+                            {% endif %}
+
+                            {% if traitement.dureeJours %}
+                                <div class="detail"><strong>Durée:</strong> {{ traitement.dureeJours }} jours</div>
+                            {% endif %}
+
+                            {% if traitement.dateDebut and traitement.dateFin %}
+                                <div class="detail"><strong>Période:</strong> Du {{ traitement.dateDebut|date('d/m/Y') }} au {{ traitement.dateFin|date('d/m/Y') }}</div>
+                            {% endif %}
+
+                            {% if traitement.notes %}
+                                <div class="detail" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e5e7eb;">
+                                    <strong>Notes:</strong> {{ traitement.notes }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="message" style="margin-top: 30px; padding: 20px; background: #f0fdf4; border-radius: 10px; border: 2px solid #10b981;">
+                <strong style="color: #065f46;">📍 Prochaines étapes:</strong><br>
+                Vous pouvez venir récupérer votre ordonnance à la pharmacie CURAVITA pendant nos horaires d'ouverture. N'oubliez pas d'apporter une pièce d'identité.
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>CURAVITA Pharmacie</strong></p>
+            <p>Votre santé, notre priorité</p>
+            <div class="contact">
+                📞 01 23 45 67 89 | 📧 curavita123@gmail.com
+            </div>
+            <p style="margin-top: 15px; font-size: 12px; color: #9ca3af;">
+                Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

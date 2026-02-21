@@ -1,0 +1,397 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Produits - CURAVITA{% endblock %}
+
+{% block stylesheets %}
+<style>
+.products-layout{--brand:#0e5a43;--accent:#18a36f;--ink:#12332a;--mist:#eef8f4;max-width:1250px;margin:2rem auto;padding:0 1rem;position:relative}
+.products-layout>section{margin-right:0}
+.panel{background:#fff;border-radius:18px;box-shadow:0 14px 38px rgba(9,36,29,.08);border:1px solid #e5efe9}
+.filters{padding:1rem;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:.75rem;position:sticky;top:90px;z-index:4;background:linear-gradient(180deg,#f7fcfa,#f2faf7);border:1px solid #dbeee6;border-radius:14px}
+@media(max-width:980px){.filters{grid-template-columns:1fr 1fr}.products-layout{margin-top:1rem}}
+@media(max-width:680px){.filters{grid-template-columns:1fr}}
+.input,.select{width:100%;padding:.78rem .85rem;border:1px solid #cde4da;border-radius:10px;background:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;padding:1rem}
+.card{border:1px solid #deece5;border-radius:14px;padding:.9rem;background:#fff;display:flex;flex-direction:column;gap:.5rem;transition:.2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(13,84,62,.12)}
+.pic{height:155px;object-fit:cover;border-radius:10px;background:#f2f6f4;width:100%}
+.name{margin:0;font-size:1.05rem;color:var(--ink)}
+.desc{margin:0;color:#597067;font-size:.88rem;min-height:42px}
+.meta{display:flex;justify-content:space-between;align-items:center;font-size:.86rem;color:#4b665c}
+.price{font-weight:800;color:var(--brand);font-size:1.1rem}
+.stock.ok{color:#0b8f57}.stock.low{color:#d97706}.stock.out{color:#dc2626}
+.btn{border:0;border-radius:10px;padding:.7rem .85rem;cursor:pointer;font-weight:700}
+.btn-add{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff}.btn-add:disabled{background:#9fb5ab;cursor:not-allowed}
+.cart-shell{position:fixed;right:0;top:94px;height:calc(100vh - 112px);width:286px;z-index:20;opacity:0;pointer-events:none;transform:translateX(18px);transition:.25s}
+.cart-shell.visible{opacity:.72;pointer-events:auto;transform:translateX(0)}
+.cart-shell.visible.active{opacity:.88;animation:cart-float 3.2s ease-in-out infinite}
+@keyframes cart-float{0%{transform:translateX(0) translateY(0)}50%{transform:translateX(0) translateY(-5px)}100%{transform:translateX(0) translateY(0)}}
+@media(max-width:1080px){.cart-shell{right:16px;bottom:16px;top:auto;height:auto;width:auto}}
+.cart{height:100%;display:flex;flex-direction:column;box-shadow:0 26px 62px rgba(8,37,30,.24)}
+@media(max-width:1080px){.cart{width:340px;max-width:calc(100vw - 32px);height:70vh;transform:translateY(calc(100% - 58px));transition:.25s}.cart.open{transform:translateY(0)}}
+.cart-h{padding:.9rem 1rem;border-bottom:1px solid #e4efe9;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#f7fcfa,#edf9f3)}
+.cart-title{font-weight:800;color:#124536}
+.cart-count{background:#e2f7ed;color:#0b7448;padding:.2rem .55rem;border-radius:999px;font-size:.8rem}
+.cart-items{overflow:auto;flex:1;padding:.8rem 1rem;display:flex;flex-direction:column;gap:.7rem}
+.item{border:1px solid #e0eee7;border-radius:11px;padding:.6rem;display:grid;grid-template-columns:50px 1fr auto;gap:.55rem;align-items:center}
+.item img{width:50px;height:50px;object-fit:cover;border-radius:8px}
+.qty{display:flex;align-items:center;gap:.35rem}
+.qbtn{width:26px;height:26px;border-radius:7px;border:1px solid #cfe4da;background:#fff;cursor:pointer}
+.cart-f{border-top:1px solid #e4efe9;padding:.85rem 1rem;display:grid;gap:.55rem;background:#fff}
+.total{display:flex;justify-content:space-between;font-weight:800;color:#153f33}
+.btn-clear{background:#f3f6f5;color:#39564b}.btn-checkout{background:linear-gradient(135deg,#0d5e44,#20a56f);color:#fff;text-align:center;text-decoration:none;display:block}
+.empty{padding:.9rem;color:#698176;text-align:center}
+.cart-launcher{position:fixed;right:18px;bottom:18px;width:54px;height:54px;border:0;border-radius:50%;background:linear-gradient(135deg,#0d5e44,#1ca16f);color:#fff;box-shadow:0 16px 35px rgba(8,49,37,.28);cursor:pointer;z-index:30}
+.cart-launcher .badge{position:absolute;right:-2px;top:-4px;background:#ef4444;color:#fff;border-radius:999px;min-width:19px;height:19px;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:800;padding:0 4px}
+.cart.bump{animation:cart-bump .34s ease}
+@keyframes cart-bump{0%{transform:scale(1)}40%{transform:scale(1.03)}100%{transform:scale(1)}}
+.med-bot-launcher{position:fixed;right:18px;bottom:84px;width:54px;height:54px;border:0;border-radius:50%;background:linear-gradient(135deg,#0b3f99,#2497ff);color:#fff;box-shadow:0 16px 35px rgba(8,49,37,.28);cursor:pointer;z-index:30}
+.med-bot-panel{position:fixed;right:18px;bottom:146px;width:360px;max-width:calc(100vw - 24px);height:460px;background:#fff;border:1px solid #d8e9e2;border-radius:14px;box-shadow:0 28px 62px rgba(11,40,82,.26);display:none;flex-direction:column;z-index:31;overflow:hidden}
+.med-bot-panel.open{display:flex}
+.med-bot-head{padding:.8rem .9rem;background:linear-gradient(135deg,#0b3f99,#2497ff);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.med-bot-log{flex:1;overflow:auto;padding:.8rem;background:#f6fbff}
+.med-msg{margin:0 0 .6rem;max-width:92%;padding:.55rem .65rem;border-radius:10px;font-size:.9rem;line-height:1.35}
+.med-msg.bot{background:#ffffff;border:1px solid #d7e8ff;color:#113f78}
+.med-msg.user{margin-left:auto;background:#1f74d8;color:#fff}
+.med-bot-foot{padding:.7rem;border-top:1px solid #e7eef8;display:flex;gap:.45rem;background:#fff}
+.med-bot-input{flex:1;border:1px solid #cadef6;border-radius:10px;padding:.62rem .7rem}
+.med-bot-send{border:0;border-radius:10px;background:#1e6fd0;color:#fff;padding:.62rem .8rem;cursor:pointer}
+@media(max-width:1080px){.med-bot-launcher{bottom:84px}.med-bot-panel{right:12px;bottom:146px}}
+
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="products-layout" id="productsLayout">
+    <section>
+        <div class="filters" id="liveFilters">
+            <input class="input" id="f-search" placeholder="Recherche produit...">
+            <select class="select" id="f-category">
+                <option value="all">Toutes categories</option>
+                {% for c in categories %}<option value="{{ c|lower|e('html_attr') }}">{{ c }}</option>{% endfor %}
+            </select>
+            <select class="select" id="f-stock">
+                <option value="all">Stock</option>
+                <option value="in">Disponible</option>
+                <option value="low">Stock faible</option>
+                <option value="out">Rupture</option>
+            </select>
+            <select class="select" id="f-sort">
+                <option value="name">Tri nom</option>
+                <option value="price_asc">Prix croissant</option>
+                <option value="price_desc">Prix decroissant</option>
+            </select>
+        </div>
+
+        <div class="panel" style="margin-top:1rem">
+            <div class="grid" id="productsGrid">
+                {% for produit in produits %}
+                    {% set stock = produit.stockTotal ?? produit.quantiteStock ?? 0 %}
+                    {% set imageSrc = produit.image ? ((produit.image starts with 'http://') or (produit.image starts with 'https://') ? produit.image : asset('uploads/produits/' ~ produit.image)) : asset('assets/img/default-product.png') %}
+                    {% set finalPrice = produit.getActivePromotion() ? produit.getPromotionalPrice() : produit.prix %}
+                    <article class="card" data-id="{{ produit.id }}" data-name="{{ produit.nom|lower|e('html_attr') }}" data-category="{{ produit.categorie|lower|e('html_attr') }}" data-price="{{ finalPrice }}" data-stock="{{ stock }}">
+                        <img class="pic" src="{{ imageSrc }}" alt="{{ produit.nom }}">
+                        <h3 class="name">{{ produit.nom }}</h3>
+                        <p class="desc">{{ produit.description|slice(0,95) }}{% if produit.description|length > 95 %}...{% endif %}</p>
+                        <div class="meta"><span>{{ produit.categorie }}</span><span class="price">{{ finalPrice|number_format(2, ',', ' ') }} DT</span></div>
+                        <div class="meta">
+                            {% if stock > 5 %}<span class="stock ok">Stock: {{ stock }}</span>{% elseif stock > 0 %}<span class="stock low">Stock limite: {{ stock }}</span>{% else %}<span class="stock out">Rupture</span>{% endif %}
+                            <button class="btn btn-add" data-add="{{ produit.id }}" {% if stock <= 0 %}disabled{% endif %}>Ajouter au panier</button>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+            <div class="empty" id="noResults" style="display:none">Aucun produit ne correspond au filtre.</div>
+        </div>
+    </section>
+
+    <aside class="cart-shell">
+        <div class="panel cart" id="cartPanel">
+            <div class="cart-h">
+                <span class="cart-title">Panier</span>
+                <button class="qbtn" id="cartToggle" style="display:none">^</button>
+                <span class="cart-count" id="cartCount">{{ panier.count }}</span>
+            </div>
+            <div class="cart-items" id="cartItems"></div>
+            <div class="cart-f">
+                <div class="total"><span>Total</span><span id="cartTotal">0.00 DT</span></div>
+                <button class="btn btn-clear" id="clearCart">Vider le panier</button>
+                <a class="btn btn-checkout" href="{{ path('app_commande') }}">Passer la commande</a>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<button type="button" id="cartLauncher" class="cart-launcher" title="Ouvrir le panier">
+  🛒
+  <span class="badge" id="cartLauncherCount">{{ panier.count }}</span>
+</button>
+
+<button type="button" id="medBotLauncher" class="med-bot-launcher" title="Assistant medicaments">💊</button>
+<div class="med-bot-panel" id="medBotPanel">
+  <div class="med-bot-head">
+    <span>Assistant Medicaments</span>
+    <button type="button" id="medBotClose" style="background:transparent;border:0;color:#fff;cursor:pointer;font-size:18px">×</button>
+  </div>
+  <div class="med-bot-log" id="medBotLog"></div>
+  <div class="med-bot-foot">
+    <input class="med-bot-input" id="medBotInput" placeholder="Ex: j'ai mal a la tete">
+    <button class="med-bot-send" id="medBotSend" type="button">Envoyer</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const initialPanier = {{ panier|json_encode|raw }};
+  const cartItemsEl = document.getElementById('cartItems');
+  const cartTotalEl = document.getElementById('cartTotal');
+  const cartCountEl = document.getElementById('cartCount');
+  const cartLauncherCount = document.getElementById('cartLauncherCount');
+  const cartShell = document.querySelector('.cart-shell');
+  const cartPanel = document.getElementById('cartPanel');
+  const cartLauncher = document.getElementById('cartLauncher');
+  const medBotLauncher = document.getElementById('medBotLauncher');
+  const medBotPanel = document.getElementById('medBotPanel');
+  const medBotClose = document.getElementById('medBotClose');
+  const medBotLog = document.getElementById('medBotLog');
+  const medBotInput = document.getElementById('medBotInput');
+  const medBotSend = document.getElementById('medBotSend');
+  const shouldOpenFromQuery = new URLSearchParams(window.location.search).get('open_panier') === '1';
+  let panier = initialPanier || {items:[],total:0,count:0};
+
+  const fmt = v => (Number(v||0)).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' DT';
+
+  function updateCartVisibility(forceOpen = false){
+    const hasItems = (panier.count || 0) > 0;
+    if (hasItems || forceOpen) {
+      cartShell.classList.add('visible');
+      if (hasItems) {
+        cartShell.classList.add('active');
+      }
+    } else {
+      cartShell.classList.remove('active', 'visible');
+      if(window.innerWidth <= 1080){ cartPanel.classList.remove('open'); }
+    }
+  }
+
+  function renderCart(){
+    cartCountEl.textContent = panier.count || 0;
+    cartLauncherCount.textContent = panier.count || 0;
+    cartTotalEl.textContent = fmt(panier.total || 0);
+    if(!panier.items || panier.items.length===0){
+      cartItemsEl.innerHTML = '<div class="empty">Panier vide</div>';
+      updateCartVisibility(false);
+      return;
+    }
+    cartItemsEl.innerHTML = panier.items.map(i => {
+      const img = i.image ? (/^https?:\/\//.test(i.image) ? i.image : '/uploads/produits/' + i.image) : '/assets/img/default-product.png';
+      return `<div class="item"><img src="${img}" alt="${i.name}"><div><strong>${i.name}</strong><div>${fmt(i.price)} x ${i.quantity}</div></div><div><div class="qty"><button class="qbtn" data-q="${i.id}" data-v="${i.quantity-1}">-</button><span>${i.quantity}</span><button class="qbtn" data-q="${i.id}" data-v="${i.quantity+1}">+</button></div><div style="text-align:right;font-size:.82rem;margin-top:.2rem">${fmt(i.lineTotal)}</div></div></div>`;
+    }).join('');
+    updateCartVisibility(false);
+  }
+
+  async function api(url, body){
+    const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body || ''});
+    const data = await res.json();
+    if(!data.ok){ alert(data.message || 'Erreur panier'); return; }
+    panier = data;
+    renderCart();
+    cartShell.classList.add('visible', 'active');
+    cartPanel.classList.remove('bump');
+    void cartPanel.offsetWidth;
+    cartPanel.classList.add('bump');
+    if(window.innerWidth <= 1080){ cartPanel.classList.add('open'); }
+  }
+
+  document.querySelectorAll('[data-add]').forEach(btn => btn.addEventListener('click', () => api(`/panier/ajouter/${btn.dataset.add}`)));
+  cartItemsEl.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-q]');
+    if(!b) return;
+    const q = Math.max(0, parseInt(b.dataset.v,10) || 0);
+    api(`/panier/quantite/${b.dataset.q}`, `quantity=${q}`);
+  });
+  document.getElementById('clearCart').addEventListener('click', async () => {
+    await api('/panier/vider');
+    if ((panier.count || 0) === 0) {
+      cartShell.classList.remove('visible', 'active');
+    }
+  });
+
+  const grid = document.getElementById('productsGrid');
+  const cards = () => Array.from(grid.querySelectorAll('.card'));
+  const fSearch = document.getElementById('f-search');
+  const fCategory = document.getElementById('f-category');
+  const fStock = document.getElementById('f-stock');
+  const fSort = document.getElementById('f-sort');
+  const noResults = document.getElementById('noResults');
+
+  const symptomRules = [
+    {
+      keys: ['tete', 'migraine', 'mal de tete'],
+      meds: ['doliprane', 'paracetamol', 'efferalgan'],
+      generic: ['Paracetamol', 'Ibuprofene (si pas de contre-indication)', 'Hydratation + repos']
+    },
+    {
+      keys: ['fievre', 'temperature'],
+      meds: ['doliprane', 'paracetamol', 'efferalgan'],
+      generic: ['Paracetamol', 'Hydratation', 'Surveillance de la temperature']
+    },
+    {
+      keys: ['gorge', 'angine', 'toux'],
+      meds: ['sirop', 'pastille', 'hexaspray'],
+      generic: ['Pastilles antiseptiques', 'Sirop selon type de toux', 'Lavages de nez au serum physiologique']
+    },
+    {
+      keys: ['ventre', 'estomac', 'nausee', 'diarrhee'],
+      meds: ['smecta', 'gaviscon', 'spasfon'],
+      generic: ['Solution de rehydratation', 'Antispasmodique', 'Pansement gastrique']
+    },
+    {
+      keys: ['allergie', 'rhume', 'nez', 'eternuement'],
+      meds: ['cetirizine', 'loratadine', 'spray'],
+      generic: ['Antihistaminique', 'Spray nasal saline', 'Eviter l allergene si connu']
+    },
+    {
+      keys: ['douleur', 'muscle', 'dos'],
+      meds: ['ibuprofene', 'diclofenac', 'doliprane'],
+      generic: ['Paracetamol', 'Anti-inflammatoire local', 'Repos + glace/chaleur selon douleur']
+    },
+  ];
+
+  function normalizeText(text){
+    return (text || '').toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+
+  function botMessage(text, who = 'bot'){
+    const div = document.createElement('div');
+    div.className = `med-msg ${who}`;
+    div.textContent = text;
+    medBotLog.appendChild(div);
+    medBotLog.scrollTop = medBotLog.scrollHeight;
+  }
+
+  function findMedicationProductsByNames(names){
+    const all = cards();
+    const result = [];
+    all.forEach(card => {
+      const n = normalizeText(card.dataset.name);
+      if (names.some(k => n.includes(k))) {
+        result.push({
+          name: card.querySelector('.name')?.textContent || n,
+          stock: parseInt(card.dataset.stock || '0', 10),
+        });
+      }
+    });
+    return result;
+  }
+
+  function handleMedicalQuestion(question){
+    const q = normalizeText(question);
+    const matched = symptomRules.find(r => r.keys.some(k => q.includes(k)));
+    if (!matched) {
+      botMessage("Je peux proposer des conseils generaux pour: tete, fievre, gorge/toux, ventre, allergie/rhume, douleur musculaire.");
+      return;
+    }
+
+    const meds = findMedicationProductsByNames(matched.meds).filter(m => m.stock > 0);
+    const productPart = meds.length
+      ? ("Produits disponibles chez nous: " + meds.slice(0, 3).map(m => m.name).join(', ') + ". ")
+      : "Aucun produit correspondant n est disponible actuellement dans le catalogue. ";
+    const genericPart = "Suggestions generales: " + matched.generic.join(', ') + ". ";
+    const safety = "Si symptomes forts, persistants, grossesse, enfant, ou maladie chronique: demandez avis medical.";
+
+    botMessage(productPart + genericPart + safety);
+  }
+
+  function applyFilters(){
+    const search = (fSearch.value || '').toLowerCase().trim();
+    const cat = fCategory.value;
+    const stock = fStock.value;
+    let visible = cards().filter(c => {
+      const name = c.dataset.name;
+      const category = c.dataset.category;
+      const qty = parseInt(c.dataset.stock,10) || 0;
+      if(search && !name.includes(search)) return false;
+      if(cat !== 'all' && category !== cat) return false;
+      if(stock === 'in' && qty <= 0) return false;
+      if(stock === 'low' && !(qty > 0 && qty <= 5)) return false;
+      if(stock === 'out' && qty > 0) return false;
+      return true;
+    });
+
+    const sorted = [...visible].sort((a,b) => {
+      if(fSort.value === 'price_asc') return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+      if(fSort.value === 'price_desc') return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+      return a.dataset.name.localeCompare(b.dataset.name);
+    });
+
+    cards().forEach(c => c.style.display = 'none');
+    sorted.forEach(c => { c.style.display = ''; grid.appendChild(c); });
+    noResults.style.display = sorted.length ? 'none' : 'block';
+  }
+
+  [fSearch,fCategory,fStock,fSort].forEach(el => el.addEventListener('input', applyFilters));
+  [fCategory,fStock,fSort].forEach(el => el.addEventListener('change', applyFilters));
+
+  if(window.innerWidth <= 1080){
+    const panel = cartPanel;
+    const toggle = document.getElementById('cartToggle');
+    toggle.style.display = 'inline-block';
+    toggle.addEventListener('click', () => panel.classList.toggle('open'));
+  }
+
+  cartLauncher.addEventListener('click', () => {
+    cartShell.classList.add('visible');
+    cartShell.classList.toggle('active');
+    if(window.innerWidth <= 1080){ cartPanel.classList.toggle('open'); }
+    if((panier.count || 0) === 0){
+      cartItemsEl.innerHTML = '<div class="empty">Panier vide</div>';
+    }
+  });
+
+  medBotLauncher.addEventListener('click', () => {
+    medBotPanel.classList.toggle('open');
+    if (medBotPanel.classList.contains('open') && medBotLog.children.length === 0) {
+      botMessage("Bonjour, decrivez votre symptome (ex: j'ai mal a la tete).");
+    }
+    medBotInput.focus();
+  });
+
+  medBotClose.addEventListener('click', () => medBotPanel.classList.remove('open'));
+
+  medBotSend.addEventListener('click', () => {
+    const text = medBotInput.value.trim();
+    if (!text) return;
+    botMessage(text, 'user');
+    medBotInput.value = '';
+    handleMedicalQuestion(text);
+  });
+
+  medBotInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      medBotSend.click();
+    }
+  });
+
+  if (shouldOpenFromQuery) {
+    cartShell.classList.add('visible');
+    if ((panier.count || 0) > 0) {
+      cartShell.classList.add('active');
+    }
+    if (window.innerWidth <= 1080) {
+      cartPanel.classList.add('open');
+    }
+    if ((panier.count || 0) === 0) {
+      cartItemsEl.innerHTML = '<div class="empty">Panier vide</div>';
+    }
+  }
+
+  renderCart();
+  applyFilters();
+})();
+</script>
+{% endblock %}

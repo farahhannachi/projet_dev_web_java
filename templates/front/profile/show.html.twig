@@ -1,0 +1,1282 @@
+{% extends "front/_base.html.twig" %}
+
+{% block title %}Mon Profil - {{ user.nom }} {{ user.prenom }} - CuraVita{% endblock %}
+
+{% block main %}
+{# 2FA Modal #}
+{% include 'components/2fa-modal.html.twig' with {
+    'isEnabled': isEnabled|default(false),
+    'qrCodeImage': qrCodeImage,
+    'secret': secret,
+    'error': error,
+    'success': success
+} %}
+
+<div class="profile-container" style="overflow: visible; height: auto; min-height: auto;">
+    <!-- Modern Profile Header Card -->
+    <div class="profile-header-card">
+        <div class="profile-header-bg"></div>
+        <div class="profile-header-content">
+            <!-- Avatar Section -->
+            <div class="profile-avatar-section">
+                <div class="profile-avatar-wrapper-modern">
+                    <div class="profile-avatar-modern">
+                        {% if user.avatarUrl %}
+                            <img src="{{ user.avatarUrl }}" alt="Avatar" class="profile-avatar-img-modern">
+                        {% else %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        {% endif %}
+                    </div>
+                    <div class="profile-status-dot"></div>
+                    <a href="{{ path('app_avatar_builder') }}" class="avatar-edit-btn-modern">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- User Info Section -->
+            <div class="profile-info-section">
+                <h1 class="profile-name-modern">{{ user.nom }} {{ user.prenom }}</h1>
+                <p class="profile-email-modern">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                    </svg>
+                    {{ user.email }}
+                </p>
+            </div>
+
+            <!-- Meta Cards Section -->
+            <div class="profile-meta-cards">
+                <div class="meta-card-modern">
+                    <div class="meta-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div class="meta-card-content">
+                        <span class="meta-card-label">Compte depuis</span>
+                        <span class="meta-card-value">{{ user.dateCreation|format_date('long') }}</span>
+                    </div>
+                </div>
+
+                <div class="meta-card-modern">
+                    <div class="meta-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                    <div class="meta-card-content">
+                        <span class="meta-card-label">Statut</span>
+                        <span class="meta-card-value">
+                            <span class="status-badge-modern">{{ accountStatus }}</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="profile-action-section">
+                <a href="{{ path('app_profile_edit') }}" class="btn-edit-profile-modern">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Modifier le profil
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-content">
+        <div class="profile-main">
+            <!-- Security Settings Card -->
+            <div class="security-card">
+                <div class="security-card-header">
+                    <div class="security-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                    <div class="security-title">
+                        <h3>Sécurité du compte</h3>
+                        <p>Gérez les paramètres de sécurité de votre compte</p>
+                    </div>
+                    {% if isEnabled|default(false) %}
+                    <span class="security-badge security-badge-enabled">
+                        <span class="security-badge-dot"></span>
+                        Activée
+                    </span>
+                    {% else %}
+                    <span class="security-badge security-badge-disabled">
+                        <span class="security-badge-dot"></span>
+                        Désactivée
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="security-card-body">
+                    <p class="security-description">
+                        {% if isEnabled|default(false) %}
+                            La double authentification est activée. Votre compte est protégé par un code à 6 chiffres.
+                        {% else %}
+                            Ajoutez une couche de sécurité supplémentaire à votre compte en activant la double authentification.
+                        {% endif %}
+                    </p>
+                    <button type="button" onclick="open2FAModal()" class="security-btn {% if isEnabled|default(false) %}security-btn-disable{% else %}security-btn-enable{% endif %}">
+                        {% if isEnabled|default(false) %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                            </svg>
+                            Désactiver la 2FA
+                        {% else %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <path d="M9 12l2 2 4-4"></path>
+                            </svg>
+                            Activer la double authentification
+                        {% endif %}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Account Information Section -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2>Informations du Compte</h2>
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Nom Complet</span>
+                            <span class="info-value">{{ user.nom }} {{ user.prenom }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">{{ user.email }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Compte créé</span>
+                            <span class="info-value">{{ user.dateCreation|format_date('long') }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Ancienneté</span>
+                            <span class="info-value">
+                                {% if accountAge.y > 0 %}
+                                    {{ accountAge.y }} an{{ accountAge.y > 1 ? 's' : '' }}
+                                {% elseif accountAge.m > 0 %}
+                                    {{ accountAge.m }} mois
+                                {% elseif accountAge.d > 0 %}
+                                    {{ accountAge.d }} jour{{ accountAge.d > 1 ? 's' : '' }}
+                                {% else %}
+                                    Très récent
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Statut du Compte</span>
+                            <span class="info-value status-badge status-{{ user.etatCompte }}">
+                                {{ accountStatus }}
+                            </span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Rôle</span>
+                            <span class="info-value">
+                                {% if is_granted('ROLE_ADMIN') %}
+                                    <span class="role-badge admin">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                                        </svg>
+                                        Administrateur
+                                    </span>
+                                {% else %}
+                                    <span class="role-badge user">Client</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Section -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2>Activité Récente</h2>
+                </div>
+                <div class="card-body">
+                    {% if user.lastActivityAt %}
+                        <div class="activity-info">
+                            <div class="activity-item">
+                                <span class="activity-label">Dernière activité</span>
+                                <span class="activity-value">
+                                    {{ user.lastActivityAt|format_date('long') }}
+                                    à
+                                    {{ user.lastActivityAt|format_time('short') }}
+                                </span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="no-activity">
+                            <p>Aucune activité enregistrée pour le moment.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-sidebar">
+            <!-- Quick Links -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h3>Liens Rapides</h3>
+                </div>
+                <div class="card-body">
+                    <div class="quick-links">
+                        <a href="{{ path('app_ordonnances') }}" class="quick-link-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                            Mes Commandes
+                        </a>
+
+                        <a href="{{ path('app_ordonnances') }}" class="quick-link-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                            Mes Traitements
+                        </a>
+
+                        <a href="{{ path('app_mes_adresses') }}" class="quick-link-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            Mes Adresses
+                        </a>
+
+                        <a href="{{ path('app_question_index') }}" class="quick-link-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            Mes Tickets
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Dashboard Link -->
+            {% if is_granted('ROLE_ADMIN') %}
+                <div class="profile-card">
+                    <div class="card-header">
+                        <h3>Administration</h3>
+                    </div>
+                    <div class="card-body">
+                        <a href="{{ path('admin_dashboard') }}" class="btn-admin-dashboard">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                            </svg>
+                            Accéder au Tableau de Bord
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ============================================
+       MODERN PROFILE HEADER - SaaS Dashboard 2026
+       ============================================ */
+    
+    .profile-container {
+        background: #f8fafc;
+        min-height: 100vh;
+        padding: 60px 2rem 2rem;
+        margin-top: 0;
+    }
+    
+    /* Profile Header Card */
+    .profile-header-card {
+        position: relative;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 
+            0 4px 6px -1px rgba(0, 0, 0, 0.02),
+            0 10px 15px -3px rgba(0, 0, 0, 0.04),
+            0 20px 40px -8px rgba(0, 0, 0, 0.08);
+        overflow: visible;
+        margin: 40px auto 2rem;
+        max-width: 1200px;
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Animated Background */
+    .profile-header-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 180px;
+        overflow: visible;
+        z-index: 0;
+        background: 
+            radial-gradient(ellipse at 20% 0%, rgba(34, 197, 94, 0.15) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 0%, rgba(22, 86, 63, 0.12) 0%, transparent 50%),
+            radial-gradient(ellipse at 50% 100%, rgba(34, 197, 94, 0.08) 0%, transparent 50%);
+        background-size: 200% 200%;
+        animation: gradientMove 15s ease infinite;
+    }
+    
+    @keyframes gradientMove {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    
+    .profile-header-bg::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 70%);
+        animation: floatBlob 20s ease-in-out infinite;
+    }
+    
+    @keyframes floatBlob {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        33% { transform: translate(30px, -30px) rotate(120deg); }
+        66% { transform: translate(-20px, 20px) rotate(240deg); }
+    }
+    
+    /* Header Content */
+    .profile-header-content {
+        position: relative;
+        padding: 40px;
+        display: grid;
+        grid-template-columns: auto 1fr auto auto;
+        gap: 32px;
+        align-items: center;
+    }
+    
+    /* Avatar Section */
+    .profile-avatar-section {
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+    }
+    
+    .profile-avatar-wrapper-modern {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .profile-avatar-modern {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid white;
+        box-shadow: 
+            0 4px 15px rgba(0, 0, 0, 0.1),
+            0 8px 30px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        color: #16a34a;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        overflow: hidden;
+    }
+    
+    .profile-avatar-modern:hover {
+        transform: scale(1.05);
+    }
+    
+    .profile-avatar-img-modern {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    /* Status Dot */
+    .profile-status-dot {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        width: 20px;
+        height: 20px;
+        background: #22c55e;
+        border: 3px solid white;
+        border-radius: 50%;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+    }
+    
+    /* Edit Button */
+    .avatar-edit-btn-modern {
+        position: absolute;
+        bottom: 0;
+        right: -8px;
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #16563f 0%, #1e6b47 100%);
+        border: 3px solid white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 4px 12px rgba(22, 86, 63, 0.3);
+    }
+    
+    .avatar-edit-btn-modern:hover {
+        transform: scale(1.1);
+        box-shadow: 
+            0 6px 20px rgba(22, 86, 63, 0.4),
+            0 0 20px rgba(34, 197, 94, 0.3);
+    }
+    
+    /* Info Section */
+    .profile-info-section {
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+    }
+    
+    .profile-name-modern {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0 0 8px 0;
+        letter-spacing: -0.025em;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .profile-email-modern {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #64748b;
+        font-size: 0.95rem;
+        margin: 0;
+    }
+    
+    .profile-email-modern svg {
+        color: #94a3b8;
+    }
+    
+    /* Meta Cards */
+    .profile-meta-cards {
+        display: flex;
+        gap: 16px;
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+    }
+    
+    .meta-card-modern {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: white;
+        padding: 16px 20px;
+        border-radius: 12px;
+        box-shadow: 
+            0 1px 3px rgba(0, 0, 0, 0.04),
+            0 4px 12px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 1px solid rgba(0, 0, 0, 0.02);
+    }
+    
+    .meta-card-modern:hover {
+        transform: translateY(-4px);
+        box-shadow: 
+            0 4px 6px rgba(0, 0, 0, 0.04),
+            0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+    
+    .meta-card-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #16a34a;
+    }
+    
+    .meta-card-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .meta-card-label {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 500;
+    }
+    
+    .meta-card-value {
+        font-size: 0.9rem;
+        color: #1e293b;
+        font-weight: 600;
+    }
+    
+    /* Status Badge */
+    .status-badge-modern {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        color: #16a34a;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        box-shadow: 0 0 12px rgba(34, 197, 94, 0.2);
+    }
+    
+    /* Action Button */
+    .profile-action-section {
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+    }
+    
+    .btn-edit-profile-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #16563f 0%, #1e6b47 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 
+            0 4px 12px rgba(22, 86, 63, 0.25),
+            0 0 0 0 rgba(22, 86, 63, 0);
+    }
+    
+    .btn-edit-profile-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 
+            0 8px 20px rgba(22, 86, 63, 0.35),
+            0 0 20px rgba(34, 197, 94, 0.25);
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .profile-header-content {
+            grid-template-columns: auto 1fr;
+            gap: 24px;
+        }
+        
+        .profile-meta-cards {
+            grid-column: span 2;
+        }
+        
+        .profile-action-section {
+            grid-column: span 2;
+        }
+    }
+    
+    @media (max-width: 640px) {
+        .profile-header-content {
+            grid-template-columns: 1fr;
+            text-align: center;
+            padding: 32px 20px;
+        }
+        
+        .profile-avatar-section {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .profile-info-section {
+            text-align: center;
+        }
+        
+        .profile-email-modern {
+            justify-content: center;
+        }
+        
+        .profile-meta-cards {
+            flex-direction: column;
+            grid-column: auto;
+        }
+        
+        .profile-action-section {
+            grid-column: auto;
+        }
+        
+        .btn-edit-profile-modern {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* ============================================
+       SECURITY CARD STYLES (Existing - Kept)
+       ============================================ */
+
+    /* Security Card Styles */
+    .security-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+    
+    .security-card-header {
+        display: flex;
+        align-items: center;
+        padding: 24px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .security-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #16a34a;
+        margin-right: 16px;
+    }
+    
+    .security-title {
+        flex: 1;
+    }
+    
+    .security-title h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 4px 0;
+    }
+    
+    .security-title p {
+        font-size: 13px;
+        color: #6b7280;
+        margin: 0;
+    }
+    
+    .security-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+    
+    .security-badge-enabled {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+    
+    .security-badge-disabled {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+    
+    .security-badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        margin-right: 6px;
+    }
+    
+    .security-badge-enabled .security-badge-dot {
+        background: #16a34a;
+    }
+    
+    .security-badge-disabled .security-badge-dot {
+        background: #dc2626;
+    }
+    
+    .security-card-body {
+        padding: 24px;
+    }
+    
+    .security-description {
+        font-size: 14px;
+        color: #6b7280;
+        line-height: 1.6;
+        margin: 0 0 20px 0;
+    }
+    
+    .security-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+    }
+    
+    .security-btn-enable {
+        background: linear-gradient(135deg, #16563f 0%, #1e6b47 100%);
+        color: white;
+    }
+    
+    .security-btn-enable:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(22, 86, 63, 0.25);
+    }
+    
+    .security-btn-disable {
+        background: white;
+        color: #dc2626;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .security-btn-disable:hover {
+        background: #fef2f2;
+        border-color: #fca5a5;
+    }
+    
+    .profile-container {
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding-bottom: 4rem;
+    }
+
+    .profile-cover-section {
+        background: white;
+        position: relative;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-cover-background {
+        height: 200px;
+        background: linear-gradient(135deg, #16563f 0%, #1e6b47 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-cover-background::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120"><path fill="%23ffffff" fill-opacity="0.1" d="M0,50L100,58C200,67,400,83,600,83C800,83,1000,67,1200,58C1300,53,1400,50,1440,48L1440,120L1400,120C1300,120,1100,120,900,120C700,120,500,120,300,120C100,120,0,120,0,120Z"></path></svg>') no-repeat bottom;
+        background-size: cover;
+    }
+
+    .profile-header-content {
+        display: flex;
+        align-items: flex-end;
+        gap: 2rem;
+        padding: 0 2rem 2rem;
+        margin-top: -60px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .profile-avatar-wrapper {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .profile-avatar-large {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #16563f, #28a745);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        border: 5px solid white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .profile-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .avatar-edit-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #16563f, #28a745);
+        border: 2px solid white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+    }
+
+    .avatar-edit-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(22, 86, 63, 0.3);
+    }
+
+    .profile-status-indicator {
+        position: absolute;
+        bottom: -10px;
+        right: 0;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: white;
+        border: 2px solid #28a745;
+        color: #28a745;
+    }
+
+    .status-badge.online {
+        background: transparent;
+        border: none;
+        padding: 0;
+    }
+    
+    .status-dot {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        background: #22c55e;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 0 0 2px #22c55e;
+    }
+    
+    .profile-status-indicator {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+    }
+
+    .profile-basic-info {
+        flex-grow: 1;
+        padding-bottom: 0.5rem;
+    }
+
+    .profile-name {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-email {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6c757d;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .profile-meta-info {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .meta-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .meta-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .profile-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn-edit-profile {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        background: linear-gradient(135deg, #16563f, #1e6b47);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        font-size: 0.95rem;
+    }
+
+    .btn-edit-profile:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(22, 86, 63, 0.3);
+    }
+
+    .profile-content {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .profile-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        transition: box-shadow 0.3s ease;
+    }
+
+    .profile-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 2px solid #f0f2f5;
+        background: #fafbfc;
+    }
+
+    .card-header h2,
+    .card-header h3 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #16563f;
+        margin: 0;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .loyalty-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .loyalty-item {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .loyalty-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .loyalty-icon.level {
+        background: linear-gradient(135deg, #16563f, #1e6b47);
+    }
+
+    .loyalty-icon.points {
+        background: linear-gradient(135deg, #ffc107, #ff9800);
+    }
+
+    .loyalty-icon.segment {
+        background: linear-gradient(135deg, #28a745, #20c997);
+    }
+
+    .loyalty-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .loyalty-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .loyalty-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .loyalty-description {
+        padding: 1rem;
+        background: #f0f8f5;
+        border-radius: 8px;
+        border-left: 4px solid #16563f;
+    }
+
+    .loyalty-description p {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 0.95rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .info-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-value {
+        font-size: 1rem;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-badge.status-actif {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-badge.status-suspendu {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-badge.status-desactif {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        width: fit-content;
+    }
+
+    .role-badge.admin {
+        background: #cfe2ff;
+        color: #084298;
+    }
+
+    .role-badge.user {
+        background: #f0f8f5;
+        color: #16563f;
+    }
+
+    .activity-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .activity-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #16563f;
+    }
+
+    .activity-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 600;
+    }
+
+    .activity-value {
+        font-size: 1rem;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+
+    .no-activity {
+        text-align: center;
+        padding: 2rem;
+        color: #6c757d;
+    }
+
+    .quick-links {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .quick-link-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.8rem 1rem;
+        border-radius: 8px;
+        color: #16563f;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        background: white;
+        border: 1px solid #e9ecef;
+    }
+
+    .quick-link-item:hover {
+        background: #f0f8f5;
+        border-color: #16563f;
+        transform: translateX(4px);
+    }
+
+    .quick-link-item svg {
+        color: #28a745;
+    }
+
+    .btn-admin-dashboard {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 0.8rem;
+        background: linear-gradient(135deg, #16563f, #1e6b47);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .btn-admin-dashboard:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(22, 86, 63, 0.3);
+    }
+
+    .profile-sidebar {
+        /* Sidebar content */
+    }
+
+    @media (max-width: 768px) {
+        .profile-content {
+            grid-template-columns: 1fr;
+        }
+
+        .profile-header-content {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 0 1.5rem 1.5rem;
+            margin-top: -50px;
+        }
+
+        .profile-meta-info {
+            justify-content: center;
+        }
+
+        .loyalty-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .profile-name {
+            font-size: 1.5rem;
+        }
+
+        .profile-avatar-large {
+            width: 100px;
+            height: 100px;
+        }
+    }
+</style>
+{% endblock %}
+
+{# 2FA Modals - included at end of page #}

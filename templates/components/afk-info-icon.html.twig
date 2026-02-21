@@ -1,0 +1,77 @@
+{# AFK Info Icon - Shows tooltip on hover #}
+<div class="afk-info-icon" title="Inactivité: Si vous êtes inactif pendant 10 minutes, vous serez automatiquement déconecté.">
+    <i class="fas fa-info-circle" style="color: #000000 !important;"></i>
+</div>
+
+<style>
+/* AFK Info Icon Styles */
+.afk-info-icon {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 9999;
+    font-size: 1.5rem !important;
+    color: #131010 !important;
+    cursor: pointer;
+    transition: color 0.3s ease, transform 0.3s ease;
+    background: rgba(31, 10, 10, 0.9);
+    padding: 8px;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+
+.afk-info-icon:hover {
+    color: #007bff;
+    transform: scale(1.1);
+}
+
+.afk-info-icon[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 8px;
+    padding: 10px 15px;
+    background: #333;
+    color: white;
+    font-size: 0.85rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    max-width: 250px;
+    white-space: normal;
+    line-height: 1.4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    animation: afk-tooltip-fade 0.2s ease;
+}
+
+@keyframes afk-tooltip-fade {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Alternative tooltip using data-tooltip attribute */
+.afk-info-icon[data-tooltip]:hover::before {
+    display: none;
+}
+
+.afk-info-icon[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const afkIcon = document.querySelector('.afk-info-icon');
+    if (afkIcon) {
+        // Set tooltip text in French
+        afkIcon.setAttribute('data-tooltip', 'Si vous êtes inactif pendant 10 minutes, vous serez automatiquement déconecté.');
+    }
+});
+</script>

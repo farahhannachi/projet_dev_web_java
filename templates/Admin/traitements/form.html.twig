@@ -1,0 +1,376 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}{{ traitement ? 'Modifier' : 'Nouveau' }} Traitement{% endblock %}
+{% block page_subtitle %}{{ traitement ? 'Modification d\'un traitement' : 'Création d\'un nouveau traitement' }}{% endblock %}
+
+{% block main %}
+<style>
+    /* Style pour les erreurs de champs individuels - en noir sous le champ */
+    .invalid-feedback, 
+    ul.invalid-feedback,
+    li {
+        display: block;
+        color: #1f2937 !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        margin-top: 0.5rem !important;
+        font-size: 0.875rem !important;
+        font-weight: 400 !important;
+        list-style: none !important;
+    }
+    
+    ul.invalid-feedback {
+        padding-left: 0 !important;
+    }
+    
+    .invalid-feedback::before,
+    li::before {
+        content: "" !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Bordure rouge pour les champs invalides */
+    .is-invalid {
+        border-color: #ef4444 !important;
+    }
+</style>
+
+<div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: #f3f4f6;">
+    <div style="width: 100%; max-width: 700px;">
+        {% for message in app.flashes('error') %}
+            <div class="alert-error" style="margin-bottom: 1.5rem;">
+                <i class="fas fa-exclamation-circle"></i> {{ message }}
+            </div>
+        {% endfor %}
+
+        <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 2.5rem;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid #e5e7eb;">
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #16563f 0%, #1a7a52 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(22, 86, 63, 0.3);">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <ellipse cx="8" cy="12" rx="3" ry="6" fill="white" opacity="0.9"/>
+                        <rect x="7" y="10" width="2" height="4" fill="#16563f"/>
+                        <circle cx="16" cy="12" r="5" fill="white" opacity="0.9"/>
+                        <path d="M13 12 L19 12 M16 9 L16 15" stroke="#16563f" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h2 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0;">
+                    {{ traitement ? 'Modifier' : 'Ajouter' }} un Traitement
+                </h2>
+            </div>
+
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            
+            <div style="margin-bottom: 1.5rem;">
+                {{ form_label(form.ordonnance, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                {{ form_widget(form.ordonnance, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                {{ form_errors(form.ordonnance) }}
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                {{ form_label(form.produit, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                {{ form_widget(form.produit, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                {{ form_errors(form.produit) }}
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                {{ form_label(form.utilisateur, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                {{ form_widget(form.utilisateur, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                {{ form_errors(form.utilisateur) }}
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                {{ form_label(form.notes, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                {{ form_widget(form.notes, {'attr': {'class': 'form-control', 'rows': 4, 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem; resize: vertical;', 'placeholder': 'Exemple:\nAntécédents: Allergie au paracétamol\nSymptômes: Maux de tête intenses depuis ce matin\nPrescription: Ibuprofène 400mg'}}) }}
+                {{ form_errors(form.notes) }}
+                <small style="display: block; margin-top: 0.5rem; color: #6b7280; font-size: 0.8rem;">
+                    <i class="fas fa-info-circle"></i> Cette note médicale sera analysée par l'IA pour suggérer le dosage, la fréquence et la durée
+                </small>
+            </div>
+
+            <!-- Bouton Suggestion IA -->
+            <div style="margin-bottom: 1.5rem; padding: 1rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-radius: 12px; border: 2px dashed #667eea;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 1.5rem;">🤖</span>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: #374151;">Suggestion IA</h3>
+                            <p style="margin: 0; font-size: 0.75rem; color: #6b7280;">Remplissage automatique du dosage, fréquence et durée</p>
+                        </div>
+                    </div>
+                    <button type="button" id="btn-suggerer-ia" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 8px rgba(102, 126, 234, 0.3)'">
+                        <span id="btn-icon">🤖</span>
+                        <span id="btn-text">Suggérer</span>
+                        <div id="loading-spinner" style="display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                    </button>
+                </div>
+                <p style="margin: 0; font-size: 0.8rem; color: #6b7280; line-height: 1.5;">
+                    <i class="fas fa-lightbulb"></i> L'IA analysera la <strong>note médicale ci-dessus</strong> et le produit sélectionné pour suggérer un dosage approprié
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div>
+                    {{ form_label(form.dosage, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                    {{ form_widget(form.dosage, {'attr': {'class': 'form-control', 'id': 'dosage-input', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                    {{ form_errors(form.dosage) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.frequence, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                    {{ form_widget(form.frequence, {'attr': {'class': 'form-control', 'id': 'frequence-input', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                    {{ form_errors(form.frequence) }}
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                {{ form_label(form.dureeJours, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                {{ form_widget(form.dureeJours, {'attr': {'class': 'form-control', 'id': 'duree-input', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                {{ form_errors(form.dureeJours) }}
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div>
+                    {{ form_label(form.dateDebut, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                    {{ form_widget(form.dateDebut, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                    {{ form_errors(form.dateDebut) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.dateFin, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                    {{ form_widget(form.dateFin, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                    {{ form_errors(form.dateFin) }}
+                </div>
+            </div>
+
+            {% if traitement %}
+                <div style="margin-bottom: 1.5rem;">
+                    {{ form_label(form.status, null, {'label_attr': {'style': 'display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;'}}) }}
+                    {{ form_widget(form.status, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem;'}}) }}
+                    {{ form_errors(form.status) }}
+                </div>
+            {% else %}
+                <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <p style="margin: 0; color: #1e40af; font-size: 0.875rem; font-weight: 500;">
+                        ℹ️ Le statut sera automatiquement défini à <strong>"En attente"</strong> lors de la création.
+                    </p>
+                </div>
+            {% endif %}
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1.5rem; border-top: 2px solid #e5e7eb;">
+                <a href="{{ path('admin_traitements') }}" style="padding: 0.75rem 1.5rem; background: #6b7280; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s;" onmouseover="this.style.background='#4b5563'" onmouseout="this.style.background='#6b7280'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Retour
+                </a>
+                <button type="submit" style="padding: 0.75rem 1.5rem; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s;" onmouseover="this.style.background='#145239'" onmouseout="this.style.background='var(--primary-color)'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H16L21 8V19C21 20.1046 20.1046 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 3V8H15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 13H17V21H7V13Z" fill="currentColor"/>
+                    </svg>
+                    {{ traitement ? 'Modifier' : 'Ajouter' }}
+                </button>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+<script>
+console.log('=== INITIALISATION SUGGESTION IA DOSAGE ===');
+
+document.addEventListener('DOMContentLoaded', function() {
+    const btnSuggerer = document.getElementById('btn-suggerer-ia');
+    const produitSelect = document.querySelector('select[name="traitement[produit]"]');
+    
+    // Chercher le champ notes avec plusieurs sélecteurs possibles
+    let notesInput = document.querySelector('textarea[name="traitement[notes]"]');
+    if (!notesInput) {
+        notesInput = document.getElementById('traitement_notes');
+    }
+    if (!notesInput) {
+        notesInput = document.getElementById('notes-input');
+    }
+    
+    // Chercher les champs dosage, frequence et duree par leur nom
+    let dosageInput = document.querySelector('input[name="traitement[dosage]"]');
+    if (!dosageInput) {
+        dosageInput = document.getElementById('traitement_dosage');
+    }
+    
+    let frequenceInput = document.querySelector('input[name="traitement[frequence]"]');
+    if (!frequenceInput) {
+        frequenceInput = document.getElementById('traitement_frequence');
+    }
+    
+    let dureeInput = document.querySelector('input[name="traitement[dureeJours]"]');
+    if (!dureeInput) {
+        dureeInput = document.getElementById('traitement_dureeJours');
+    }
+    
+    const btnText = document.getElementById('btn-text');
+    const btnIcon = document.getElementById('btn-icon');
+    const loadingSpinner = document.getElementById('loading-spinner');
+
+    console.log('Éléments trouvés:', {
+        btnSuggerer: !!btnSuggerer,
+        produitSelect: !!produitSelect,
+        notesInput: !!notesInput,
+        notesInputId: notesInput ? notesInput.id : 'NOT FOUND',
+        notesInputName: notesInput ? notesInput.name : 'NOT FOUND',
+        dosageInput: !!dosageInput,
+        dosageInputId: dosageInput ? dosageInput.id : 'NOT FOUND',
+        frequenceInput: !!frequenceInput,
+        frequenceInputId: frequenceInput ? frequenceInput.id : 'NOT FOUND',
+        dureeInput: !!dureeInput,
+        dureeInputId: dureeInput ? dureeInput.id : 'NOT FOUND'
+    });
+
+    if (!btnSuggerer) {
+        console.error('❌ Bouton suggérer introuvable');
+        return;
+    }
+
+    btnSuggerer.addEventListener('click', async function(e) {
+        e.preventDefault();
+        console.log('🤖 === BOUTON SUGGESTION IA CLIQUÉ ===');
+
+        const produitId = produitSelect ? produitSelect.value : null;
+        const noteMedicale = notesInput ? notesInput.value.trim() : '';
+
+        console.log('🔍 Validation des données:', { 
+            produitId, 
+            noteMedicale: noteMedicale.substring(0, 100),
+            noteMedicaleLength: noteMedicale.length,
+            noteMedicaleRaw: notesInput ? notesInput.value : 'N/A',
+            noteMedicaleRawLength: notesInput ? notesInput.value.length : 0
+        });
+
+        // Validation
+        if (!produitId) {
+            alert('Veuillez sélectionner un produit avant de demander une suggestion.');
+            if (produitSelect) {
+                produitSelect.focus();
+            }
+            return;
+        }
+
+        // Vérifier que la note contient au moins 5 caractères (réduit pour plus de flexibilité)
+        if (noteMedicale.length < 5) {
+            alert('Veuillez saisir une note médicale dans le champ "Notes" (au moins 5 caractères) pour obtenir une suggestion.\n\nExemple:\nAntécédents: Allergie au paracétamol\nSymptômes: Maux de tête intenses');
+            if (notesInput) {
+                notesInput.focus();
+            }
+            return;
+        }
+
+        // Afficher le loading
+        btnSuggerer.disabled = true;
+        btnText.textContent = 'Analyse en cours...';
+        btnIcon.style.display = 'none';
+        loadingSpinner.style.display = 'block';
+        console.log('⏳ Loading activé');
+
+        try {
+            const url = '{{ path('admin_traitement_suggerer_dosage') }}';
+            console.log('📡 Envoi requête vers:', url);
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    produit_id: produitId,
+                    note_medicale: noteMedicale
+                })
+            });
+
+            console.log('📥 Réponse reçue - Status:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Erreur serveur:', errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log('📦 Données JSON:', data);
+
+            if (data.success && data.suggestions) {
+                console.log('✅ Suggestions reçues:', data.suggestions);
+
+                const suggestions = data.suggestions;
+
+                // Remplir les champs
+                if (dosageInput) {
+                    dosageInput.value = suggestions.dosage;
+                    dosageInput.style.border = '3px solid #10b981';
+                    dosageInput.style.background = '#d1fae5';
+                }
+
+                if (frequenceInput) {
+                    frequenceInput.value = suggestions.frequence;
+                    frequenceInput.style.border = '3px solid #10b981';
+                    frequenceInput.style.background = '#d1fae5';
+                }
+
+                if (dureeInput) {
+                    dureeInput.value = suggestions.duree_jours;
+                    dureeInput.style.border = '3px solid #10b981';
+                    dureeInput.style.background = '#d1fae5';
+                }
+
+                // Réinitialiser les styles après 2 secondes
+                setTimeout(() => {
+                    if (dosageInput) {
+                        dosageInput.style.border = '';
+                        dosageInput.style.background = '';
+                    }
+                    if (frequenceInput) {
+                        frequenceInput.style.border = '';
+                        frequenceInput.style.background = '';
+                    }
+                    if (dureeInput) {
+                        dureeInput.style.border = '';
+                        dureeInput.style.background = '';
+                    }
+                }, 2000);
+
+                console.log('✅ Champs remplis avec succès');
+
+            } else {
+                console.warn('⚠️ Aucune suggestion trouvée');
+                alert('Aucune suggestion disponible. Veuillez remplir manuellement les champs.');
+            }
+
+        } catch (error) {
+            console.error('❌ ERREUR:', error);
+            console.error('Stack:', error.stack);
+            alert('Une erreur est survenue: ' + error.message);
+        } finally {
+            btnSuggerer.disabled = false;
+            btnText.textContent = 'Suggérer';
+            btnIcon.style.display = 'inline';
+            loadingSpinner.style.display = 'none';
+            console.log('✓ Loading désactivé');
+        }
+    });
+
+    console.log('✓ Event listener ajouté au bouton');
+});
+
+console.log('=== FIN INITIALISATION SUGGESTION IA DOSAGE ===');
+</script>
+{% endblock %}

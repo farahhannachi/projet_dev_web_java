@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="UTF-8"><style>
+body{font-family:Arial,sans-serif;font-size:12px;color:#1f2937}
+table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #d1d5db;padding:6px;text-align:left}th{background:#f3f4f6}
+</style></head><body>
+<h2>Liste des commandes</h2>
+<p>Genere le {{ date|date('d/m/Y H:i') }}</p>
+<table>
+<thead><tr><th>ID</th><th>Date</th><th>Client</th><th>Email</th><th>Telephone</th><th>Paiement</th><th>Statut</th><th>Coupon</th><th>Remise</th><th>Fraude</th><th>Livraison</th><th>Total</th></tr></thead>
+<tbody>
+{% for commande in commandes %}
+<tr>
+<td>{{ commande.id }}</td>
+<td>{{ commande.dateCommande ? commande.dateCommande|date('d/m/Y H:i') : '-' }}</td>
+<td>{{ commande.nom }}</td>
+<td>{{ commande.email }}</td>
+<td>{{ commande.telephone }}</td>
+<td>{{ commande.modePaiement }}</td>
+<td>{{ commande.statut }}</td>
+<td>{{ commande.couponCode ?: '-' }}</td>
+<td>{{ commande.couponDiscount|number_format(2, ',', ' ') }} DT</td>
+<td>{{ commande.fraudScore }}/100</td>
+<td>{{ commande.estimatedDeliveryDate ? commande.estimatedDeliveryDate|date('d/m/Y H:i') : '-' }}</td>
+<td>{{ commande.total|number_format(2, ',', ' ') }} DT</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</body></html>
