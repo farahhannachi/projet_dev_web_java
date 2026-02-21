@@ -48,6 +48,7 @@ use Dompdf\Dompdf;
 use Dompdf\Options;
 use Psr\Log\LoggerInterface;
 use App\Repository\QuestionRepository;
+use App\Service\TicketPriorityAssigner;
 
 /**
  * FrontController - Main controller for public-facing pages
@@ -278,7 +279,8 @@ class FrontController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         QuestionRepository $questionRepository,
-        MailerService $mailerService
+        MailerService $mailerService,
+        TicketPriorityAssigner $priorityAssigner
     ): Response {
         try {
             $editMode = false;
@@ -306,7 +308,8 @@ class FrontController extends AbstractController
                     $question,
                     $editMode,
                     $entityManager,
-                    $mailerService
+                    $mailerService,
+                    $priorityAssigner
                 );
             } elseif ($form->isSubmitted()) {
                 $this->addFlash('error', 'Le formulaire contient des erreurs. Veuillez vérifier vos informations.');
@@ -585,7 +588,8 @@ class FrontController extends AbstractController
         Question $question,
         bool $editMode,
         EntityManagerInterface $entityManager,
-        MailerService $mailerService
+        MailerService $mailerService,
+        TicketPriorityAssigner $priorityAssigner
     ): Response {
         // Check authentication
         if (!$this->getUser()) {
@@ -600,6 +604,14 @@ class FrontController extends AbstractController
         $question->setUtilisateur($this->getUser());
         if (!$editMode) {
             $question->setStatut('ouvert');
+            
+            // Auto Priority Assignment via LLM
+            try {
+                $priority = $priorityAssigner->assignPriority($question);
+                $question->setPriorite($priority);
+            } catch (\Exception $e) {
+                $question->setPriorite('normale'); // Fallback
+            }
         }
 
         // Save to database
