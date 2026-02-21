@@ -47,6 +47,7 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Psr\Log\LoggerInterface;
+use App\Repository\QuestionRepository;
 
 /**
  * FrontController - Main controller for public-facing pages
