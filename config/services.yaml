@@ -1,0 +1,146 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    depot_health_weights:
+        rupture: 0.40
+        expiration: 0.25
+        rotation: 0.20
+        seuils: 0.15
+    docusign_default_url: 'https://demo.docusign.net/restapi'
+    mailer_from_email: '%env(MAILER_FROM_EMAIL)%'
+    mailer_admin_email: '%env(MAILER_ADMIN_EMAIL)%'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Service\SmsService:
+        arguments:
+            $twilioSid: '%env(default::TWILIO_ACCOUNT_SID)%'
+            $twilioAuthToken: '%env(default::TWILIO_AUTH_TOKEN)%'
+            $twilioFrom: '%env(default::TWILIO_FROM_NUMBER)%'
+            $brevoSmsApiKey: '%env(default::BREVO_SMS_API_KEY)%'
+            $brevoSmsSender: '%env(default::BREVO_SMS_SENDER)%'
+
+    App\EventSubscriber\StockThresholdSubscriber:
+        tags:
+            - { name: doctrine.event_subscriber }
+
+    App\EventSubscriber\StockAlertMailSubscriber:
+        tags:
+            - { name: doctrine.event_subscriber }
+
+    App\Service\DepotHealthScoreService:
+        arguments:
+            $weights: '%depot_health_weights%'
+
+    App\Service\IARecommandationService:
+        arguments:
+            $openaiApiKey: '%env(default::OPENAI_API_KEY)%'
+            $huggingfaceApiKey: '%env(default::HUGGINGFACE_API_KEY)%'
+
+    App\Service\PusherNotificationService:
+        arguments:
+            $appId: '%env(default::PUSHER_APP_ID)%'
+            $appKey: '%env(default::PUSHER_APP_KEY)%'
+            $appSecret: '%env(default::PUSHER_APP_SECRET)%'
+            $appCluster: '%env(PUSHER_APP_CLUSTER)%'
+
+    App\Service\TwilioSmsService:
+        arguments:
+            $accountSid: '%env(default::TWILIO_ACCOUNT_SID)%'
+            $authToken: '%env(default::TWILIO_AUTH_TOKEN)%'
+            $fromNumber: '%env(default::TWILIO_FROM_NUMBER)%'
+
+    App\Service\IAInteractionMedicamenteuse:
+        arguments:
+            $apiKey: '%env(default::OPENAI_API_KEY)%'
+
+    App\Service\IADosageService:
+        arguments:
+            $apiKey: '%env(default::OPENAI_API_KEY)%'
+
+    App\Service\IAAnalyseNoteMedicaleService:
+        arguments:
+            $apiKey: '%env(default::OPENAI_API_KEY)%'
+
+    App\Service\OllamaService:
+        arguments:
+            $ollamaUrl: '%env(default::OLLAMA_URL)%'
+            $model: '%env(default::OLLAMA_MODEL)%'
+            $logger: '@logger'
+
+    # Event Subscriber pour corriger l'encodage des formulaires
+    App\EventSubscriber\FormEncodingSubscriber:
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # Extension de formulaire pour forcer UTF-8
+    App\Form\Extension\FormTypeExtension:
+        tags:
+            - { name: form.type_extension }
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+    App\Service\DocuSignService:
+        arguments:
+            $apiKey: '%env(default::DOCUSIGN_API_KEY)%'
+            $accountId: '%env(default::DOCUSIGN_ACCOUNT_ID)%'
+            $baseUrl: '%env(default:docusign_default_url:DOCUSIGN_BASE_URL)%'
+
+
+    # Service d'audit pour l'historique des modifications
+    App\Service\AuditService:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+            $security: '@security.helper'
+            $requestStack: '@request_stack'
+            $logger: '@logger'
+
+    # Event Subscriber pour capturer automatiquement les modifications
+    App\EventSubscriber\AuditSubscriber:
+        arguments:
+            $auditService: '@App\Service\AuditService'
+        tags:
+            - { name: doctrine.event_subscriber }
+
+    # Twig encoding extension for fixing UTF-8 mojibake
+    App\Twig\EncodingExtension:
+
+    App\Service\GroqLlmService:
+        arguments:
+            $groqApiKey: '%env(default::GROQ_API_KEY)%'
+            $groqModel: '%env(default::GROQ_MODEL)%'
+    App\Service\TicketPriorityAssigner: ~
+    App\Service\OcrService:
+        arguments:
+            $apiKey: '%env(GEMINI_API_KEY)%'
+
+    App\Command\UpdateAdminCommand:
+        arguments:
+            $adminEmail: '%mailer_admin_email%'
+
+    App\Security\LoginFormAuthenticator:
+        arguments:
+            $recaptchaSecret: '%env(RECAPTCHA_SECRET_KEY)%'
+
+    App\Service\MailerService:
+        arguments:
+            $fromEmail: '%env(MAILER_FROM_EMAIL)%'
+            $fromName: 'CURAVITA Support'
+            $adminEmail: '%env(MAILER_ADMIN_EMAIL)%'

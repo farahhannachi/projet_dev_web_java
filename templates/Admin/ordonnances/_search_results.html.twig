@@ -1,0 +1,8 @@
+{# Pagination above table #}
+<div class="custom-pagination" style="margin-bottom: 1rem; display: flex; justify-content: center;">
+    {{ knp_pagination_render(ordonnances) }}
+</div>
+
+<div class="table-container">
+    {% include 'Admin/ordonnances/_table.html.twig' %}
+</div>

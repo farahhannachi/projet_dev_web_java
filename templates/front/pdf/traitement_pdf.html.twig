@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traitement - {{ traitement.ordonnance.numeroOrdonnance }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #16563f;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #16563f;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .document-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin: 30px 0;
+        }
+        
+        .info-section {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #16563f;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #16563f;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+        
+        .info-value {
+            font-weight: 500;
+            color: #1f2937;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .status-actif, .status-valide {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-attente {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-termine {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        .status-rejete {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .treatment-details {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .detail-item {
+            text-align: center;
+        }
+        
+        .detail-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .notes-section {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+        
+        .notes-title {
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        .warning-box {
+            background: #fef2f2;
+            border: 2px solid #ef4444;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .warning-box strong {
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🏥 CURAVITA</div>
+        <div class="subtitle">Votre pharmacie en ligne de confiance</div>
+        <div class="subtitle">123 Avenue de la Santé, 75001 Paris | 📞 01 23 45 67 89</div>
+    </div>
+    
+    <div class="document-title">💊 FICHE DE TRAITEMENT</div>
+    
+    <div class="info-section">
+        <div class="section-title">Informations Patient</div>
+        
+        <div class="info-row">
+            <div>
+                <div class="info-label">Patient</div>
+                <div class="info-value">{{ traitement.utilisateur.nom }} {{ traitement.utilisateur.prenom }}</div>
+            </div>
+            <div>
+                <div class="info-label">Email</div>
+                <div class="info-value">{{ traitement.utilisateur.email }}</div>
+            </div>
+        </div>
+        
+        <div class="info-row">
+            <div>
+                <div class="info-label">Ordonnance associée</div>
+                <div class="info-value" style="color: #16563f; font-weight: 600;">{{ traitement.ordonnance.numeroOrdonnance }}</div>
+            </div>
+            <div>
+                <div class="info-label">Statut du traitement</div>
+                <div>
+                    {% if traitement.status == 'actif' or traitement.status == 'validé' %}
+                        <span class="status-badge status-actif">✓ {{ traitement.status|capitalize }}</span>
+                    {% elseif traitement.status == 'en attente' %}
+                        <span class="status-badge status-attente">⏳ En attente</span>
+                    {% elseif traitement.status == 'terminé' %}
+                        <span class="status-badge status-termine">✓ Terminé</span>
+                    {% else %}
+                        <span class="status-badge status-rejete">✗ {{ traitement.status|capitalize }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="treatment-details">
+        <div class="section-title">📋 Détails du Traitement</div>
+        
+        <div class="detail-grid">
+            <div class="detail-item">
+                <div class="detail-icon">💊</div>
+                <div class="info-label">Dosage</div>
+                <div class="info-value" style="font-size: 1.125rem;">{{ traitement.dosage ?? 'Non spécifié' }}</div>
+            </div>
+            
+            <div class="detail-item">
+                <div class="detail-icon">⏰</div>
+                <div class="info-label">Fréquence</div>
+                <div class="info-value" style="font-size: 1.125rem;">{{ traitement.frequence ?? 'Non spécifié' }}</div>
+            </div>
+            
+            <div class="detail-item">
+                <div class="detail-icon">📅</div>
+                <div class="info-label">Durée</div>
+                <div class="info-value" style="font-size: 1.125rem;">{{ traitement.dureeJours ? traitement.dureeJours ~ ' jours' : 'Non spécifié' }}</div>
+            </div>
+        </div>
+    </div>
+    
+    {% if traitement.dateDebut and traitement.dateFin %}
+        <div class="info-section">
+            <div class="section-title">📆 Période du Traitement</div>
+            
+            <div class="info-row">
+                <div>
+                    <div class="info-label">Date de début</div>
+                    <div class="info-value" style="font-size: 1.125rem;">{{ traitement.dateDebut|date('d/m/Y') }}</div>
+                </div>
+                <div>
+                    <div class="info-label">Date de fin</div>
+                    <div class="info-value" style="font-size: 1.125rem;">{{ traitement.dateFin|date('d/m/Y') }}</div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    {% if traitement.notes %}
+        <div class="notes-section">
+            <div class="notes-title">📝 Notes complémentaires</div>
+            <div>{{ traitement.notes }}</div>
+        </div>
+    {% endif %}
+    
+    <div class="warning-box">
+        <strong>⚠️ IMPORTANT</strong><br>
+        Ce traitement doit être suivi selon les instructions de votre médecin ou pharmacien.<br>
+        En cas de doute ou d'effets indésirables, consultez immédiatement un professionnel de santé.
+    </div>
+    
+    <div class="footer">
+        <p><strong>Document généré le {{ "now"|date('d/m/Y à H:i') }}</strong></p>
+        <p>Ce document est confidentiel et destiné uniquement au patient mentionné ci-dessus.</p>
+        <p style="margin-top: 20px;">CURAVITA - Pharmacie en ligne agréée ARS | SIRET: 123 456 789 00012</p>
+    </div>
+</body>
+</html>

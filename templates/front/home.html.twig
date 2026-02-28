@@ -1,0 +1,526 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}CURAVITA - Votre pharmacie en ligne{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+<style>
+    /* Make body transparent on home page so hero video shows */
+    body {
+        background-color: transparent !important;
+    }
+    
+    /* Override main padding for home page - hero handles it */
+    main {
+        padding-top: 0 !important;
+    }
+    
+    /* Also ensure html is transparent */
+    html {
+        background-color: transparent !important;
+    }
+    
+    /* ============================================
+       MODERN HOME - SaaS Dashboard 2026 Style
+       ============================================ */
+    
+    /* Animated Wave Background */
+    .home-background {
+        display: none;
+    }
+    
+    /* Floating Glass Cards */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 
+            0 4px 6px -1px rgba(0, 0, 0, 0.02),
+            0 10px 15px -3px rgba(0, 0, 0, 0.04),
+            0 20px 40px -8px rgba(0, 0, 0, 0.06);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .glass-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 
+            0 10px 20px -5px rgba(0, 0, 0, 0.08),
+            0 25px 50px -12px rgba(0, 0, 0, 0.12),
+            0 0 0 1px rgba(34, 197, 94, 0.1);
+    }
+    
+    /* Hero Section - Modern Full Width with Video */
+    .hero-section {
+        position: relative;
+        min-height: 100vh;
+        width: 100%;
+        margin-top: -70px;
+        padding-top: 70px;
+        overflow: hidden;
+    }
+    
+    .hero-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+    }
+    
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(180deg, rgba(15, 70, 45, 0.5) 0%, rgba(15, 70, 45, 0.7) 100%);
+        z-index: 1;
+    }
+    
+    .hero-content-wrapper {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        text-align: center;
+        max-width: 900px;
+        padding: 2rem;
+        animation: heroFadeIn 1s ease-out;
+    }
+    
+    @keyframes heroFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .hero-main-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: white;
+        letter-spacing: -0.02em;
+        margin-bottom: 1.5rem;
+        line-height: 1.1;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.25rem;
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 400;
+        margin-bottom: 2.5rem;
+        line-height: 1.6;
+    }
+    
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 36px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .hero-btn-primary {
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        color: white;
+        box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+    }
+    
+    .hero-btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(34, 197, 94, 0.5);
+        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    }
+    
+    @media (max-width: 768px) {
+        .hero-section {
+            min-height: 70vh;
+        }
+        .hero-main-title {
+            font-size: 2.25rem;
+        }
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+    }
+    
+    /* Original hero styles - keeping for compatibility */
+    .hero-card {
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .hero-card img {
+        transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .hero-card:hover img {
+        transform: scale(1.05);
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+    
+    /* Modern Buttons */
+    .btn-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 28px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-primary-modern {
+        background: linear-gradient(135deg, #16563f 0%, #22c55e 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(22, 86, 63, 0.3);
+    }
+    
+    .btn-primary-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 
+            0 8px 25px rgba(22, 86, 63, 0.4),
+            0 0 30px rgba(34, 197, 94, 0.3);
+    }
+    
+    .btn-outline-modern {
+        background: transparent;
+        color: #16563f;
+        border: 2px solid #16563f;
+    }
+    
+    .btn-outline-modern:hover {
+        background: rgba(22, 86, 63, 0.08);
+        transform: translateY(-3px);
+    }
+    
+    .btn-white-modern {
+        background: white;
+        color: #16563f;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-white-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 
+            0 8px 25px rgba(0, 0, 0, 0.15),
+            0 0 30px rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Promo Card */
+    .promo-card {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .promo-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+        animation: promoShine 4s ease-in-out infinite;
+    }
+    
+    @keyframes promoShine {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(20%, 20%); }
+    }
+    
+    .promo-amount {
+        font-size: 3.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 0 40px rgba(251, 191, 36, 0.5);
+    }
+    
+    /* Services Section */
+    .services-section {
+        position: relative;
+    }
+    
+    .services-card {
+        padding: 40px 0;
+    }
+    
+    .section-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #16563f 0%, #22c55e 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 2rem;
+    }
+    
+    .service-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        padding: 24px;
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        min-width: 140px;
+    }
+    
+    .service-item:hover {
+        background: rgba(255, 255, 255, 0.8);
+        transform: translateY(-8px);
+    }
+    
+    .service-icon {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 3px solid transparent;
+    }
+    
+    .service-item:hover .service-icon {
+        transform: scale(1.1) rotate(5deg);
+        border-color: #22c55e;
+        box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
+    }
+    
+    .service-icon i {
+        font-size: 2rem;
+        color: #16a34a;
+    }
+    
+    .service-label {
+        font-weight: 500;
+        color: #374151;
+        font-size: 0.95rem;
+    }
+    
+    /* Stats Section */
+    .stats-section {
+        position: relative;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    
+    .stat-card {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-4px);
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+    
+    .stat-icon {
+        font-size: 1.75rem;
+        color: #16a34a;
+        margin-bottom: 8px;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #16a34a;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+        color: #6b7280;
+    }
+    
+    /* Real Time Card */
+    .realtime-card {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .realtime-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #22c55e, #16563f, #22c55e);
+        background-size: 200% 100%;
+        animation: gradientFlow 3s linear infinite;
+    }
+    
+    @keyframes gradientFlow {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    
+    .realtime-icon {
+        font-size: 3.5rem;
+        color: #16a34a;
+        margin-bottom: 16px;
+    }
+    
+    .realtime-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #16a34a;
+        margin-bottom: 12px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 1.75rem;
+        }
+        
+        .promo-amount {
+            font-size: 2.5rem;
+        }
+        
+        .glass-card {
+            border-radius: 16px;
+        }
+    }
+</style>
+
+<!-- Hero Section - Modern Full Width with Video -->
+<section class="hero-section">
+    <video class="hero-video" autoplay muted loop playsinline>
+        <source src="{{ asset('assets/video/5998385-hd_1920_1080_30fps.mp4') }}" type="video/mp4">
+    </video>
+    <div class="hero-overlay"></div>
+    <div class="hero-content-wrapper">
+        <h1 class="hero-main-title">Votre Santé, Notre Priorité</h1>
+        <p class="hero-subtitle">Découvrez une pharmacie en ligne moderne, fiable et sécurisée pour tous vos besoins de santé.</p>
+        <a href="{{ path('app_products') }}" class="hero-btn hero-btn-primary">
+            <i class="fas fa-shopping-cart"></i>
+            Découvrir nos produits
+        </a>
+    </div>
+</section>
+
+<section class="py-12" style="position: relative; z-index: 1;">
+    <div class="container">
+        <div class="glass-card services-card" style="padding: 3rem;">
+            <h2 class="section-title" style="text-align: center;">Nos Services Pharmaceutiques</h2>
+            <div style="display: flex; gap: 1.5rem; overflow-x: auto; padding: 1rem 0; scroll-behavior: smooth; justify-content: center; flex-wrap: wrap;">
+                <a href="{{ path('front_depots') }}" class="service-item">
+                    <div class="service-icon">
+                        <i class="fas fa-warehouse" style="color: #16a34a; font-size: 2rem;"></i>
+                    </div>
+                    <span class="service-label">Nos Dépôts</span>
+                </a>
+                <a href="{{ path('app_products') }}" class="service-item">
+                    <div class="service-icon">
+                        <i class="fas fa-boxes" style="color: #16a34a; font-size: 2rem;"></i>
+                    </div>
+                    <span class="service-label">Gestion Stocks</span>
+                </a>
+                <a href="{{ path('app_products') }}" class="service-item">
+                    <div class="service-icon">
+                        <i class="fas fa-pills" style="color: #16a34a; font-size: 2rem;"></i>
+                    </div>
+                    <span class="service-label">Produits</span>
+                </a>
+                <a href="{{ path('app_formulaire_ordonnance') }}" class="service-item">
+                    <div class="service-icon">
+                        <i class="fas fa-file-medical" style="color: #16a34a; font-size: 2rem;"></i>
+                    </div>
+                    <span class="service-label">Ordonnances</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-12" style="position: relative; z-index: 1;">
+    <div class="container">
+        <div class="grid md:grid-cols-2 gap-8" style="display: grid; gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+            <div class="glass-card" style="padding: 2rem;">
+                <h2 class="section-title mb-6" style="font-size: 1.5rem;">Infrastructure de Stockage</h2>
+                <p class="text-lg mb-6" style="color: #6b7280; line-height: 1.6;">
+                    Découvrez notre réseau de dépôts pharmaceutiques modernes et sécurisés, conçus pour garantir la disponibilité et la qualité de nos produits.
+                </p>
+                <div class="stats-grid" style="margin-bottom: 1.5rem;">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-warehouse"></i></div>
+                        <div class="stat-value">Multiple</div>
+                        <div class="stat-label">Dépôts stratégiques</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-shield-alt"></i></div>
+                        <div class="stat-value">100%</div>
+                        <div class="stat-label">Sécurisé</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="{{ path('front_depots') }}" class="btn-modern btn-primary-modern">
+                        <i class="fas fa-eye"></i> Explorer les Dépôts
+                    </a>
+                    <a href="{{ path('app_products') }}" class="btn-modern btn-outline-modern">
+                        <i class="fas fa-chart-line"></i> Vérifier les Stocks
+                    </a>
+                </div>
+            </div>
+            <div class="glass-card realtime-card" style="padding: 2.5rem; text-align: center;">
+                <div class="realtime-icon"><i class="fas fa-boxes"></i></div>
+                <h3 class="realtime-title">Suivi en Temps Réel</h3>
+                <p class="mb-6" style="color: #6b7280; line-height: 1.6;">
+                    Consultez l'état de nos stocks et recevez des alertes pour garantir la fraîcheur de nos produits.
+                </p>
+                <a href="{{ path('app_products') }}" class="btn-modern btn-primary-modern">
+                    <i class="fas fa-arrow-right"></i> Accéder aux Stocks
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

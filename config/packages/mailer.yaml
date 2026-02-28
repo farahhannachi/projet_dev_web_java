@@ -1,0 +1,8 @@
+framework:
+    mailer:
+        transports:
+            main: '%env(MAILER_DSN)%'
+            gmail: '%env(MAILER_DSN_Yassine)%'
+        message_bus: false
+        envelope:
+            sender: '%env(MAILER_FROM_EMAIL)%'

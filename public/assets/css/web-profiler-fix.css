@@ -1,0 +1,9 @@
+/* Force Web Debug Toolbar to show */
+.sf-toolbar.sf-display-none {
+    display: block !important;
+}
+
+/* Ensure Doctrine Doctor is visible in toolbar */
+.sf-toolbar .sf-toolbar-block {
+    display: inline-block !important;
+}

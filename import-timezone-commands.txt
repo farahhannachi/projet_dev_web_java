@@ -1,0 +1,92 @@
+================================================================================
+IMPORT MySQL TIMEZONE TABLES - Instructions
+================================================================================
+
+FILE: timezone_2025c_posix_sql.zip
+
+STEP 1: EXTRACT THE ZIP FILE
+================================================================================
+Extract the zip file to get the SQL file. You should have a file named:
+  timezone_2025c_posix_sql.sql
+
+(The exact name may vary slightly based on the version)
+
+STEP 2: IMPORT INTO MySQL
+================================================================================
+Open Command Prompt as Administrator and run:
+
+  cd "C:\Users\ihebj\OneDrive\Bureau\projetdev"
+  
+  mysql -u root -p mysql < timezone_2025c_posix_sql.sql
+
+Or if the filename is different:
+
+  mysql -u root -p mysql < timezone*.sql
+
+You will be prompted for your MySQL root password.
+
+STEP 3: VERIFY IMPORT
+================================================================================
+Connect to MySQL and check:
+
+  mysql -u root -p
+  
+  SELECT COUNT(*) FROM mysql.time_zone_name;
+  -- Should return 500+ rows
+
+STEP 4: SET GLOBAL TIMEZONE
+================================================================================
+Now that timezone tables are loaded, set the named timezone:
+
+  SET GLOBAL time_zone = 'Europe/Berlin';
+  
+  -- Verify
+  SELECT @@global.time_zone;
+  -- Should show: Europe/Berlin
+
+STEP 5: UPDATE DOCTRINE CONFIG
+================================================================================
+Edit config/packages/doctrine.yaml and change:
+
+  FROM:
+    1002: "SET NAMES UTF8MB4; SET SESSION time_zone = '+01:00'; ..."
+  
+  TO:
+    1002: "SET NAMES UTF8MB4; SET SESSION time_zone = 'Europe/Berlin'; ..."
+
+STEP 6: CLEAR CACHE
+================================================================================
+  php bin/console cache:clear
+
+STEP 7: RESTART MySQL (Optional but recommended)
+================================================================================
+  net stop MySQL80
+  net start MySQL80
+
+================================================================================
+ALTERNATIVE: If you have issues with the above
+================================================================================
+
+You can also import using phpMyAdmin or MySQL Workbench:
+1. Open phpMyAdmin / MySQL Workbench
+2. Select the "mysql" database
+3. Go to Import tab
+4. Select the timezone SQL file
+5. Click Import
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Error: "Unknown or incorrect time zone: 'Europe/Berlin'"
+  → Timezone tables not loaded properly. Repeat Step 1-3.
+
+Error: "Access denied"
+  → Run Command Prompt as Administrator
+  → Or check MySQL user privileges
+
+Error: "File not found"
+  → Make sure you're in the correct directory
+  → Check the exact filename with: dir *.sql
+
+================================================================================

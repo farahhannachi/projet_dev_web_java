@@ -1,0 +1,24 @@
+<!doctype html>
+<html><body style="font-family:Arial,sans-serif;background:#f6faf8;padding:20px;color:#12382d">
+    <div style="max-width:680px;margin:auto;background:#fff;border:1px solid #dceee6;border-radius:12px;padding:20px">
+        <h2 style="margin-top:0;color:#0f5f45">Facture commande #{{ commande.id }}</h2>
+        <p>Bonjour {{ commande.nom }}, votre commande est enregistree avec le statut <strong>{{ commande.statut|replace({'_':' '}) }}</strong>.</p>
+        <p><strong>Date:</strong> {{ commande.dateCommande|date('d/m/Y H:i') }}<br><strong>Paiement:</strong> {{ commande.modePaiement }}</p>
+        <table style="width:100%;border-collapse:collapse;margin-top:10px">
+            <thead><tr><th style="text-align:left;border-bottom:1px solid #dbe9e3;padding:8px">Produit</th><th style="text-align:right;border-bottom:1px solid #dbe9e3;padding:8px">Qt</th><th style="text-align:right;border-bottom:1px solid #dbe9e3;padding:8px">PU</th><th style="text-align:right;border-bottom:1px solid #dbe9e3;padding:8px">Total</th></tr></thead>
+            <tbody>
+                {% for item in items %}
+                    <tr><td style="padding:8px;border-bottom:1px solid #eff5f2">{{ item.name }}</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eff5f2">{{ item.quantity }}</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eff5f2">{{ item.price|number_format(2, ',', ' ') }} DT</td><td style="padding:8px;text-align:right;border-bottom:1px solid #eff5f2">{{ item.lineTotal|number_format(2, ',', ' ') }} DT</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if commande.couponCode %}
+            <p><strong>Coupon:</strong> {{ commande.couponCode }} | <strong>Remise:</strong> {{ commande.couponDiscount|number_format(2, ',', ' ') }} DT</p>
+        {% endif %}
+        {% if commande.estimatedDeliveryDate %}
+            <p><strong>Livraison estimee:</strong> {{ commande.estimatedDeliveryDate|date('d/m/Y H:i') }}</p>
+        {% endif %}
+        <p style="text-align:right;font-size:18px"><strong>Total: {{ commande.total|number_format(2, ',', ' ') }} DT</strong></p>
+        <p style="color:#5f7a70">Adresse de livraison: {{ commande.adresseLivraison }}</p>
+    </div>
+</body></html>

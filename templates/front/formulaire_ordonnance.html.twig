@@ -1,0 +1,660 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Créer une Ordonnance - Curavita{% endblock %}
+
+{% block main %}
+<style>
+    .hero-support {
+        min-height: 60vh;
+        background: linear-gradient(135deg, #0a1628 0%, #16563f 50%, #0f3d2a 100%);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .hero-support::before {
+        content: '';
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(40, 167, 69, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(22, 86, 63, 0.4) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(244, 196, 48, 0.1) 0%, transparent 30%);
+        animation: nebula 20s ease-in-out infinite;
+    }
+
+    @keyframes nebula {
+        0%, 100% { transform: translate(-10%, -10%) rotate(0deg); }
+        50% { transform: translate(10%, 10%) rotate(180deg); }
+    }
+
+    .particles {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        animation: float-particle 15s infinite;
+    }
+
+    .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+    .particle:nth-child(2) { left: 20%; animation-delay: 2s; }
+    .particle:nth-child(3) { left: 30%; animation-delay: 4s; }
+    .particle:nth-child(4) { left: 40%; animation-delay: 1s; }
+    .particle:nth-child(5) { left: 50%; animation-delay: 3s; }
+    .particle:nth-child(6) { left: 60%; animation-delay: 5s; }
+    .particle:nth-child(7) { left: 70%; animation-delay: 2.5s; }
+    .particle:nth-child(8) { left: 80%; animation-delay: 4.5s; }
+
+    @keyframes float-particle {
+        0% { transform: translateY(100vh) scale(0); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+    }
+
+    .hero-content-support {
+        position: relative;
+        z-index: 10;
+        text-align: center;
+        padding: 2rem;
+        max-width: 900px;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #f4c430;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+        animation: slideDown 1s ease;
+    }
+
+    .hero-title-support {
+        font-size: clamp(2.5rem, 8vw, 4rem);
+        font-weight: 800;
+        color: white;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        animation: slideUp 1s ease 0.2s both;
+    }
+
+    .hero-title-support span {
+        background: linear-gradient(135deg, #f4c430 0%, #ffd700 50%, #f4c430 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        background-size: 200% auto;
+        animation: shimmer 3s linear infinite;
+    }
+
+    @keyframes shimmer {
+        0% { background-position: 0% center; }
+        100% { background-position: 200% center; }
+    }
+
+    .hero-subtitle-support {
+        font-size: 1.25rem;
+        color: rgba(255,255,255,0.8);
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.8;
+        animation: slideUp 1s ease 0.4s both;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes shine {
+        0% { left: -100%; }
+        100% { left: 200%; }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.5;
+            transform: scale(1.2);
+        }
+    }
+
+    .form-container {
+        background-color: #f8f9fa;
+        min-height: 80vh;
+        padding: 0 0 3rem;
+        margin-top: -80px;
+        position: relative;
+        z-index: 3;
+    }
+    
+    .form-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        background: linear-gradient(to bottom right, transparent 49%, #f8f9fa 50%);
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+    
+    @media (min-width: 768px) {
+        .form-grid {
+            grid-template-columns: 2.5fr 1fr;
+        }
+    }
+    
+    .form-card {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border: 1px solid #e5e7eb;
+        position: relative;
+    }
+    
+    .form-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-color);
+        border-radius: 16px 16px 0 0;
+    }
+    
+    .numero-ordonnance-box {
+        background: linear-gradient(135deg, #16563f, #0f3d2a);
+        color: #f4c430;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .numero-ordonnance-box p:first-child {
+        font-size: 0.875rem;
+        color: rgba(255,255,255,0.8);
+        margin: 0 0 0.5rem 0;
+        font-weight: 600;
+    }
+    
+    .numero-ordonnance-box p:last-child {
+        font-size: 1.75rem;
+        margin: 0;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #374151;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+    
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(22, 86, 63, 0.1);
+    }
+    
+    .form-group textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+    
+    .btn-submit {
+        width: 100%;
+        padding: 1.25rem;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.125rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    }
+    
+    .sidebar-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        border: 1px solid #e5e7eb;
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .sidebar-card.primary {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+    }
+    
+    .sidebar-card h3 {
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        font-size: 1.125rem;
+    }
+    
+    .sidebar-card p {
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin: 0;
+    }
+    
+    .sidebar-card.primary p {
+        opacity: 0.95;
+    }
+    
+    .alert {
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        text-align: center;
+        font-weight: 500;
+    }
+    
+    .alert-success {
+        background: #d1fae5;
+        border: 2px solid #10b981;
+        color: #065f46;
+    }
+    
+    .alert-error {
+        background: #fee2e2;
+        border: 2px solid #ef4444;
+        color: #991b1b;
+    }
+
+    /* SweetAlert2 Custom Styling */
+    .swal2-popup {
+        border-radius: 20px !important;
+        padding: 2rem !important;
+        font-family: inherit !important;
+    }
+    .swal2-title {
+        color: #16563f !important;
+        font-weight: 700 !important;
+    }
+    .swal2-confirm {
+        background: linear-gradient(135deg, #16563f 0%, #28a745 100%) !important;
+        border-radius: 10px !important;
+        padding: 12px 30px !important;
+    }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.css">
+
+<section class="hero-support">
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+    
+    <div class="hero-content-support">
+        <div class="hero-badge">🔒 100% Sécurisé & Confidentiel</div>
+        <h1 class="hero-title-support">Créer une <span>Ordonnance</span></h1>
+        <p class="hero-subtitle-support">Complétez votre ordonnance pour finaliser votre demande de traitement. Un pharmacien validera votre demande rapidement.</p>
+    </div>
+</section>
+
+<div class="form-container">
+    <div class="container" style="max-width: 1400px; margin: 0 auto; padding: 5rem 1rem;">
+        
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> {{ message|raw }}
+            </div>
+        {% endfor %}
+
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i> {{ message|raw }}
+            </div>
+        {% endfor %}
+        
+        {% if form.vars.errors|length > 0 %}
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i> 
+                <strong>Erreurs de validation:</strong>
+                <ul style="margin: 0.5rem 0 0 1.5rem; padding: 0;">
+                    {% for error in form.vars.errors %}
+                        <li>{{ error.message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <div class="form-grid">
+            <div>
+                {{ form_start(form, {'attr': {'class': 'form-card', 'novalidate': 'novalidate'}}) }}
+                    
+                    {% if ordonnance and ordonnance.numeroOrdonnance %}
+                        <div class="numero-ordonnance-box">
+                            <p>NUMÉRO D'ORDONNANCE</p>
+                            <p>{{ ordonnance.numeroOrdonnance }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="form-group">
+                        {{ form_label(form.numeroOrdonnance) }}
+                        {{ form_widget(form.numeroOrdonnance) }}
+                        {{ form_errors(form.numeroOrdonnance) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.dateOrdonnance) }}
+                        {{ form_widget(form.dateOrdonnance) }}
+                        {{ form_errors(form.dateOrdonnance) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.dateExpiration) }}
+                        {{ form_widget(form.dateExpiration) }}
+                        {{ form_errors(form.dateExpiration) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.noteMedical) }}
+                        {{ form_widget(form.noteMedical) }}
+                        {{ form_errors(form.noteMedical) }}
+                    </div>
+
+                    <!-- Bouton de signature patient -->
+                    <div id="signaturePatientSection" style="margin-bottom: 1.5rem;">
+                        {% if ordonnance and ordonnance.signaturePatient %}
+                            <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 2px solid #10b981; border-radius: 12px; padding: 1.5rem;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                                    <span style="font-size: 2rem;">✅</span>
+                                    <h3 style="margin: 0; color: #065f46; font-size: 1.125rem; font-weight: 700;">Ordonnance signée</h3>
+                                </div>
+                                <div style="background: white; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.875rem; color: #374151; white-space: pre-line;">{{ ordonnance.signaturePatient }}</div>
+                                <p style="margin: 0.75rem 0 0 0; font-size: 0.75rem; color: #065f46; text-align: center;">
+                                    <i class="fas fa-check-circle"></i> Signé le {{ ordonnance.signaturePatientDate|date('d/m/Y à H:i') }}
+                                </p>
+                            </div>
+                        {% else %}
+                            <div id="preSignatureBox" style="display: none; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border: 2px solid #3b82f6; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                                    <span style="font-size: 2rem;">✍️</span>
+                                    <h3 style="margin: 0; color: #1e40af; font-size: 1.125rem; font-weight: 700;">Prêt à signer</h3>
+                                </div>
+                                <p style="margin: 0; color: #1e3a8a; font-size: 0.875rem;">
+                                    Votre signature sera enregistrée lors de l'envoi de l'ordonnance.
+                                </p>
+                            </div>
+                            
+                            <button type="button" id="btnSignerPatient" style="width: 100%; padding: 1.25rem; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; border-radius: 12px; font-size: 1.125rem; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); margin-bottom: 1rem; position: relative; overflow: hidden;">
+                                <span style="position: relative; z-index: 2;">
+                                    <i class="fas fa-pen-fancy"></i> ✍️ Signer électroniquement
+                                </span>
+                                <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation: shine 3s infinite;"></div>
+                            </button>
+                            <p style="text-align: center; font-size: 0.75rem; color: #6b7280; margin: 0 0 1rem 0;">
+                                <i class="fas fa-info-circle"></i> Signez maintenant, votre signature sera enregistrée lors de l'envoi
+                            </p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Champ caché pour stocker l'intention de signature -->
+                    <input type="hidden" id="wantsToSign" name="wants_to_sign" value="0">
+
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <i class="fas fa-paper-plane"></i> Envoyer mon ordonnance
+                    </button>
+                    
+                    <p style="text-align: center; font-size: 0.75rem; color: #9ca3af; margin-top: 1rem; line-height: 1.5;">
+                        En envoyant ce formulaire, j'accepte que mes données soient traitées par Curavita dans le cadre strict de la délivrance de médicaments.
+                    </p>
+                {{ form_end(form) }}
+            </div>
+            
+            <div>
+                <div class="sidebar-card primary">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">👨‍⚕️</div>
+                    <h3>Vérifié par un Pharmacien</h3>
+                    <p>Chaque ordonnance est contrôlée par notre équipe diplômée avant délivrance.</p>
+                </div>
+                
+                <div class="sidebar-card">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">⚡</div>
+                    <h3>Réponse Rapide</h3>
+                    <p>Validation sous 24h ouvrées maximum.</p>
+                </div>
+                
+                <div class="sidebar-card">
+                    <h3 style="color: var(--accent-color);">Besoin d'aide ?</h3>
+                    <p style="color: #6b7280; margin-bottom: 1.25rem;">Notre équipe vous répond.</p>
+                    <a href="tel:0123456789" style="display: block; padding: 0.875rem; background: var(--primary-color); color: white; text-decoration: none; border-radius: 10px; font-weight: 600; transition: all 0.2s;">
+                        📞 01 23 45 67 89
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.form-card');
+    const submitBtn = document.getElementById('submitBtn');
+    let isSubmitting = false;
+    
+    if (form && submitBtn) {
+        form.addEventListener('submit', function(e) {
+            if (isSubmitting) {
+                e.preventDefault();
+                return false;
+            }
+            
+            isSubmitting = true;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+            submitBtn.style.opacity = '0.7';
+            submitBtn.style.cursor = 'not-allowed';
+        });
+    }
+    
+    // Gestion de la signature patient
+    const btnSignerPatient = document.getElementById('btnSignerPatient');
+    const wantsToSignInput = document.getElementById('wantsToSign');
+    const preSignatureBox = document.getElementById('preSignatureBox');
+    
+    if (btnSignerPatient) {
+        btnSignerPatient.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4)';
+        });
+        
+        btnSignerPatient.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+        });
+        
+        btnSignerPatient.addEventListener('click', function() {
+            // Récupérer l'ID de l'ordonnance
+            const ordonnanceId = {{ ordonnance.id ?? 'null' }};
+            
+            // Si l'ordonnance existe déjà, signer immédiatement
+            if (ordonnanceId) {
+                Swal.fire({
+                    title: 'Signature Électronique',
+                    text: 'Êtes-vous sûr de vouloir signer cette ordonnance électroniquement ? Cette action est irréversible.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Oui, signer',
+                    cancelButtonText: 'Annuler',
+                    confirmButtonColor: '#16563f'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Animation du bouton
+                        btnSignerPatient.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signature en cours...';
+                        btnSignerPatient.disabled = true;
+                        
+                        // Envoyer la requête de signature
+                        fetch(`/ordonnance/${ordonnanceId}/signer-patient`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Afficher un message de succès
+                                Swal.fire({
+                                    title: 'Signé !',
+                                    text: 'Votre ordonnance a été signée avec succès.',
+                                    icon: 'success',
+                                    confirmButtonColor: '#16563f'
+                                });
+
+                                const signatureSection = document.getElementById('signaturePatientSection');
+                                signatureSection.innerHTML = `
+                                    <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 2px solid #10b981; border-radius: 12px; padding: 1.5rem; animation: slideUp 0.5s ease;">
+                                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                                            <span style="font-size: 2rem;">✅</span>
+                                            <h3 style="margin: 0; color: #065f46; font-size: 1.125rem; font-weight: 700;">Ordonnance signée avec succès!</h3>
+                                        </div>
+                                        <div style="background: white; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.875rem; color: #374151; white-space: pre-line;">${data.signature}</div>
+                                        <p style="margin: 0.75rem 0 0 0; font-size: 0.75rem; color: #065f46; text-align: center;">
+                                            <i class="fas fa-check-circle"></i> Signé le ${data.date}
+                                        </p>
+                                        <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #065f46; text-align: center; font-weight: 600;">
+                                            Code de vérification: ${data.code}
+                                        </p>
+                                    </div>
+                                `;
+                                
+                                // Scroll vers la signature
+                                signatureSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            } else {
+                                Swal.fire({
+                                    title: 'Erreur',
+                                    text: data.message,
+                                    icon: 'error',
+                                    confirmButtonColor: '#dc2626'
+                                });
+                                btnSignerPatient.innerHTML = '<i class="fas fa-pen-fancy"></i> ✍️ Signer électroniquement';
+                                btnSignerPatient.disabled = false;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erreur:', error);
+                            Swal.fire({
+                                title: 'Erreur',
+                                text: 'Erreur lors de la signature',
+                                icon: 'error',
+                                confirmButtonColor: '#dc2626'
+                            });
+                            btnSignerPatient.innerHTML = '<i class="fas fa-pen-fancy"></i> ✍️ Signer électroniquement';
+                            btnSignerPatient.disabled = false;
+                        });
+                    }
+                });
+            } else {
+                // Pré-signature : marquer l'intention de signer
+                Swal.fire({
+                    title: 'Prêt à signer ?',
+                    text: 'Votre signature sera enregistrée lors de l\'envoi du formulaire.',
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonText: 'Oui, préparer la signature',
+                    cancelButtonText: 'Plus tard',
+                    confirmButtonColor: '#3b82f6'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Marquer l'intention de signer
+                        wantsToSignInput.value = '1';
+                        
+                        // Cacher le bouton et afficher le message de confirmation
+                        btnSignerPatient.style.display = 'none';
+                        preSignatureBox.style.display = 'block';
+                        preSignatureBox.style.animation = 'slideUp 0.5s ease';
+                        
+                        // Changer le texte du bouton d'envoi
+                        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer et signer mon ordonnance';
+                        submitBtn.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
+                        
+                        Swal.fire({
+                            title: 'Signature préparée !',
+                            text: 'Cliquez sur le bouton orange en bas pour finaliser.',
+                            icon: 'success',
+                            confirmButtonColor: '#3b82f6'
+                        });
+                    }
+                });
+            }
+        });
+    }
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}

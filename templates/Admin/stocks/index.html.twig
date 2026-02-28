@@ -1,0 +1,253 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Gestion des Stocks{% endblock %}
+{% block page_subtitle %}Liste de tous les stocks{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    {% for message in app.flashes('success') %}
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="margin: 0; color: var(--primary-color); font-size: 1.75rem; font-weight: 600;">
+            <i class="fas fa-boxes"></i> Gestion des Stocks
+        </h2>
+        <a href="{{ path('admin_stock_new') }}" class="btn-primary">
+            <i class="fas fa-plus-square"></i> Nouveau Stock
+        </a>
+
+        <a href="{{ path('admin_stocks_stats') }}" class="btn-secondary">
+            <i class="fas fa-chart-pie"></i> Statistiques
+        </a>
+        <a href="{{ path('admin_stocks_scan') }}" class="btn-secondary">
+            <i class="fas fa-qrcode"></i> Scan QR
+        </a>
+    </div>
+
+    <div class="prevision-wrapper">
+        <div class="prevision-header">
+            <h3><i class="fas fa-brain"></i> Prévision intelligente de stock</h3>
+            <div class="prevision-stats">
+                <div class="prevision-stat">
+                    <span class="value">{{ previsions_stock.total_stocks|default(0) }}</span>
+                    <span class="label">Total</span>
+                </div>
+                <div class="prevision-stat">
+                    <span class="value critique">{{ previsions_stock.stocks_critiques|default(0) }}</span>
+                    <span class="label">Critiques</span>
+                </div>
+                <div class="prevision-stat">
+                    <span class="value warning">{{ previsions_stock.stocks_a_surveiller|default(0) }}</span>
+                    <span class="label">A surveiller</span>
+                </div>
+                <div class="prevision-stat">
+                    <span class="value success">{{ previsions_stock.stocks_stables|default(0) }}</span>
+                    <span class="label">Stables</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="prevision-grid">
+            <div class="prevision-card">
+                <h4><i class="fas fa-exclamation-triangle"></i> Top risques</h4>
+                {% for item in previsions_stock.top_risques|default([])|slice(0, 5) %}
+                    {% set p = item.prevision %}
+                    <div class="risk-item">
+                        <div class="risk-top">
+                            <strong>{{ item.stock.produit ? item.stock.produit.nom : 'N/A' }}</strong>
+                            <span class="badge {{ p.niveau_risque|default('faible') }}">{{ p.statut|default('N/A') }}</span>
+                        </div>
+                        <small>
+                            Stock: {{ p.stock_actuel|default(0) }} |
+                            Vente/j: {{ p.moyenne_vente_journaliere|default(0) }} |
+                            Jours restants: {{ p.jours_restants is defined and p.jours_restants is not null ? p.jours_restants : 'N/A' }}
+                        </small>
+                    </div>
+                {% else %}
+                    <p class="empty">Aucun risque détecté.</p>
+                {% endfor %}
+            </div>
+
+            <div class="prevision-card">
+                <h4><i class="fas fa-chart-pie"></i> Répartition</h4>
+                {% set total = previsions_stock.total_stocks|default(0) %}
+                <div class="bar-row">
+                    <span>Critique ({{ previsions_stock.stocks_critiques|default(0) }})</span>
+                    <div class="bar"><div class="fill critique" style="width: {{ total > 0 ? (previsions_stock.stocks_critiques / total * 100) : 0 }}%"></div></div>
+                </div>
+                <div class="bar-row">
+                    <span>A surveiller ({{ previsions_stock.stocks_a_surveiller|default(0) }})</span>
+                    <div class="bar"><div class="fill warning" style="width: {{ total > 0 ? (previsions_stock.stocks_a_surveiller / total * 100) : 0 }}%"></div></div>
+                </div>
+                <div class="bar-row">
+                    <span>Stables ({{ previsions_stock.stocks_stables|default(0) }})</span>
+                    <div class="bar"><div class="fill success" style="width: {{ total > 0 ? (previsions_stock.stocks_stables / total * 100) : 0 }}%"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th><i class="fas fa-hashtag"></i> ID</th>
+                    <th><i class="fas fa-exclamation-triangle"></i> Seuil d'Alerte</th>
+                    <th><i class="fas fa-calendar-alt"></i> Date d'Expiration</th>
+                    <th><i class="fas fa-toggle-on"></i> Etat du Stock</th>
+                    <th><i class="fas fa-clock"></i> Derniere Mise a Jour</th>
+                    <th><i class="fas fa-cogs"></i> Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stock in stocks %}
+                <tr>
+                    <td><strong>{{ stock.id }}</strong></td>
+                    <td><i class="fas fa-exclamation-triangle" style="color: var(--warning-color); margin-right: 0.5rem;"></i> {{ stock.seuilAlerte }}</td>
+                    <td><i class="fas fa-calendar-alt" style="color: var(--text-muted); margin-right: 0.5rem;"></i> {{ stock.dateExpiration ? stock.dateExpiration|date('d/m/Y') : '' }}</td>
+                    <td>
+                        {% if stock.etatStock == 'disponible' %}
+                            <span class="status-badge status-success">
+                                <i class="fas fa-check-circle"></i> {{ stock.etatStock }}
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-warning">
+                                <i class="fas fa-exclamation-circle"></i> {{ stock.etatStock }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td><i class="fas fa-clock" style="color: var(--text-muted); margin-right: 0.5rem;"></i> {{ stock.dateDerniereMiseAJour ? stock.dateDerniereMiseAJour|date('d/m/Y H:i') : '' }}</td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <a href="{{ path('admin_stock_edit', {id: stock.id}) }}" class="btn-outline" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            <form method="post" action="{{ path('admin_stock_delete', {id: stock.id}) }}" style="display: inline;" onsubmit="return confirm('Etes-vous sur de vouloir supprimer ce stock ?');">
+                                <button type="submit" class="btn-danger" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.prevision-wrapper {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f8fbfa;
+    border: 1px solid #dce8e3;
+    border-radius: 12px;
+}
+.prevision-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.prevision-header h3 {
+    margin: 0;
+    color: var(--primary-color);
+}
+.prevision-stats {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.prevision-stat {
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    min-width: 90px;
+    text-align: center;
+}
+.prevision-stat .value {
+    display: block;
+    font-weight: 700;
+}
+.prevision-stat .value.critique { color: #dc3545; }
+.prevision-stat .value.warning { color: #e0a800; }
+.prevision-stat .value.success { color: #28a745; }
+.prevision-stat .label {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+.prevision-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+.prevision-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0.75rem;
+}
+.prevision-card h4 {
+    margin: 0 0 0.75rem 0;
+    color: var(--primary-color);
+}
+.risk-item {
+    border-top: 1px dashed #d1d5db;
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+}
+.risk-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+.badge {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    background: #e5e7eb;
+}
+.badge.critique { background: #fee2e2; color: #b91c1c; }
+.badge.eleve { background: #ffedd5; color: #c2410c; }
+.badge.modere { background: #fef9c3; color: #854d0e; }
+.badge.faible { background: #dcfce7; color: #166534; }
+.bar-row {
+    margin-bottom: 0.65rem;
+}
+.bar-row span {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+.bar {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    overflow: hidden;
+}
+.fill {
+    height: 100%;
+}
+.fill.critique { background: #dc3545; }
+.fill.warning { background: #e0a800; }
+.fill.success { background: #28a745; }
+.empty {
+    color: #6b7280;
+    margin: 0;
+}
+@media (max-width: 900px) {
+    .prevision-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+

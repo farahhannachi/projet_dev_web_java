@@ -1,0 +1,49 @@
+[debug] Notified event "console.command" to listener "Symfony\Component\HttpKernel\EventListener\DebugHandlersListener::configure".
+[debug] Notified event "console.command" to listener "Symfony\Component\HttpKernel\EventListener\DumpListener::configure".
+[debug] Notified event "console.command" to listener "Doctrine\Bundle\MigrationsBundle\EventListener\SchemaFilterListener::onConsoleCommand".
+Linting Generated Files With:
+Bundled PHP-CS-Fixer & Bundled PHP-CS-Fixer Configuration
+
+[info] User Deprecated: Since symfony/doctrine-bridge 6.3: Registering "App\EventSubscriber\AuditSubscriber" as a Doctrine subscriber is deprecated. Register it as a listener instead, using e.g. the #[AsDoctrineListener] or #[AsDocumentListener] attribute.
+[info] User Deprecated: Since symfony/doctrine-bridge 6.3: Registering "App\EventSubscriber\StockAlertMailSubscriber" as a Doctrine subscriber is deprecated. Register it as a listener instead, using e.g. the #[AsDoctrineListener] or #[AsDocumentListener] attribute.
+[info] User Deprecated: Since symfony/doctrine-bridge 6.3: Registering "App\EventSubscriber\StockThresholdSubscriber" as a Doctrine subscriber is deprecated. Register it as a listener instead, using e.g. the #[AsDoctrineListener] or #[AsDocumentListener] attribute.
+[critical] Error thrown while running command "make:migration -vvv". Message: "The metadata storage is not up to date, please run the sync-metadata-storage command to fix this issue."
+[debug] Notified event "console.error" to listener "Symfony\Bundle\FrameworkBundle\EventListener\SuggestMissingPackageSubscriber::onConsoleError".
+[debug] Notified event "console.error" to listener "Symfony\Bundle\MakerBundle\Event\ConsoleErrorSubscriber::onConsoleError".
+[debug] Notified event "console.error" to listener "Symfony\Component\Console\EventListener\ErrorListener::onConsoleError".
+[debug] Command "make:migration -vvv" exited with code "1"
+[debug] Notified event "console.terminate" to listener "Symfony\Bundle\MakerBundle\Event\ConsoleErrorSubscriber::onConsoleTerminate".
+[debug] Notified event "console.terminate" to listener "Symfony\Component\Console\EventListener\ErrorListener::onConsoleTerminate".
+
+In MetadataStorageError.php line 13:
+                                                        
+  [Doctrine\Migrations\Exception\MetadataStorageError]  
+  The metadata storage i                                
+  s not up to date, plea                                
+  se run the sync-metada                                
+  ta-storage command to                                 
+  fix this issue.                                       
+                                                        
+
+Exception trace:
+  at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\doctrine\migrations\src\Exception\MetadataStorageError.php:13
+ Doctrine\Migrations\Exception\MetadataStorageError::notUpToDate() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\doctrine\migrations\src\Metadata\Storage\TableMetadataStorage.php:237
+ Doctrine\Migrations\Metadata\Storage\TableMetadataStorage->checkInitialization() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\doctrine\migrations\src\Metadata\Storage\TableMetadataStorage.php:80
+ Doctrine\Migrations\Metadata\Storage\TableMetadataStorage->getExecutedMigrations() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\doctrine\migrations\src\Version\CurrentMigrationStatusCalculator.php:25
+ Doctrine\Migrations\Version\CurrentMigrationStatusCalculator->getExecutedUnavailableMigrations() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\doctrine\migrations\src\Tools\Console\Command\DiffCommand.php:129
+ Doctrine\Migrations\Tools\Console\Command\DiffCommand->execute() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\symfony\console\Command\Command.php:326
+ Symfony\Component\Console\Command\Command->run() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\symfony\console\Command\LazyCommand.php:76
+ Symfony\Component\Console\Command\LazyCommand->run() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\symfony\maker-bundle\src\Maker\MakeMigration.php:115
+ Symfony\Bundle\MakerBundle\Maker\MakeMigration->generate() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\symfony\maker-bundle\src\Command\MakerCommand.php:107
+ Symfony\Bundle\MakerBundle\Command\MakerCommand->execute() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\symfony\console\Command\Command.php:326
+ Symfony\Component\Console\Command\Command->run() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\symfony\console\Application.php:1106
+ Symfony\Component\Console\Application->doRunCommand() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\symfony\framework-bundle\Console\Application.php:126
+ Symfony\Bundle\FrameworkBundle\Console\Application->doRunCommand() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\symfony\console\Application.php:324
+ Symfony\Component\Console\Application->doRun() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\symfony\framework-bundle\Console\Application.php:80
+ Symfony\Bundle\FrameworkBundle\Console\Application->doRun() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\symfony\console\Application.php:175
+ Symfony\Component\Console\Application->run() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\symfony\runtime\Runner\Symfony\ConsoleApplicationRunner.php:49
+ Symfony\Component\Runtime\Runner\Symfony\ConsoleApplicationRunner->run() at C:\Users\ihebj\OneDrive\Bureau\projetdev\vendor\autoload_runtime.php:29
+ require_once() at C:\Users\ihebj\OneDrive\Bureau\projetdev\bin\console:15
+
+make:migration [--formatted] [--configuration [CONFIGURATION]]
+
