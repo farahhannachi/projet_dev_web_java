@@ -1,0 +1,452 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Recommandation de Traitement - CURAVITA{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .hero-section {
+        position: relative;
+        background: linear-gradient(135deg, #16563f 0%, #28a745 100%);
+        padding: 80px 0 100px;
+        overflow: hidden;
+        margin-bottom: 50px;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        animation: moveBackground 20s linear infinite;
+    }
+
+    @keyframes moveBackground {
+        0% { background-position: 0 0; }
+        100% { background-position: 60px 60px; }
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        color: white;
+    }
+
+    .hero-content h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .hero-content p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .recommandation-container {
+        max-width: 1200px;
+        margin: -50px auto 50px;
+        padding: 0 20px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        margin-bottom: 40px;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 1rem;
+    }
+
+    .form-group textarea,
+    .form-group input {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s;
+        font-family: inherit;
+    }
+
+    .form-group textarea:focus,
+    .form-group input:focus {
+        outline: none;
+        border-color: #16563f;
+        box-shadow: 0 0 0 3px rgba(22, 86, 63, 0.1);
+    }
+
+    .form-group textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .form-help {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 8px;
+        font-style: italic;
+    }
+
+    .btn-recommander {
+        background: linear-gradient(135deg, #16563f 0%, #28a745 100%);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-recommander:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(22, 86, 63, 0.3);
+    }
+
+    .btn-recommander:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .alert {
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .alert-danger {
+        background: #fee;
+        border: 1px solid #fcc;
+        color: #c33;
+    }
+
+    .alert-info {
+        background: #e7f3ff;
+        border: 1px solid #b3d9ff;
+        color: #0066cc;
+    }
+
+    .recommandations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+
+    .produit-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s;
+        border: 2px solid transparent;
+    }
+
+    .produit-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        border-color: #16563f;
+    }
+
+    .produit-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        background: #f5f5f5;
+    }
+
+    .produit-content {
+        padding: 20px;
+    }
+
+    .produit-nom {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 10px;
+        line-height: 1.3;
+    }
+
+    .produit-categorie {
+        display: inline-block;
+        background: #e8f5e9;
+        color: #16563f;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .produit-raison {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 15px;
+        line-height: 1.5;
+        font-style: italic;
+    }
+
+    .produit-prix {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #16563f;
+        margin-bottom: 15px;
+    }
+
+    .produit-score {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #fff3cd;
+        color: #856404;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .btn-selectionner {
+        background: #16563f;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.3s;
+    }
+
+    .btn-selectionner:hover {
+        background: #0f3d2a;
+    }
+
+    .info-box {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+
+    .info-box h3 {
+        color: #16563f;
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+
+    .info-box ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .info-box li {
+        padding: 8px 0;
+        padding-left: 25px;
+        position: relative;
+        color: #333;
+    }
+
+    .info-box li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #16563f;
+        font-weight: 700;
+    }
+
+    .loading-spinner {
+        display: none;
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .btn-recommander.loading .loading-spinner {
+        display: block;
+    }
+
+    .btn-recommander.loading .btn-text {
+        display: none;
+    }
+
+    @media (max-width: 768px) {
+        .hero-content h1 {
+            font-size: 2rem;
+        }
+
+        .form-card {
+            padding: 25px;
+        }
+
+        .recommandations-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1>🤖 Recommandation Intelligente de Traitement</h1>
+        <p>Décrivez vos symptômes et notre système IA vous suggérera les produits les plus adaptés</p>
+    </div>
+</div>
+
+<div class="recommandation-container">
+    <div class="info-box">
+        <h3>💡 Comment ça marche ?</h3>
+        <ul>
+            <li>Décrivez vos symptômes de manière détaillée</li>
+            <li>Mentionnez vos antécédents médicaux si pertinent</li>
+            <li>Notre IA analyse votre description et recommande les produits adaptés</li>
+            <li>Consultez les recommandations et sélectionnez le produit qui vous convient</li>
+        </ul>
+    </div>
+
+    <div class="form-card">
+        <form method="post" id="recommandationForm">
+            {% if erreur %}
+                <div class="alert alert-danger">
+                    <span>⚠️</span>
+                    <span>{{ erreur }}</span>
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="description">Décrivez vos symptômes</label>
+                <textarea 
+                    name="description" 
+                    id="description" 
+                    required
+                    placeholder="Exemple: J'ai mal à la tête depuis ce matin, avec de la fièvre et des courbatures..."
+                >{{ description }}</textarea>
+                <div class="form-help">
+                    Soyez le plus précis possible: localisation, intensité, durée, symptômes associés...
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="antecedents">Antécédents médicaux (optionnel)</label>
+                <textarea 
+                    name="antecedents" 
+                    id="antecedents"
+                    placeholder="Exemple: Allergies, maladies chroniques, traitements en cours..."
+                >{{ antecedents }}</textarea>
+                <div class="form-help">
+                    Ces informations aident à affiner les recommandations
+                </div>
+            </div>
+
+            <button type="submit" class="btn-recommander" id="btnRecommander">
+                <span class="btn-text">🔍 Obtenir des recommandations</span>
+                <div class="loading-spinner"></div>
+            </button>
+        </form>
+    </div>
+
+    {% if recommandations is not empty %}
+        <div class="form-card">
+            <h2 style="color: #16563f; margin-bottom: 20px; font-size: 1.8rem;">
+                📋 Produits recommandés pour vous
+            </h2>
+            <div class="alert alert-info">
+                <span>ℹ️</span>
+                <span>{{ recommandations|length }} produit(s) correspondant à votre description. Ces recommandations sont basées sur l'analyse IA de vos symptômes.</span>
+            </div>
+
+            <div class="recommandations-grid">
+                {% for item in recommandations %}
+                    {% set produit = item.produit %}
+                    <div class="produit-card">
+                        {% if produit.image %}
+                            <img src="{{ asset('uploads/produits/' ~ produit.image) }}" alt="{{ produit.nom }}" class="produit-image">
+                        {% else %}
+                            <img src="{{ asset('assets/img/default-product.png') }}" alt="{{ produit.nom }}" class="produit-image">
+                        {% endif %}
+
+                        <div class="produit-content">
+                            <div class="produit-nom">{{ produit.nom }}</div>
+                            
+                            {% if produit.categorie %}
+                                <span class="produit-categorie">{{ produit.categorie }}</span>
+                            {% endif %}
+
+                            <div class="produit-score">
+                                ⭐ Score: {{ item.score|number_format(0) }}%
+                            </div>
+
+                            <div class="produit-raison">
+                                {{ item.raison }}
+                            </div>
+
+                            <div class="produit-prix">
+                                {{ produit.prix|number_format(2, ',', ' ') }} DT
+                            </div>
+
+                            <form action="{{ path('app_demande_traitement') }}" method="get">
+                                <input type="hidden" name="produit_id" value="{{ produit.id }}">
+                                <button type="submit" class="btn-selectionner">
+                                    ✓ Sélectionner ce produit
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 12px; border-left: 4px solid #ffc107;">
+                <strong>⚠️ Important:</strong> Ces recommandations sont fournies à titre informatif. Consultez toujours un pharmacien ou un médecin avant de prendre un médicament.
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.getElementById('recommandationForm').addEventListener('submit', function() {
+    const btn = document.getElementById('btnRecommander');
+    btn.classList.add('loading');
+    btn.disabled = true;
+});
+</script>
+{% endblock %}

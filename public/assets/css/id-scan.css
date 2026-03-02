@@ -1,0 +1,803 @@
+/**
+ * ID Card Scan Login Styles
+ * Curavita - Experimental Beta Feature
+ */
+
+/* =========================
+   ID Scan Modal
+   ========================= */
+
+.id-scan-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.id-scan-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.id-scan-container {
+    background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.id-scan-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.id-scan-header h3 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.beta-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.id-scan-header p {
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+/* Video Container */
+.video-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: #0f0f1a;
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.video-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-container canvas {
+    display: none;
+}
+
+/* Scan Overlay */
+.scan-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Corner Markers */
+.corner-marker {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border: 3px solid #22c55e;
+    transition: all 0.3s ease;
+}
+
+.corner-marker.top-left {
+    top: 20px;
+    left: 20px;
+    border-right: none;
+    border-bottom: none;
+    border-radius: 10px 0 0 0;
+}
+
+.corner-marker.top-right {
+    top: 20px;
+    right: 20px;
+    border-left: none;
+    border-bottom: none;
+    border-radius: 0 10px 0 0;
+}
+
+.corner-marker.bottom-left {
+    bottom: 20px;
+    left: 20px;
+    border-right: none;
+    border-top: none;
+    border-radius: 0 0 0 10px;
+}
+
+.corner-marker.bottom-right {
+    bottom: 20px;
+    right: 20px;
+    border-left: none;
+    border-top: none;
+    border-radius: 0 0 10px 0;
+}
+
+/* Scanning Animation */
+.scan-overlay.scanning .corner-marker {
+    border-color: #fbbf24;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+}
+
+.scan-line {
+    position: absolute;
+    left: 10%;
+    width: 80%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #22c55e, transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.scan-overlay.scanning .scan-line {
+    opacity: 1;
+    animation: scanMove 2s linear infinite;
+}
+
+@keyframes scanMove {
+    0% {
+        top: 20%;
+    }
+    50% {
+        top: 80%;
+    }
+    100% {
+        top: 20%;
+    }
+}
+
+/* Success State */
+.scan-overlay.success .corner-marker {
+    border-color: #22c55e;
+    animation: successPulse 0.5s ease;
+}
+
+@keyframes successPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 20px rgba(34, 197, 94, 0);
+    }
+}
+
+/* Scan Status */
+.scan-status {
+    text-align: center;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.scan-status.ready {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.scan-status.loading {
+    background: rgba(96, 165, 250, 0.15);
+    color: #60a5fa;
+}
+
+.scan-status.scanning {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    animation: pulse 1s infinite;
+}
+
+.scan-status.success {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.scan-status.error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Scan Button */
+.scan-btn {
+    width: 100%;
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.scan-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(34, 197, 94, 0.3);
+}
+
+.scan-btn:active {
+    transform: translateY(0);
+}
+
+.scan-btn:disabled {
+    background: #4b5563;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Close Button */
+.close-scan-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    color: #94a3b8;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-scan-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+/* Security Note */
+.security-note {
+    text-align: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.security-note p {
+    color: #64748b;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.security-note i {
+    color: #22c55e;
+}
+
+/* =========================
+   Login Page - Scan Button
+   ========================= */
+
+.id-scan-login-section {
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.id-scan-login-section .divider {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.id-scan-login-section .divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.id-scan-login-section .divider span {
+    position: relative;
+    background: inherit;
+    padding: 0 15px;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.btn-scan-id {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 25px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.btn-scan-id:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+.btn-scan-id i {
+    font-size: 1.2rem;
+}
+
+.beta-label {
+    display: block;
+    margin-top: 8px;
+    color: #94a3b8;
+    font-size: 0.75rem;
+}
+
+/* =========================
+   Profile Page - ID Card Section
+   ========================= */
+
+.id-card-section {
+    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 16px;
+    padding: 25px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.id-card-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.id-card-section-header h4 {
+    color: #fff;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.id-card-section-header h4 i {
+    color: #22c55e;
+}
+
+.id-card-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.id-card-status.verified {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.id-card-status.pending {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+}
+
+.id-card-content {
+    display: grid;
+    gap: 20px;
+}
+
+.id-card-upload-area {
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.id-card-upload-area:hover {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.05);
+}
+
+.id-card-upload-area i {
+    font-size: 2.5rem;
+    color: #64748b;
+    margin-bottom: 15px;
+}
+
+.id-card-upload-area p {
+    color: #94a3b8;
+    margin-bottom: 15px;
+}
+
+.id-card-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.id-card-upload-area .upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid #22c55e;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.id-card-upload-area .upload-btn:hover {
+    background: #22c55e;
+    color: #fff;
+}
+
+.id-card-upload-area .scan-camera-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px solid #3b82f6;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.id-card-upload-area .scan-camera-btn:hover {
+    background: #3b82f6;
+    color: #fff;
+}
+
+/* ID Card Preview */
+.id-card-preview {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #0f172a;
+}
+
+.id-card-preview-img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+    display: block;
+}
+
+.id-card-info {
+    background: rgba(15, 23, 42, 0.9);
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.id-card-info .student-id {
+    color: #fff;
+    font-weight: 500;
+}
+
+.id-card-info .student-id span {
+    color: #64748b;
+    font-size: 0.85rem;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.id-card-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.id-card-actions button {
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.id-card-actions .btn-edit {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.id-card-actions .btn-edit:hover {
+    background: #3b82f6;
+    color: #fff;
+}
+
+.id-card-actions .btn-delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.id-card-actions .btn-delete:hover {
+    background: #ef4444;
+    color: #fff;
+}
+
+/* ID Card Edit Form */
+.id-card-edit-form {
+    background: rgba(15, 23, 42, 0.8);
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.edit-form-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.edit-form-content label {
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.edit-form-content input {
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1rem;
+    font-family: monospace;
+    text-transform: uppercase;
+}
+
+.edit-form-content input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.edit-form-content input::placeholder {
+    color: #64748b;
+    text-transform: none;
+}
+
+.edit-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.edit-form-actions .btn-save {
+    flex: 1;
+    padding: 10px 15px;
+    background: #22c55e;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.edit-form-actions .btn-save:hover {
+    background: #16a34a;
+}
+
+.edit-form-actions .btn-cancel {
+    flex: 1;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.edit-form-actions .btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+/* OCR Result */
+.ocr-result {
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.ocr-result.success {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.ocr-result.warning {
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.ocr-result.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.ocr-result.loading {
+    background: rgba(96, 165, 250, 0.1);
+    color: #60a5fa;
+    border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+/* Manual ID Input */
+.manual-id-input {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.manual-id-input input {
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.manual-id-input input:focus {
+    outline: none;
+    border-color: #22c55e;
+}
+
+.manual-id-input button {
+    padding: 12px 20px;
+    background: #22c55e;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.manual-id-input button:hover {
+    background: #16a34a;
+}
+
+/* Info Box */
+.id-card-info-box {
+    background: rgba(96, 165, 250, 0.1);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.id-card-info-box p {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.id-card-info-box i {
+    color: #60a5fa;
+    margin-top: 2px;
+}
+
+/* =========================
+   Responsive
+   ========================= */
+
+@media (max-width: 600px) {
+    .id-scan-container {
+        padding: 20px;
+        margin: 15px;
+    }
+    
+    .id-scan-header h3 {
+        font-size: 1.2rem;
+    }
+    
+    .video-container {
+        aspect-ratio: 3/4;
+    }
+    
+    .corner-marker {
+        width: 30px;
+        height: 30px;
+    }
+}
+
+/* =========================
+   Animation Keyframes
+   ========================= */
+
+@keyframes scanLine {
+    0% {
+        transform: translateY(-100%);
+    }
+    100% {
+        transform: translateY(100%);
+    }
+}
+
+@keyframes scanGlow {
+    0%, 100% {
+        box-shadow: 0 0 5px #22c55e;
+    }
+    50% {
+        box-shadow: 0 0 20px #22c55e, 0 0 40px #22c55e;
+    }
+}

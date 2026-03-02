@@ -1,0 +1,178 @@
+:root {
+    /* Light Mode Variables */
+    --bg-color: #ffffff;
+    --text-color: #1e293b;
+    --card-bg: #ffffff;
+    --primary-color: #16563f;
+    --primary-hover: #1e6b47;
+    --border-color: #e2e8f0;
+    --muted-text: #64748b;
+    --body-bg: #f8fafc;
+    --navbar-bg: #ffffff;
+    --sidebar-bg: #16563f;
+    --header-bg: #ffffff;
+    --input-bg: #ffffff;
+    --input-border: #d1d5db;
+}
+
+/* Explicit Light Mode (when toggled off) */
+body.light-mode {
+    /* Light Mode Variables - explicit override */
+    --bg-color: #ffffff;
+    --text-color: #1e293b;
+    --card-bg: #ffffff;
+    --primary-color: #16563f;
+    --primary-hover: #1e6b47;
+    --border-color: #e2e8f0;
+    --muted-text: #64748b;
+    --body-bg: #f8fafc;
+    --navbar-bg: #ffffff;
+    --sidebar-bg: #16563f;
+    --header-bg: #ffffff;
+    --input-bg: #ffffff;
+    --input-border: #d1d5db;
+}
+
+body.dark-mode {
+    /* Dark Mode Variables */
+    --bg-color: #0f172a;
+    --text-color: #f1f5f9;
+    --card-bg: #1e293b;
+    --primary-color: #22c55e;
+    --primary-hover: #4ade80;
+    --border-color: #334155;
+    --muted-text: #94a3b8;
+    --body-bg: #0b0f1a;
+    --navbar-bg: #1e293b;
+    --sidebar-bg: #0f172a;
+    --header-bg: #1e293b;
+    --input-bg: #1e293b;
+    --input-border: #475569;
+}
+
+/* Base transitions */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: var(--body-bg);
+    color: var(--text-color);
+}
+
+/* Apply variables to common elements if they don't use them yet */
+.card, .profile-card, .stat-card, .content, .header, .sidebar, .security-card {
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Global Overrides for Dark Mode */
+body.dark-mode .card, 
+body.dark-mode .profile-card, 
+body.dark-mode .stat-card, 
+body.dark-mode .content,
+body.dark-mode .header,
+body.dark-mode .security-card,
+body.dark-mode .notif-panel,
+body.dark-mode .modal-content {
+    background-color: var(--card-bg) !important;
+    color: var(--text-color) !important;
+    border-color: var(--border-color) !important;
+}
+
+body.dark-mode .main-content,
+body.dark-mode .profile-container,
+body.dark-mode .admin-container {
+    background-color: var(--body-bg) !important;
+}
+
+body.dark-mode h1, 
+body.dark-mode h2, 
+body.dark-mode h3, 
+body.dark-mode h4, 
+body.dark-mode h5, 
+body.dark-mode label {
+    color: var(--text-color) !important;
+}
+
+body.dark-mode .text-muted, 
+body.dark-mode p, 
+body.dark-mode span:not(.badge) {
+    color: var(--muted-text);
+}
+
+body.dark-mode input, 
+body.dark-mode select, 
+body.dark-mode textarea {
+    background-color: var(--input-bg) !important;
+    color: var(--text-color) !important;
+    border-color: var(--input-border) !important;
+}
+
+body.dark-mode .sidebar {
+    background: var(--sidebar-bg) !important;
+}
+
+/* Toggle Switch Styling */
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 0;
+}
+
+.theme-switch {
+    display: inline-block;
+    height: 28px;
+    position: relative;
+    width: 50px;
+}
+
+.theme-switch input {
+    display: none;
+}
+
+.slider {
+    background-color: #ccc;
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    background-color: #fff;
+    bottom: 4px;
+    content: "";
+    height: 20px;
+    left: 4px;
+    position: absolute;
+    transition: .4s;
+    width: 20px;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+/* Animation for the icon */
+.theme-icon {
+    font-size: 1.2rem;
+    color: var(--muted-text);
+    transition: color 0.3s ease;
+}
+
+input:checked ~ .theme-icon--moon {
+    color: #f1c40f;
+}
+
+/* Smooth transitions for all elements */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}

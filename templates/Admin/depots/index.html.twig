@@ -1,0 +1,304 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Gestion des Depots{% endblock %}
+{% block page_subtitle %}Liste de tous les depots{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+    {% for message in app.flashes('success') %}
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('warning') %}
+        <div class="alert-warning" style="background:#fff7ed;color:#9a3412;padding:1rem;border-radius:10px;margin-bottom:1rem;">
+            <i class="fas fa-exclamation-triangle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;gap:1rem;flex-wrap:wrap;">
+        <h2 style="margin:0;color:var(--primary-color);font-size:1.75rem;font-weight:600;">
+            <i class="fas fa-warehouse"></i> Gestion des Depots
+        </h2>
+        <a href="{{ path('admin_depot_new') }}" class="btn-primary">
+            <i class="fas fa-plus-circle"></i> Nouveau Depot
+        </a>
+    </div>
+
+    <div style="background:white;border-radius:12px;padding:1rem;margin-bottom:1.25rem;box-shadow:var(--shadow-md);">
+        <h3 style="margin-top:0;color:var(--primary-color);"><i class="fas fa-map-marked-alt"></i> Carte interactive Leaflet</h3>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0.75rem;margin-bottom:0.75rem;">
+            <div>
+                <label for="fromDepot">Depot origine</label>
+                <select id="fromDepot" class="form-control">
+                    <option value="">Selectionner...</option>
+                    {% for depot in depots %}
+                        <option value="{{ depot.id }}">{{ depot.nomDepot }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="toDepot">Depot destination</label>
+                <select id="toDepot" class="form-control">
+                    <option value="">Selectionner...</option>
+                    {% for depot in depots %}
+                        <option value="{{ depot.id }}">{{ depot.nomDepot }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="productNearest">Produit en rupture</label>
+                <select id="productNearest" class="form-control">
+                    <option value="">Selectionner...</option>
+                    {% for produit in produits %}
+                        <option value="{{ produit.id }}">{{ produit.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="quantityNearest">Quantite</label>
+                <input id="quantityNearest" class="form-control" type="number" min="1" value="1">
+            </div>
+        </div>
+
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+            <button id="btnDistance" type="button" class="btn-primary" style="padding:0.5rem 0.8rem;">
+                <i class="fas fa-ruler"></i> Calculer distance
+            </button>
+            <button id="btnRoute" type="button" class="btn-secondary" style="padding:0.5rem 0.8rem;">
+                <i class="fas fa-route"></i> Afficher itineraire
+            </button>
+            <button id="btnNearest" type="button" class="btn-outline" style="padding:0.5rem 0.8rem;">
+                <i class="fas fa-search-location"></i> Depot le plus proche
+            </button>
+        </div>
+
+        <div id="mapStatus" style="margin-bottom:0.75rem;color:#374151;"></div>
+        <div id="depotMap" style="height:430px;border:1px solid #e5e7eb;border-radius:10px;"></div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th><i class="fas fa-hashtag"></i> ID</th>
+                    <th><i class="fas fa-building"></i> Nom</th>
+                    <th><i class="fas fa-map-marker-alt"></i> Adresse</th>
+                    <th><i class="fas fa-city"></i> Ville</th>
+                    <th><i class="fas fa-boxes"></i> Capacite</th>
+                    <th><i class="fas fa-user-tie"></i> Responsable</th>
+                    <th><i class="fas fa-phone"></i> Telephone</th>
+                    <th><i class="fas fa-location-arrow"></i> GPS</th>
+                    <th><i class="fas fa-calendar"></i> Date creation</th>
+                    <th><i class="fas fa-file-pdf"></i> PDF</th>
+                    <th><i class="fas fa-cogs"></i> Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for depot in depots %}
+                <tr>
+                    <td><strong>{{ depot.id }}</strong></td>
+                    <td>{{ depot.nomDepot }}</td>
+                    <td>{{ depot.adresseDepot }}</td>
+                    <td>{{ depot.ville|default('-') }}</td>
+                    <td>{{ depot.capaciteDepot|default('-') }}</td>
+                    <td>{{ depot.responsableDepot|default('-') }}</td>
+                    <td>{{ depot.responsableTelephone|default('-') }}</td>
+                    <td>
+                        {% if depot.latitude is not null and depot.longitude is not null %}
+                            {{ depot.latitude }}, {{ depot.longitude }}
+                        {% else %}
+                            <span style="color:#9ca3af;">Non geolocalise</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ depot.dateCreation ? depot.dateCreation|date('d/m/Y') : '' }}</td>
+                    <td>
+                        <a href="{{ path('admin_depot_pdf', {id: depot.id}) }}" class="btn-outline" style="padding:0.5rem 1rem;font-size:0.875rem;color:#d9534f;">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </a>
+                    </td>
+                    <td>
+                        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                            <a href="{{ path('admin_depot_edit', {id: depot.id}) }}" class="btn-outline" style="padding:0.5rem 1rem;font-size:0.875rem;">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            <form method="post" action="{{ path('admin_depot_delete', {id: depot.id}) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression du depot ?');">
+                                <button type="submit" class="btn-danger" style="padding:0.5rem 1rem;font-size:0.875rem;">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="11" style="text-align:center;padding:2rem;">Aucun depot</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(() => {
+  const depots = {{ map_depots|json_encode|raw }};
+  const statusEl = document.getElementById('mapStatus');
+
+  if (!Array.isArray(depots) || depots.length === 0) {
+    statusEl.textContent = 'Aucun depot geolocalise. Edite les depots pour generer latitude/longitude.';
+    return;
+  }
+
+  let routeLayer = null;
+  const markerByDepotId = new Map();
+  const depotById = new Map(depots.map(d => [String(d.id), d]));
+
+  const fromSelect = document.getElementById('fromDepot');
+  const toSelect = document.getElementById('toDepot');
+  const productSelect = document.getElementById('productNearest');
+  const quantityInput = document.getElementById('quantityNearest');
+  const btnDistance = document.getElementById('btnDistance');
+  const btnRoute = document.getElementById('btnRoute');
+  const btnNearest = document.getElementById('btnNearest');
+
+  const showStatus = (msg, isError = false) => {
+    statusEl.style.color = isError ? '#b91c1c' : '#374151';
+    statusEl.textContent = msg;
+  };
+
+  const map = L.map('depotMap');
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  const bounds = L.latLngBounds([]);
+  depots.forEach((d) => {
+    const latLng = [Number(d.latitude), Number(d.longitude)];
+    bounds.extend(latLng);
+    const marker = L.marker(latLng).addTo(map);
+    marker.bindPopup(`
+      <div style="min-width:220px">
+        <strong>${d.nom}</strong><br>
+        Responsable: ${d.responsable ?? 'N/A'}<br>
+        Capacite: ${d.capacite ?? 'N/A'}<br>
+        Adresse: ${d.adresse ?? 'N/A'}
+      </div>
+    `);
+    markerByDepotId.set(String(d.id), marker);
+  });
+  map.fitBounds(bounds.pad(0.2));
+  showStatus('Carte chargee. Selectionne deux depots pour distance/itineraire.');
+
+  const ensureSelection = () => {
+    const from = fromSelect.value;
+    const to = toSelect.value;
+    if (!from || !to || from === to) {
+      showStatus('Selectionne deux depots differents.', true);
+      return null;
+    }
+    const fromDepot = depotById.get(from);
+    const toDepot = depotById.get(to);
+    if (!fromDepot || !toDepot) {
+      showStatus('Depots invalides.', true);
+      return null;
+    }
+    return { fromDepot, toDepot };
+  };
+
+  const haversineKm = (a, b) => {
+    const R = 6371;
+    const toRad = deg => deg * Math.PI / 180;
+    const dLat = toRad(Number(b.latitude) - Number(a.latitude));
+    const dLng = toRad(Number(b.longitude) - Number(a.longitude));
+    const x = Math.sin(dLat / 2) ** 2
+      + Math.cos(toRad(Number(a.latitude))) * Math.cos(toRad(Number(b.latitude))) * Math.sin(dLng / 2) ** 2;
+    return (2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x))).toFixed(2);
+  };
+
+  btnDistance.addEventListener('click', () => {
+    const sel = ensureSelection();
+    if (!sel) return;
+    showStatus(`Distance ${sel.fromDepot.nom} -> ${sel.toDepot.nom}: ${haversineKm(sel.fromDepot, sel.toDepot)} km`);
+  });
+
+  btnRoute.addEventListener('click', async () => {
+    const sel = ensureSelection();
+    if (!sel) return;
+
+    const from = sel.fromDepot;
+    const to = sel.toDepot;
+    const url = `https://router.project-osrm.org/route/v1/driving/${Number(from.longitude)},${Number(from.latitude)};${Number(to.longitude)},${Number(to.latitude)}?overview=full&geometries=geojson`;
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      const route = data?.routes?.[0];
+      if (!route || !route.geometry?.coordinates) {
+        showStatus('Itineraire indisponible.', true);
+        return;
+      }
+
+      if (routeLayer) {
+        map.removeLayer(routeLayer);
+      }
+      const latlngs = route.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+      routeLayer = L.polyline(latlngs, { color: '#2563eb', weight: 5 }).addTo(map);
+      map.fitBounds(routeLayer.getBounds().pad(0.2));
+
+      const distKm = (route.distance / 1000).toFixed(2);
+      const durationMin = Math.round(route.duration / 60);
+      showStatus(`Itineraire: ${distKm} km, ${durationMin} min`);
+    } catch (_) {
+      showStatus('Erreur lors du calcul d itineraire.', true);
+    }
+  });
+
+  btnNearest.addEventListener('click', async () => {
+    const originId = fromSelect.value;
+    const produitId = productSelect.value;
+    const quantity = Math.max(1, Number(quantityInput.value || 1));
+    if (!originId || !produitId) {
+      showStatus('Selectionne depot origine et produit.', true);
+      return;
+    }
+
+    const url = new URL('{{ path('admin_depots_nearest') }}', window.location.origin);
+    url.searchParams.set('origin_depot_id', originId);
+    url.searchParams.set('produit_id', produitId);
+    url.searchParams.set('quantity', String(quantity));
+
+    try {
+      const res = await fetch(url.toString(), { method: 'GET' });
+      const data = await res.json();
+      if (!data.ok) {
+        showStatus(data.message || 'Aucun depot proche.', true);
+        return;
+      }
+      const nearest = data.depot;
+      toSelect.value = String(nearest.id);
+      const marker = markerByDepotId.get(String(nearest.id));
+      if (marker) {
+        map.setView(marker.getLatLng(), 11);
+        marker.openPopup();
+      }
+      showStatus(`Depot le plus proche: ${nearest.nom} (${nearest.distance_km} km)`);
+    } catch (_) {
+      showStatus('Erreur reseau sur recherche depot proche.', true);
+    }
+  });
+})();
+</script>
+{% endblock %}
+

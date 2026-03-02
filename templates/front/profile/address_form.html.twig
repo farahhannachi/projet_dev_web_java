@@ -1,0 +1,76 @@
+{% extends 'front/_base_modern.html.twig' %}
+
+{% block title %}{{ address.id ? 'Modifier' : 'Ajouter' }} une adresse - CuraVita{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">
+            {{ address.id ? 'Modifier' : 'Ajouter' }} une adresse
+        </h1>
+
+        {{ form_start(form) }}
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Nom complet</label>
+                {{ form_widget(form.fullName, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500'}}) }}
+                {{ form_errors(form.fullName) }}
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Adresse ligne 1</label>
+                {{ form_widget(form.line1, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500'}}) }}
+                {{ form_errors(form.line1) }}
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Adresse ligne 2 (optionnel)</label>
+                {{ form_widget(form.line2, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500'}}) }}
+                {{ form_errors(form.line2) }}
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Ville</label>
+                    {{ form_widget(form.city, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500'}}) }}
+                    {{ form_errors(form.city) }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Région</label>
+                    {{ form_widget(form.region, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500'}}) }}
+                    {{ form_errors(form.region) }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Code postal</label>
+                    {{ form_widget(form.postalCode, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500'}}) }}
+                    {{ form_errors(form.postalCode) }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Pays</label>
+                    {{ form_widget(form.country, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500'}}) }}
+                    {{ form_errors(form.country) }}
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Téléphone</label>
+                {{ form_widget(form.phone, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500'}}) }}
+                {{ form_errors(form.phone) }}
+            </div>
+
+            <div class="flex justify-between items-center mt-6">
+                <a href="{{ path('app_mes_adresses') }}" class="text-gray-600 hover:text-gray-800 font-medium">
+                    Annuler
+                </a>
+                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors">
+                    Enregistrer
+                </button>
+            </div>
+        </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

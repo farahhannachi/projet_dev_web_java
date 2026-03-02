@@ -1,0 +1,13 @@
+[critical] Error thrown while running command "make:migration". Message: "The metadata storage is not up to date, please run the sync-metadata-storage command to fix this issue."
+
+In MetadataStorageError.php line 13:
+                          
+  The metadata storage i  
+  s not up to date, plea  
+  se run the sync-metada  
+  ta-storage command to   
+  fix this issue.         
+                          
+
+make:migration [--formatted] [--configuration [CONFIGURATION]]
+

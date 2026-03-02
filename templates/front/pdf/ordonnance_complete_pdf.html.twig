@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Ordonnance {{ ordonnance.numeroOrdonnance }}</title>
+    <style>
+        @page {
+            margin: 20px;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            color: #1f2937;
+            line-height: 1.4;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #16563f;
+        }
+        .logo {
+            font-size: 28pt;
+            font-weight: bold;
+            color: #16563f;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 10pt;
+            color: #6b7280;
+        }
+        .section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #16563f;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #d1fae5;
+        }
+        .info-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .info-row {
+            display: table-row;
+        }
+        .info-label {
+            display: table-cell;
+            font-weight: bold;
+            color: #6b7280;
+            padding: 8px 15px 8px 0;
+            width: 35%;
+            font-size: 10pt;
+        }
+        .info-value {
+            display: table-cell;
+            padding: 8px 0;
+            color: #1f2937;
+            font-size: 10pt;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+        .status-valide {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .status-attente {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .status-rejete {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .note-box {
+            background-color: #f9fafb;
+            border-left: 4px solid #16563f;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+        .traitement-card {
+            background-color: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            page-break-inside: avoid;
+        }
+        .traitement-header {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #16563f;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #d1d5db;
+        }
+        .traitement-grid {
+            display: table;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .traitement-row {
+            display: table-row;
+        }
+        .traitement-cell {
+            display: table-cell;
+            padding: 6px 10px 6px 0;
+            font-size: 9pt;
+        }
+        .traitement-label {
+            font-weight: bold;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-size: 8pt;
+        }
+        .traitement-value {
+            color: #1f2937;
+            font-size: 10pt;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 8pt;
+            color: #9ca3af;
+            padding: 15px 0;
+            border-top: 1px solid #e5e7eb;
+        }
+        .page-number:after {
+            content: counter(page);
+        }
+    </style>
+</head>
+<body>
+    <!-- En-tête -->
+    <div class="header">
+        <div class="logo">CURAVITA</div>
+        <div class="subtitle">Pharmacie & Parapharmacie</div>
+    </div>
+
+    <!-- Titre du document -->
+    <h1 style="text-align: center; color: #16563f; font-size: 18pt; margin-bottom: 30px;">
+        ORDONNANCE MÉDICALE
+    </h1>
+
+    <!-- Informations de l'ordonnance -->
+    <div class="section-title">📋 Informations de l'ordonnance</div>
+    
+    <div class="info-grid">
+        <div class="info-row">
+            <div class="info-label">Numéro d'ordonnance :</div>
+            <div class="info-value"><strong>{{ ordonnance.numeroOrdonnance }}</strong></div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Date de prescription :</div>
+            <div class="info-value">{{ ordonnance.dateOrdonnance|date('d/m/Y') }}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Date d'expiration :</div>
+            <div class="info-value">{{ ordonnance.dateExpiration|date('d/m/Y') }}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Statut :</div>
+            <div class="info-value">
+                {% if ordonnance.statut == 'validé' %}
+                    <span class="status-badge status-valide">✓ Validée</span>
+                {% elseif ordonnance.statut == 'en attente' %}
+                    <span class="status-badge status-attente">⏳ En attente</span>
+                {% elseif ordonnance.statut == 'rejeté' %}
+                    <span class="status-badge status-rejete">✗ Rejetée</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Informations du patient -->
+    <div class="section-title">👤 Informations du patient</div>
+    
+    <div class="info-grid">
+        <div class="info-row">
+            <div class="info-label">Nom complet :</div>
+            <div class="info-value">{{ ordonnance.utilisateur.nom }} {{ ordonnance.utilisateur.prenom }}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Email :</div>
+            <div class="info-value">{{ ordonnance.utilisateur.email }}</div>
+        </div>
+    </div>
+
+    <!-- Note médicale -->
+    {% if ordonnance.noteMedical %}
+    <div class="section-title">💬 Note médicale</div>
+    <div class="note-box">
+        {{ ordonnance.noteMedicalFixed }}
+    </div>
+    {% endif %}
+
+    <!-- Traitements prescrits -->
+    {% set traitements = ordonnance.traitements %}
+    {% if traitements is not empty %}
+    <div class="section-title">💊 Traitement(s) prescrit(s) ({{ traitements|length }})</div>
+    
+    {% for traitement in traitements %}
+    <div class="traitement-card">
+        <div class="traitement-header">
+            Traitement #{{ loop.index }}
+            {% if traitement.status == 'validé' or traitement.status == 'actif' %}
+                <span class="status-badge status-valide" style="float: right; font-size: 9pt;">✓ {{ traitement.status|capitalize }}</span>
+            {% elseif traitement.status == 'en attente' %}
+                <span class="status-badge status-attente" style="float: right; font-size: 9pt;">⏳ En attente</span>
+            {% else %}
+                <span class="status-badge status-rejete" style="float: right; font-size: 9pt;">{{ traitement.status|capitalize }}</span>
+            {% endif %}
+        </div>
+        
+        {% if traitement.produit %}
+        <div style="margin-bottom: 12px; padding: 10px; background-color: white; border-radius: 5px;">
+            <div style="font-weight: bold; color: #16563f; font-size: 11pt; margin-bottom: 3px;">
+                {{ traitement.produit.nom }}
+            </div>
+            <div style="font-size: 9pt; color: #6b7280;">
+                {{ traitement.produit.description }}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="traitement-grid">
+            <div class="traitement-row">
+                <div class="traitement-cell" style="width: 33%;">
+                    <div class="traitement-label">Dosage</div>
+                    <div class="traitement-value">{{ traitement.dosage ?? 'À définir' }}</div>
+                </div>
+                <div class="traitement-cell" style="width: 33%;">
+                    <div class="traitement-label">Fréquence</div>
+                    <div class="traitement-value">{{ traitement.frequence ?? 'À définir' }}</div>
+                </div>
+                <div class="traitement-cell" style="width: 33%;">
+                    <div class="traitement-label">Durée</div>
+                    <div class="traitement-value">{{ traitement.dureeJours ? traitement.dureeJours ~ ' jours' : 'À définir' }}</div>
+                </div>
+            </div>
+        </div>
+        
+        {% if traitement.dateDebut and traitement.dateFin %}
+        <div style="margin-top: 10px; padding: 8px; background-color: white; border-radius: 5px;">
+            <span style="font-size: 9pt; color: #6b7280;">Période : </span>
+            <span style="font-size: 9pt; color: #1f2937; font-weight: bold;">
+                Du {{ traitement.dateDebut|date('d/m/Y') }} au {{ traitement.dateFin|date('d/m/Y') }}
+            </span>
+        </div>
+        {% endif %}
+        
+        {% if traitement.notes %}
+        <div style="margin-top: 10px; padding: 10px; background-color: white; border-left: 3px solid #16563f; font-size: 9pt; color: #374151;">
+            <strong>Notes :</strong> {{ traitement.notes }}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <div style="text-align: center; padding: 20px; background-color: #f9fafb; border-radius: 8px; color: #6b7280; font-size: 10pt;">
+        Aucun traitement associé à cette ordonnance
+    </div>
+    {% endif %}
+
+    <!-- Pied de page -->
+    <div class="footer">
+        <div>Document généré le {{ "now"|date('d/m/Y à H:i') }}</div>
+        <div style="margin-top: 5px;">CURAVITA - Pharmacie & Parapharmacie - www.curavita.com</div>
+        <div style="margin-top: 5px;">Page <span class="page-number"></span></div>
+    </div>
+</body>
+</html>

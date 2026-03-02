@@ -1,0 +1,85 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block page_title %}Produits{% endblock %}
+{% block page_subtitle %}Gestion du catalogue{% endblock %}
+
+{% block main %}
+<div style="padding:1rem 1rem 2rem">
+    {% for message in app.flashes('success') %}<div class="alert-success">{{ message }}</div>{% endfor %}
+
+    <div class="stats-grid" style="margin-bottom:1rem">
+        <div class="stat-card"><h3>Total</h3><div class="number">{{ stats.total }}</div></div>
+        <div class="stat-card"><h3>Disponibles</h3><div class="number">{{ stats.disponible }}</div></div>
+        <div class="stat-card"><h3>Indisponibles</h3><div class="number">{{ stats.indisponible }}</div></div>
+        <div class="stat-card"><h3>Rupture</h3><div class="number">{{ stats.rupture }}</div></div>
+    </div>
+
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <h2 style="margin:0">Liste produits</h2>
+        <a href="{{ path('admin_produit_new') }}" class="btn-primary"><i class="fas fa-plus"></i> Ajouter</a>
+    </div>
+
+    <form method="get" class="filters" id="productsFilterForm" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:.6rem;margin-bottom:1rem">
+        <input class="form-control" name="search" value="{{ filters.search }}" placeholder="Recherche...">
+        <select class="form-control" name="categorie"><option value="all">Categorie</option>{% for c in categories %}<option value="{{ c }}" {% if filters.categorie == c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+        <select class="form-control" name="statut">
+            <option value="all" {% if filters.statut == 'all' or not filters.statut %}selected{% endif %}>Statut</option>
+            <option value="disponible" {% if filters.statut == 'disponible' %}selected{% endif %}>Disponible</option>
+            <option value="indisponible" {% if filters.statut == 'indisponible' %}selected{% endif %}>Indisponible</option>
+            <option value="rupture" {% if filters.statut == 'rupture' %}selected{% endif %}>Rupture</option>
+        </select>
+        <input class="form-control" type="number" min="0" name="prix_min" value="{{ filters.prix_min }}" placeholder="Prix min">
+        <select class="form-control" name="sort">
+            <option value="name" {% if filters.sort == 'name' %}selected{% endif %}>Nom</option>
+            <option value="price_asc" {% if filters.sort == 'price_asc' %}selected{% endif %}>Prix +</option>
+            <option value="price_desc" {% if filters.sort == 'price_desc' %}selected{% endif %}>Prix -</option>
+            <option value="stock_desc" {% if filters.sort == 'stock_desc' %}selected{% endif %}>Stock -</option>
+        </select>
+    </form>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead><tr><th>ID</th><th>Image</th><th>Nom</th><th>Prix</th><th>Stock</th><th>Categorie</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for produit in produits %}
+                <tr>
+                    <td>{{ produit.id }}</td>
+                    <td>{% if produit.image %}<img src="{{ asset('uploads/produits/' ~ produit.image) }}" style="width:46px;height:46px;object-fit:cover;border-radius:8px">{% else %}<img src="{{ asset('assets/img/default-product.png') }}" style="width:46px;height:46px;object-fit:cover;border-radius:8px">{% endif %}</td>
+                    <td>{{ produit.nom }}</td>
+                    <td>{{ produit.prix|number_format(2, ',', ' ') }} DT</td>
+                    <td>{{ produit.quantiteStock }}</td>
+                    <td>{{ produit.categorie }}</td>
+                    <td><span class="status-badge {{ produit.statut == 'disponible' ? 'status-success' : (produit.statut == 'rupture' ? 'status-danger' : 'status-warning') }}">{{ produit.statut }}</span></td>
+                    <td>
+                        <div class="actions-container">
+                            <a class="btn-outline" href="{{ path('admin_produit_edit', {id: produit.id}) }}"><i class="fas fa-edit"></i></a>
+                            <form method="post" action="{{ path('admin_produit_toggle_disponibilite', {id: produit.id}) }}"><button type="submit" class="btn-warning" title="Changer disponibilite"><i class="fas fa-power-off"></i></button></form>
+                            <form method="post" action="{{ path('admin_produit_delete', {id: produit.id}) }}" onsubmit="return confirm('Supprimer ce produit ?')"><button type="submit" class="btn-danger"><i class="fas fa-trash"></i></button></form>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="8" style="text-align:center">Aucun produit</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(() => {
+  const form = document.getElementById('productsFilterForm');
+  if (!form) return;
+  let timer;
+  form.querySelectorAll('input,select').forEach(el => {
+    el.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => form.submit(), 280);
+    });
+    el.addEventListener('change', () => form.submit());
+  });
+})();
+</script>
+{% endblock %}

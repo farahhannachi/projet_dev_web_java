@@ -1,0 +1,213 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}{{ is_edit ? 'Modifier adresse' : 'Nouvelle adresse' }} - CURAVITA{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+.wrap{max-width:860px;margin:2rem auto;padding:0 1rem}
+.card{background:linear-gradient(160deg,#ffffff 0%,#f8fcfa 100%);border:1px solid #dbece4;border-radius:16px;box-shadow:0 12px 28px rgba(12,52,40,.08);padding:1.2rem}
+.head{display:flex;justify-content:space-between;align-items:center;gap:.7rem;flex-wrap:wrap;margin-bottom:.35rem}
+.title{margin:0;color:#0f4e3b;font-size:1.45rem}
+.subtitle{margin:0;color:#5f7a6f;font-size:.92rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.grid .full{grid-column:1/-1}
+.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:0;border-radius:10px;padding:.7rem .95rem;cursor:pointer;font-weight:700}
+.btn-main{background:linear-gradient(135deg,#0f5f45,#1ca16f);color:#fff}
+.btn-soft{background:#eef5f1;color:#33594b}
+.form-wrap label{display:block;font-weight:700;color:#2f5a4d;margin-bottom:.4rem}
+.form-wrap input,.form-wrap select,.form-wrap textarea{
+    width:100%;
+    padding:.78rem .88rem;
+    border:1px solid #cde0d7;
+    border-radius:11px;
+    background:#fff;
+    transition:.2s ease;
+}
+.form-wrap input:focus,.form-wrap select:focus,.form-wrap textarea:focus{
+    outline:none;
+    border-color:#1ca16f;
+    box-shadow:0 0 0 3px rgba(28,161,111,.14);
+}
+.form-wrap .form-errors,
+.form-wrap .form-error-message,
+.form-wrap .invalid-feedback{color:#9f1d1d;font-size:.82rem;margin-top:.25rem}
+.actions{display:flex;gap:.65rem;margin-top:1rem}
+.map-tools{grid-column:1/-1;background:#f5fbf7;border:1px solid #d5ecdf;border-radius:12px;padding:.8rem}
+.map-head{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.map-search{flex:1;min-width:240px}
+.map-btn{background:#0f5f45;color:#fff;border:0;border-radius:10px;padding:.68rem .9rem;font-weight:700;cursor:pointer}
+.suggestions{margin-top:.5rem;max-height:170px;overflow:auto;border:1px solid #cfe2d9;border-radius:10px;background:#fff}
+.suggestion{padding:.55rem .7rem;cursor:pointer;border-bottom:1px solid #edf4f0}
+.suggestion:last-child{border-bottom:0}
+.suggestion:hover{background:#f1faf5}
+#addressMap{height:280px;margin-top:.7rem;border:1px solid #cfe2d9;border-radius:12px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.actions{flex-direction:column}.actions .btn{width:100%}}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="wrap">
+    <div class="card">
+        <div class="head">
+            <h2 class="title">{{ is_edit ? 'Modifier adresse' : 'Ajouter adresse' }}</h2>
+            <p class="subtitle">{{ is_edit ? 'Mets a jour tes informations de livraison.' : 'Ajoute une nouvelle adresse de livraison.' }}</p>
+        </div>
+
+        <div class="form-wrap">
+            {{ form_start(form, { attr: { novalidate: 'novalidate', id: 'addressForm' } }) }}
+            <div class="form-error-message" data-form-error style="display:none"></div>
+            <div class="grid">
+                <div>{{ form_row(form.fullName) }}</div>
+                <div>{{ form_row(form.phone) }}</div>
+                <div class="map-tools">
+                    <div class="map-head">
+                        <input type="text" id="geoSearch" class="map-search" placeholder="Rechercher une adresse...">
+                        <button type="button" class="map-btn" id="useMyLocation">Utiliser ma localisation</button>
+                    </div>
+                    <div id="geoSuggestions" class="suggestions" style="display:none"></div>
+                    <div id="addressMap"></div>
+                </div>
+                <div class="full">{{ form_row(form.line1) }}</div>
+                <div class="full">{{ form_row(form.line2) }}</div>
+                <div>{{ form_row(form.city) }}</div>
+                <div>{{ form_row(form.region) }}</div>
+                <div>{{ form_row(form.postalCode) }}</div>
+                <div>{{ form_row(form.country) }}</div>
+            </div>
+            <div class="actions">
+                <a href="{{ path('app_mes_adresses') }}" class="btn btn-soft">Retour</a>
+                <button type="submit" class="btn btn-main">Enregistrer</button>
+            </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(() => {
+  const form = document.getElementById('addressForm');
+  if (!form) return;
+  const line1 = form.querySelector('[name$="[line1]"]');
+  const city = form.querySelector('[name$="[city]"]');
+  const region = form.querySelector('[name$="[region]"]');
+  const postalCode = form.querySelector('[name$="[postalCode]"]');
+  const country = form.querySelector('[name$="[country]"]');
+  const searchInput = document.getElementById('geoSearch');
+  const suggestions = document.getElementById('geoSuggestions');
+  const useMyLocationBtn = document.getElementById('useMyLocation');
+
+  const map = L.map('addressMap').setView([36.8065, 10.1815], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+  const marker = L.marker([36.8065, 10.1815], { draggable: true }).addTo(map);
+
+  const fillFromNominatim = (item) => {
+    const a = item.address || {};
+    if (line1) line1.value = [a.road, a.house_number].filter(Boolean).join(' ') || item.display_name || '';
+    if (city) city.value = a.city || a.town || a.village || '';
+    if (region) region.value = a.state || a.county || '';
+    if (postalCode) postalCode.value = a.postcode || '';
+    if (country) country.value = a.country || country.value || '';
+  };
+
+  const reverseLookup = async (lat, lon) => {
+    const res = await fetch(`/api/geoproxy?lat=${lat}&lon=${lon}`);
+    const data = await res.json();
+    if (data) fillFromNominatim(data);
+  };
+
+  marker.on('dragend', async () => {
+    const p = marker.getLatLng();
+    map.panTo(p);
+    await reverseLookup(p.lat, p.lng);
+  });
+
+  let timer = null;
+  const searchAddress = async (query) => {
+    if (!query || query.trim().length < 3) {
+      suggestions.style.display = 'none';
+      suggestions.innerHTML = '';
+      return;
+    }
+    const res = await fetch(`/api/geoproxy?q=${encodeURIComponent(query)}`);
+    const list = await res.json();
+    if (!Array.isArray(list) || list.length === 0) {
+      suggestions.style.display = 'none';
+      suggestions.innerHTML = '';
+      return;
+    }
+
+    suggestions.innerHTML = list.map((item, idx) => `<div class="suggestion" data-idx="${idx}">${item.display_name}</div>`).join('');
+    suggestions.style.display = 'block';
+
+    suggestions.querySelectorAll('.suggestion').forEach(el => {
+      el.addEventListener('click', async () => {
+        const item = list[Number(el.dataset.idx)];
+        const lat = Number(item.lat), lon = Number(item.lon);
+        map.setView([lat, lon], 16);
+        marker.setLatLng([lat, lon]);
+        fillFromNominatim(item);
+        suggestions.style.display = 'none';
+      });
+    });
+  };
+
+  searchInput?.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => searchAddress(searchInput.value), 350);
+  });
+
+  useMyLocationBtn?.addEventListener('click', () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      map.setView([lat, lon], 16);
+      marker.setLatLng([lat, lon]);
+      await reverseLookup(lat, lon);
+    });
+  });
+
+  const clearErrors = () => {
+    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    form.querySelectorAll('.ajax-field-error').forEach(el => el.remove());
+    const global = form.querySelector('[data-form-error]');
+    if (global) { global.style.display = 'none'; global.textContent = ''; }
+  };
+
+  const showErrors = (errors) => {
+    const global = form.querySelector('[data-form-error]');
+    Object.entries(errors || {}).forEach(([field, messages]) => {
+      const msg = Array.isArray(messages) && messages.length ? messages[0] : 'Valeur invalide';
+      if (field === '_form') {
+        if (global) { global.style.display = 'block'; global.textContent = msg; }
+        return;
+      }
+      const input = form.querySelector(`[name$="[${field}]"]`);
+      if (!input) return;
+      input.classList.add('is-invalid');
+      const err = document.createElement('div');
+      err.className = 'form-error-message ajax-field-error';
+      err.textContent = msg;
+      input.insertAdjacentElement('afterend', err);
+    });
+  };
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors();
+    const res = await fetch(form.action, {
+      method: form.method || 'POST',
+      body: new FormData(form),
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok || payload.ok === false) {
+      showErrors(payload.errors || { _form: ['Donnees invalides.'] });
+      return;
+    }
+    window.location.href = payload.redirect_url || "{{ path('app_mes_adresses') }}";
+  });
+})();
+</script>
+{% endblock %}

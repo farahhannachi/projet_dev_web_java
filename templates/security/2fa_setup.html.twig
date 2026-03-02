@@ -1,0 +1,236 @@
+{% extends "front/_base.html.twig" %}
+
+{% block title %}Configuration 2FA - CuraVita{% endblock %}
+
+{% block main %}
+<style>
+    .premium-card {
+        background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid #e2e8f0;
+        box-shadow: 
+            0 10px 40px rgba(0, 0, 0, 0.1),
+            0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+    }
+    
+    .qr-container {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 3px dashed #22c55e;
+    }
+    
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .floating {
+        animation: floating 3s ease-in-out infinite;
+    }
+    
+    @keyframes floating {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .glow-green {
+        box-shadow: 0 0 40px rgba(34, 197, 94, 0.3);
+    }
+</style>
+
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 py-12 px-4">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header Section -->
+        <div class="text-center mb-10">
+            <div class="inline-flex items-center justify-center w-24 h-24 bg-white rounded-2xl shadow-xl mb-6 floating">
+                <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                        <path d="M7 15h0M2 9.5h20"></path>
+                    </svg>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent mb-3">
+                Configuration 2FA
+            </h1>
+            <p class="text-gray-600 text-lg">Configurez Google Authenticator pour sécuriser votre compte</p>
+        </div>
+
+        <!-- Main Premium Card -->
+        <div class="premium-card rounded-3xl overflow-hidden mb-8">
+            <!-- Step Banner -->
+            <div class="relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600">
+                    <div class="absolute inset-0 opacity-20">
+                        <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <defs>
+                                <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                                    <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" stroke-width="0.5"/>
+                                </pattern>
+                            </defs>
+                            <rect width="100" height="100" fill="url(#grid)"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="relative px-10 py-8 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center mr-5 pulse-animation">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                                <path d="M7 15h0M2 9.5h20"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-white text-2xl font-bold">Scannez le Code QR</h2>
+                            <p class="text-white/80 text-base mt-1">Utilisez Google Authenticator pour scanner</p>
+                        </div>
+                    </div>
+                    <div class="px-6 py-3 bg-white/20 backdrop-blur rounded-full">
+                        <span class="text-white font-bold text-lg"><i class="fas fa-mobile-alt mr-2"></i>Étape 1 sur 2</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="px-10 py-6">
+                {% if error %}
+                <div class="bg-red-50 border-2 border-red-200 p-4 rounded-2xl mb-6 flex items-center">
+                    <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                    </div>
+                    <p class="text-red-700 font-medium">{{ error }}</p>
+                </div>
+                {% endif %}
+
+                {% if success %}
+                <div class="bg-green-50 border-2 border-green-200 p-4 rounded-2xl mb-6 flex items-center">
+                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </div>
+                    <p class="text-green-700 font-medium">{{ success }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- QR Code Section -->
+            <div class="px-10 pb-10">
+                <div class="qr-container rounded-2xl p-8 text-center mb-8">
+                    <p class="text-gray-700 font-medium mb-6 text-lg">Scannez ce code QR avec votre application Google Authenticator</p>
+                    
+                    {% if qrCodeImage %}
+                    <div class="inline-block p-6 bg-white rounded-2xl shadow-lg mb-6 glow-green">
+                        <img src="data:image/svg+xml;base64,{{ qrCodeImage }}" 
+                             alt="QR Code" 
+                             style="width: 220px; height: 220px;">
+                    </div>
+                    {% endif %}
+
+                    <div class="bg-white rounded-xl p-4 max-w-sm mx-auto">
+                        <p class="text-xs text-gray-500 font-medium mb-2">Ou entrez ce code manuellement:</p>
+                        <code class="text-2xl font-mono text-indigo-700 tracking-widest font-bold">{{ secret }}</code>
+                    </div>
+                </div>
+
+                <!-- Verification Form -->
+                <form method="post" class="space-y-6">
+                    <div>
+                        <label for="verification_code" class="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                            <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2">
+                                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+                                </svg>
+                            </div>
+                            Code de vérification
+                        </label>
+                        <input type="text" 
+                               name="verification_code" 
+                               id="verification_code"
+                               required
+                               maxlength="6"
+                               pattern="[0-9]*"
+                               inputmode="numeric"
+                               autocomplete="one-time-code"
+                               class="w-full px-6 py-5 border-3 border-gray-200 rounded-2xl text-center text-3xl font-bold tracking-widest focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all"
+                               placeholder="000000"
+                               autofocus>
+                        <p class="text-sm text-gray-500 mt-3 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-1">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            Entrez le code à 6 chiffres de votre application Google Authenticator
+                        </p>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <a href="{{ path('app_2fa_manage') }}" 
+                           class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-5 px-6 rounded-2xl transition-all duration-300 text-center flex items-center justify-center border-2 border-gray-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2">
+                                <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                            </svg>
+                            Annuler
+                        </a>
+                        <button type="submit" 
+                                class="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-5 px-6 rounded-2xl transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <path d="M9 12l2 2 4-4"></path>
+                            </svg>
+                            Activer 2FA
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Instructions -->
+            <div class="bg-slate-50 px-10 py-8 border-t border-slate-100">
+                <h4 class="font-bold text-gray-800 text-lg mb-6 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" class="mr-2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    Comment configurer?
+                </h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex items-center bg-white p-4 rounded-xl border-2 border-slate-100 hover:border-indigo-200 transition-all">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-4 font-bold text-indigo-600">1</div>
+                        <p class="text-sm text-gray-700 font-medium">Téléchargez Google Authenticator</p>
+                    </div>
+                    <div class="flex items-center bg-white p-4 rounded-xl border-2 border-slate-100 hover:border-indigo-200 transition-all">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-4 font-bold text-indigo-600">2</div>
+                        <p class="text-sm text-gray-700 font-medium">Scannez le code QR ci-dessus</p>
+                    </div>
+                    <div class="flex items-center bg-white p-4 rounded-xl border-2 border-slate-100 hover:border-indigo-200 transition-all">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-4 font-bold text-indigo-600">3</div>
+                        <p class="text-sm text-gray-700 font-medium">Entrez le code généré</p>
+                    </div>
+                    <div class="flex items-center bg-white p-4 rounded-xl border-2 border-slate-100 hover:border-green-200 transition-all">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4 font-bold text-green-600">✓</div>
+                        <p class="text-sm text-gray-700 font-medium">Cliquez sur Activer</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 p-5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200">
+                    <p class="text-green-700 text-center font-bold flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        Une fois activé, vous devrez entrer un code à chaque connexion
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

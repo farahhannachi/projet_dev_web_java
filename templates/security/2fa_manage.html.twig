@@ -1,0 +1,320 @@
+{% extends "front/_base.html.twig" %}
+
+{% block title %}Gestion 2FA - {{ user.nom }} {{ user.prenom }} - CuraVita{% endblock %}
+
+{% block main %}
+<style>
+    .premium-card {
+        background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid #e2e8f0;
+        box-shadow: 
+            0 10px 40px rgba(0, 0, 0, 0.1),
+            0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+    }
+    
+    .premium-btn {
+        background: linear-gradient(135deg, #16563f 0%, #1e6b47 50%, #22c55e 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 3s ease infinite;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .premium-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: shimmer 2s infinite;
+    }
+    
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    @keyframes shimmer {
+        100% { left: 100%; }
+    }
+    
+    .glow-effect {
+        box-shadow: 0 0 30px rgba(22, 86, 63, 0.3);
+    }
+    
+    .pulse-icon {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .floating {
+        animation: floating 3s ease-in-out infinite;
+    }
+    
+    @keyframes floating {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+</style>
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-green-50 to-emerald-100 py-12 px-4">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header Section -->
+        <div class="text-center mb-10">
+            <div class="inline-flex items-center justify-center w-24 h-24 bg-white rounded-2xl shadow-xl mb-6 floating">
+                <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <path d="M9 12l2 2 4-4"></path>
+                    </svg>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent mb-3">
+                Authentification à Deux Facteurs
+            </h1>
+            <p class="text-gray-600 text-lg">Protégez votre compte avec une couche de sécurité supplémentaire</p>
+        </div>
+
+        <!-- Messages -->
+        {% if error %}
+        <div class="max-w-2xl mx-auto mb-6">
+            <div class="bg-red-50 border-2 border-red-200 p-4 rounded-2xl flex items-center">
+                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                </div>
+                <p class="text-red-700 font-medium">{{ error }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if success %}
+        <div class="max-w-2xl mx-auto mb-6">
+            <div class="bg-green-50 border-2 border-green-200 p-4 rounded-2xl flex items-center">
+                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+                <p class="text-green-700 font-medium">{{ success }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Main Premium Card -->
+        <div class="premium-card rounded-3xl overflow-hidden">
+            {% if isEnabled %}
+                <!-- 2FA ENABLED STATE -->
+                <!-- Status Banner -->
+                <div class="relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-green-500 via-emerald-500 to-green-600">
+                        <div class="absolute inset-0 opacity-30">
+                            <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                <defs>
+                                    <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                                        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" stroke-width="0.5"/>
+                                    </pattern>
+                                </defs>
+                                <rect width="100" height="100" fill="url(#grid)"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="relative px-10 py-8 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center mr-5 pulse-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-white text-2xl font-bold flex items-center">
+                                    <span class="w-3 h-3 bg-green-400 rounded-full mr-3 animate-pulse"></span>
+                                    Compte Protégé
+                                </h2>
+                                <p class="text-white/80 text-base mt-1">L'authentification à deux facteurs est activée</p>
+                            </div>
+                        </div>
+                        <div class="px-6 py-3 bg-white/20 backdrop-blur rounded-full">
+                            <span class="text-white font-bold text-lg"><i class="fas fa-check-circle mr-2"></i> Activé</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="px-10 pb-10">
+                    <div class="space-y-6">
+                        <!-- Success Card -->
+                        <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-100">
+                            <div class="flex items-start">
+                                <div class="w-14 h-14 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center mr-5 shadow-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                        <path d="M9 12l2 2 4-4"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-green-800 font-bold text-xl mb-2">Protection Active</h3>
+                                    <p class="text-green-700 leading-relaxed">
+                                        Votre compte est protégé par l'authentification à deux facteurs. Vous devrez entrer un code à chaque connexion pour vérifier votre identité.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Info Grid -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white rounded-2xl p-5 border-2 border-slate-100">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mr-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+                                            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500 font-medium">Application</p>
+                                        <p class="font-bold text-gray-800">Google Authenticator</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-2xl p-5 border-2 border-slate-100">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center mr-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500 font-medium">Code</p>
+                                        <p class="font-bold text-gray-800">6 chiffres</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Disable Button -->
+                        <form method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir désactiver la vérification en deux étapes? Votre compte sera moins sécurisé.');" class="mt-8">
+                            <input type="hidden" name="disable_2fa" value="1">
+                            <button type="submit" 
+                                    class="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-5 px-6 rounded-2xl transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-3">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                                </svg>
+                                Désactiver la 2FA
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <!-- 2FA DISABLED STATE - CENTERED LAYOUT -->
+                
+                <!-- Top Message -->
+                <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-10 py-6 text-center">
+                    <p class="text-white text-xl font-bold">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="inline mr-2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                        Activez pour sécuriser votre compte
+                    </p>
+                </div>
+
+                <!-- Green Rectangle with Status -->
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 px-10 py-8 text-center border-b-2 border-green-100">
+                    <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl shadow-lg mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-red-700 mb-2">Compte Non Protégé</h2>
+                    <p class="text-gray-600 max-w-md mx-auto">
+                        Votre compte n'est pas protégé. Nous vous recommandons fortement d'activer la vérification en deux étapes pour sécuriser vos informations personnelles et vos données de santé.
+                    </p>
+                </div>
+
+                <!-- Benefits Section - Centered -->
+                <div class="px-10 py-8 text-center">
+                    <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16563f" stroke-width="2" class="mr-2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                        Pourquoi activer la 2FA?
+                    </h3>
+                    
+                    <div class="space-y-3 max-w-md mx-auto text-left">
+                        <div class="flex items-center p-4 bg-white rounded-xl border-2 border-green-100">
+                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <span class="text-gray-700 font-medium">Protection supplémentaire contre les accès non autorisés</span>
+                        </div>
+                        <div class="flex items-center p-4 bg-white rounded-xl border-2 border-green-100">
+                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <span class="text-gray-700 font-medium">Code à 6 chiffres qui change toutes les 30 secondes</span>
+                        </div>
+                        <div class="flex items-center p-4 bg-white rounded-xl border-2 border-green-100">
+                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <span class="text-gray-700 font-medium">Compatible avec Google Authenticator</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BIG CENTERED ACTIVATE BUTTON -->
+                <div class="px-10 pb-10 text-center">
+                    <a href="{{ path('app_2fa_setup') }}" 
+                       class="premium-btn inline-flex items-center justify-center text-white font-bold py-5 px-12 rounded-2xl transition-all duration-300 glow-effect text-xl">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="mr-3">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            <path d="M9 12l2 2 4-4"></path>
+                        </svg>
+                        Activer la 2FA
+                    </a>
+                </div>
+            {% endif %}
+
+            <!-- Footer -->
+            <div class="bg-slate-50 px-10 py-6 border-t border-slate-100">
+                <div class="flex items-center justify-between">
+                    <a href="{{ path('app_profile') }}" class="text-gray-600 hover:text-green-700 flex items-center font-medium transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                        </svg>
+                        Retour au Profil
+                    </a>
+                    <a href="{{ path('app_home') }}" class="text-gray-600 hover:text-green-700 flex items-center font-medium transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
+                        Accueil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

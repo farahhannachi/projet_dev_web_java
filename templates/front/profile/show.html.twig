@@ -1,0 +1,3279 @@
+{% extends "front/_base.html.twig" %}
+
+{% block title %}Mon Profil - {{ user.nom }} {{ user.prenom }} - CuraVita{% endblock %}
+
+{% block main %}
+{# 2FA Modal #}
+{% include 'components/2fa-modal.html.twig' with {
+    'isEnabled': isEnabled|default(false),
+    'qrCodeImage': qrCodeImage,
+    'secret': secret,
+    'error': error,
+    'success': success
+} %}
+
+<div class="profile-container" style="overflow: visible; height: auto; min-height: auto;">
+    <!-- Modern Profile Header Card -->
+    <div class="profile-header-card">
+        <div class="profile-header-bg"></div>
+        <div class="profile-header-content">
+            <!-- Avatar Section -->
+            <div class="profile-avatar-section">
+                <div class="profile-avatar-wrapper-modern">
+                    <div class="profile-avatar-modern">
+                        {% if user.avatarUrl %}
+                            <img src="{{ user.avatarUrl }}" alt="Avatar" class="profile-avatar-img-modern">
+                        {% else %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        {% endif %}
+                    </div>
+                    <div class="profile-status-dot"></div>
+                    <a href="{{ path('app_avatar_builder') }}" class="avatar-edit-btn-modern">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- User Info Section -->
+            <div class="profile-info-section">
+                <h1 class="profile-name-modern">{{ user.nom }} {{ user.prenom }}</h1>
+                <p class="profile-email-modern">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                    </svg>
+                    {{ user.email }}
+                </p>
+            </div>
+
+            <!-- Meta Cards Section -->
+            <div class="profile-meta-cards">
+                <div class="meta-card-modern">
+                    <div class="meta-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div class="meta-card-content">
+                        <span class="meta-card-label">Compte depuis</span>
+                        <span class="meta-card-value">{{ user.dateCreation|format_date('long') }}</span>
+                    </div>
+                </div>
+
+                <div class="meta-card-modern">
+                    <div class="meta-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                    <div class="meta-card-content">
+                        <span class="meta-card-label">Statut</span>
+                        <span class="meta-card-value">
+                            <span class="status-badge-modern">{{ accountStatus }}</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="profile-action-section">
+                <a href="{{ path('app_profile_edit') }}" class="btn-edit-profile-modern">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Modifier le profil
+                </a>
+                <button class="btn-air-mouse-modern" id="airMouseBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8m3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5m-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11m3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"></path>
+                    </svg>
+                    Air Mouse ✨
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-content">
+        <div class="profile-main">
+            <!-- Security Settings Card -->
+            <div class="security-card">
+                <div class="security-card-header">
+                    <div class="security-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                    <div class="security-title">
+                        <h3>Sécurité du compte</h3>
+                        <p>Gérez les paramètres de sécurité de votre compte</p>
+                    </div>
+                    {% if isEnabled|default(false) %}
+                    <span class="security-badge security-badge-enabled">
+                        <span class="security-badge-dot"></span>
+                        Activée
+                    </span>
+                    {% else %}
+                    <span class="security-badge security-badge-disabled">
+                        <span class="security-badge-dot"></span>
+                        Désactivée
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="security-card-body">
+                    <p class="security-description">
+                        {% if isEnabled|default(false) %}
+                            La double authentification est activée. Votre compte est protégé par un code à 6 chiffres.
+                        {% else %}
+                            Ajoutez une couche de sécurité supplémentaire à votre compte en activant la double authentification.
+                        {% endif %}
+                    </p>
+                    <button type="button" onclick="open2FAModal()" class="security-btn {% if isEnabled|default(false) %}security-btn-disable{% else %}security-btn-enable{% endif %}">
+                        {% if isEnabled|default(false) %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                            </svg>
+                            Désactiver la 2FA
+                        {% else %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <path d="M9 12l2 2 4-4"></path>
+                            </svg>
+                            Activer la double authentification
+                        {% endif %}
+                    </button>
+                </div>
+            </div>
+
+            <!-- ID Card Verification Section -->
+            <div class="id-card-section">
+                <div class="id-card-section-header">
+                    <h4>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="16" rx="3"></rect>
+                            <circle cx="9" cy="10" r="2"></circle>
+                            <path d="M15 8h2"></path>
+                            <path d="M15 12h2"></path>
+                            <path d="M7 16h10"></path>
+                        </svg>
+                        ID Card Verification
+                        <span class="beta-badge">Beta</span>
+                    </h4>
+                    {% if user.studentId %}
+                        <span class="id-card-status verified">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            Verified
+                        </span>
+                    {% else %}
+                        <span class="id-card-status pending">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            Not Set
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <div class="id-card-content">
+                    {% if user.idCardImage %}
+                        <div class="id-card-preview" id="idCardPreview">
+                            <img src="{{ asset(user.idCardImage) }}" alt="ID Card" class="id-card-preview-img">
+                            <div class="id-card-info">
+                                <div class="student-id" id="studentIdDisplay">
+                                    <span>Student ID</span>
+                                    <span id="currentStudentId">{{ user.studentId|default('Not extracted') }}</span>
+                                </div>
+                                <div class="id-card-actions">
+                                    <button type="button" class="btn-edit" onclick="editStudentId()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                        Edit
+                                    </button>
+                                    <button type="button" class="btn-delete" onclick="deleteIdCard()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Edit Student ID Form (Hidden by default) -->
+                            <div class="id-card-edit-form" id="editStudentIdForm" style="display: none;">
+                                <div class="edit-form-content">
+                                    <label for="editStudentIdInput">Edit Student ID:</label>
+                                    <input type="text" id="editStudentIdInput" value="{{ user.studentId|default('') }}" placeholder="e.g., 231JMT0405">
+                                    <div class="edit-form-actions">
+                                        <button type="button" class="btn-save" onclick="saveStudentIdEdit()">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                            Save
+                                        </button>
+                                        <button type="button" class="btn-cancel" onclick="cancelStudentIdEdit()">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                            </svg>
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="id-card-upload-area" id="idCardPreview">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <p>Upload or scan your student ID card to enable<br>camera-based login</p>
+                            <div class="id-card-buttons">
+                                <input type="file" id="idCardInput" accept="image/jpeg,image/png,image/jpg,image/webp" style="display: none;">
+                                <button type="button" class="upload-btn" id="uploadIdCardBtn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                    </svg>
+                                    Upload File
+                                </button>
+                                <button type="button" class="scan-camera-btn" id="scanCameraBtn" onclick="openProfileIdScanModal()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    </svg>
+                                    Scan with Camera
+                                </button>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div id="ocrResult"></div>
+                    
+                    <div class="id-card-info-box">
+                        <p>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <span>
+                                <strong>Camera-based ID verification (Experimental Beta)</strong><br>
+                                Your ID card will be scanned using OCR to extract your student ID.
+                                This enables quick login by scanning your ID card with your device's camera.
+                                Maximum file size: 5MB. Supported formats: JPEG, PNG, WebP.
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Wellness Scan Section (Experimental Beta) -->
+            <div class="ai-wellness-section">
+                <div class="ai-wellness-header">
+                    <div class="ai-wellness-icon">🧠</div>
+                    <h3 class="ai-wellness-title">
+                        AI Wellness Scan
+                        <span class="beta-badge">Beta</span>
+                    </h3>
+                </div>
+                <p class="ai-wellness-description">
+                    Analyze your facial stress indicators using AI-powered computer vision.
+                    Get personalized wellness insights and product recommendations.
+                </p>
+                <button id="startStressScan" class="btn-ai-scan">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    Start AI Stress Scan
+                </button>
+                <div class="ai-disclaimer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span>This AI-based scan estimates visible stress indicators. It does NOT provide medical diagnosis.</span>
+                </div>
+            </div>
+
+            <!-- Account Information Section -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2>Informations du Compte</h2>
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Nom Complet</span>
+                            <span class="info-value">{{ user.nom }} {{ user.prenom }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">{{ user.email }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Compte créé</span>
+                            <span class="info-value">{{ user.dateCreation|format_date('long') }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Ancienneté</span>
+                            <span class="info-value">
+                                {% if accountAge.y > 0 %}
+                                    {{ accountAge.y }} an{{ accountAge.y > 1 ? 's' : '' }}
+                                {% elseif accountAge.m > 0 %}
+                                    {{ accountAge.m }} mois
+                                {% elseif accountAge.d > 0 %}
+                                    {{ accountAge.d }} jour{{ accountAge.d > 1 ? 's' : '' }}
+                                {% else %}
+                                    Très récent
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Statut du Compte</span>
+                            <span class="info-value status-badge status-{{ user.etatCompte }}">
+                                {{ accountStatus }}
+                            </span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Rôle</span>
+                            <span class="info-value">
+                                {% if is_granted('ROLE_ADMIN') %}
+                                    <span class="role-badge admin">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                                        </svg>
+                                        Administrateur
+                                    </span>
+                                {% else %}
+                                    <span class="role-badge user">Client</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Section -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2>Activité Récente</h2>
+                </div>
+                <div class="card-body">
+                    {% if user.lastActivityAt %}
+                        <div class="activity-info">
+                            <div class="activity-item">
+                                <span class="activity-label">Dernière activité</span>
+                                <span class="activity-value">
+                                    {{ user.lastActivityAt|format_date('long') }}
+                                    à
+                                    {{ user.lastActivityAt|format_time('short') }}
+                                </span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="no-activity">
+                            <p>Aucune activité enregistrée pour le moment.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+
+        {# ========================= PERFECT 3D CINEMATIC HEART ========================= #}
+        <div id="heart-overlay-center" class="heart-overlay-center">
+            <div id="heart-scale-wrapper" class="heart-scale-wrapper">
+                <div id="heart-center-container" class="heart-center-container">
+                    <svg class="heart-svg-3d" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <radialGradient id="h3d-bg" cx="30%" cy="30%" r="70%">
+                                <stop offset="0%" stop-color="#ff4d4d" />
+                                <stop offset="50%" stop-color="#cc0000" />
+                                <stop offset="100%" stop-color="#4d0000" />
+                            </radialGradient>
+                            
+                            <linearGradient id="h3d-hole" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#1a0000" />
+                                <stop offset="100%" stop-color="#3a0000" />
+                            </linearGradient>
+
+                            <linearGradient id="h3d-shine" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="white" stop-opacity="0.8" />
+                                <stop offset="100%" stop-color="white" stop-opacity="0" />
+                            </linearGradient>
+
+                            <filter id="shadow-blur">
+                                <feGaussianBlur stdDeviation="5" />
+                            </filter>
+                        </defs>
+
+                        <!-- Shadow -->
+                        <g style="transform: translateY(15px) scale(0.95); transform-origin: 50% 50%;">
+                            <path d="M100 170 C100 170 20 120 20 70 C20 40 45 20 70 20 C85 20 100 30 100 45 C100 30 115 20 130 20 C155 20 180 40 180 70 C180 120 100 170 100 170Z" 
+                                  fill="rgba(0,0,0,0.3)" filter="url(#shadow-blur)" />
+                        </g>
+
+                        <!-- Base Heart -->
+                        <path id="h3d-base" d="M100 170 C100 170 20 120 20 70 C20 40 45 20 70 20 C85 20 100 30 100 45 C100 30 115 20 130 20 C155 20 180 40 180 70 C180 120 100 170 100 170Z" 
+                              fill="url(#h3d-bg)" />
+
+                        <!-- Holes -->
+                        <g class="heart-holes">
+                            <path d="M 135 30 L 150 25 L 155 40 L 138 43 Z" fill="url(#h3d-hole)" />
+                            <path d="M 35 70 L 45 65 L 55 85 L 40 90 Z" fill="url(#h3d-hole)" />
+                            <path d="M 140 80 L 160 85 L 150 105 L 135 95 Z" fill="url(#h3d-hole)" />
+                            <path d="M 92 150 L 108 150 L 100 165 Z" fill="url(#h3d-hole)" />
+                        </g>
+
+                        <!-- Fragments (Cover the holes initially) -->
+                        <g class="heart-fragments">
+                            <path id="frag1" d="M 135 30 L 150 25 L 155 40 L 138 43 Z" fill="url(#h3d-bg)" stroke="rgba(204,0,0,0.8)" stroke-width="0.5" />
+                            <path id="frag2" d="M 35 70 L 45 65 L 55 85 L 40 90 Z" fill="url(#h3d-bg)" stroke="rgba(204,0,0,0.8)" stroke-width="0.5" />
+                            <path id="frag3" d="M 140 80 L 160 85 L 150 105 L 135 95 Z" fill="url(#h3d-bg)" stroke="rgba(204,0,0,0.8)" stroke-width="0.5" />
+                            <path id="frag4" d="M 92 150 L 108 150 L 100 165 Z" fill="url(#h3d-bg)" stroke="rgba(204,0,0,0.8)" stroke-width="0.5" />
+                        </g>
+
+                        <!-- Cracks -->
+                        <g class="heart-cracks">
+                            <path d="M 150 25 L 130 50 L 100 80 L 110 110" />
+                            <path d="M 45 65 L 70 80 L 80 120 L 100 140" />
+                            <path d="M 160 85 L 120 100 L 105 140" />
+                            <path d="M 100 80 L 80 100 L 55 85" />
+                            <path d="M 110 110 L 135 95" />
+                        </g>
+
+                        <!-- Glossy Shine -->
+                        <ellipse cx="65" cy="45" rx="30" ry="15" fill="url(#h3d-shine)" transform="rotate(-20, 65, 45)" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        {# ========================= AI HEALTH INSIGHTS CARD ========================= #}
+        <div id="ai-health-card" class="ai-profile-card">
+            <div class="ai-card-header">
+                <div class="ai-user-identity">
+                    <div class="ai-avatar-wrap">
+                        {% if user.avatarUrl %}
+                            <img src="{{ user.avatarUrl }}" alt="Avatar" class="ai-avatar-img">
+                        {% else %}
+                            <img src="https://api.dicebear.com/7.x/initials/svg?seed={{ user.nom|url_encode }}+{{ user.prenom|url_encode }}&backgroundColor=16563f&fontColor=ffffff" 
+                                 alt="Avatar IA" class="ai-avatar-img">
+                        {% endif %}
+                        <span class="ai-dot"></span>
+                    </div>
+                    <div class="ai-user-text">
+                        <h3>{{ user.nom }} {{ user.prenom }}</h3>
+                        <p>{{ user.email }}{% if user.telephone %} · {{ user.telephone }}{% endif %}</p>
+                    </div>
+                </div>
+                <div class="ai-header-right">
+                    <div class="ai-health-inputs">
+                        <div class="ai-input-group">
+                            <label for="input-age">🎂 Âge</label>
+                            <input type="number" id="input-age" min="1" max="120" placeholder="ex: 35" class="ai-mini-input">
+                            <span>ans</span>
+                        </div>
+                        <div class="ai-input-group">
+                            <label for="input-taille">📏 Taille</label>
+                            <input type="number" id="input-taille" min="50" max="250" placeholder="ex: 175" class="ai-mini-input">
+                            <span>cm</span>
+                        </div>
+                    </div>
+                    <span class="ai-badge"><i>✨</i> Propulsé par Ollama AI</span>
+                    <button id="btn-generate-ai" type="button" class="btn-ai-generate" onclick="generateHealthSummary()">
+                        <span id="btn-icon">🧠</span>
+                        <span id="btn-text">Analyser mon profil santé</span>
+                    </button>
+                </div>
+            </div>
+
+            {# Loading State #}
+            <div id="ai-loading" style="display:none;" class="ai-loading-state">
+                <div class="ai-spinner"></div>
+                <p>Ollama analyse votre profil complet…</p>
+            </div>
+
+            {# Error State #}
+            <div id="ai-error" style="display:none;" class="ai-error-state">
+                <span>⚠️</span>
+                <p id="ai-error-msg">Erreur de connexion à Ollama.</p>
+                <small>Lancez Ollama avec: <code>ollama serve</code> puis <code>ollama pull llama3</code></small>
+            </div>
+
+            {# Insights Display #}
+            <div id="ai-insights" style="display:none;" class="ai-insights-grid">
+            </div>
+
+            {# Default state (before generate) #}
+            <div id="ai-placeholder" class="ai-placeholder">
+                <div class="ai-placeholder-icon">🤖</div>
+                <p>Cliquez sur <strong>Analyser</strong> pour générer vos conseils santé personnalisés basés sur vos ordonnances et traitements.</p>
+            </div>
+        </div>
+
+        <div class="profile-sidebar">
+            <!-- Theme Toggle Card -->
+            <div class="profile-card theme-toggle-card">
+                <div class="card-header">
+                    <h3>Apparence</h3>
+                </div>
+                <div class="card-body">
+                    <div class="theme-switch-wrapper">
+                        <span class="theme-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon theme-icon--sun">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3"></line>
+                                <line x1="12" y1="21" x2="12" y2="23"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                <line x1="1" y1="12" x2="3" y2="12"></line>
+                                <line x1="21" y1="12" x2="23" y2="12"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon theme-icon--moon" style="display: none;">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                            Mode Sombre
+                        </span>
+                        <label class="theme-switch">
+                            <input type="checkbox" id="theme-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="theme-description">Basculez entre le mode clair et le mode sombre</p>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h3>Liens Rapides</h3>
+                </div>
+                <div class="card-body">
+                    <div class="quick-links">
+                        <a href="{{ path('app_ordonnances') }}" class="quick-link-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                            Mes Commandes
+                        </a>
+
+                        <a href="{{ path('app_ordonnances') }}" class="quick-link-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                            Mes Traitements
+                        </a>
+
+                        <a href="{{ path('app_mes_adresses') }}" class="quick-link-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            Mes Adresses
+                        </a>
+
+                        <a href="{{ path('app_contact') }}" class="quick-link-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            Mes Tickets
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Dashboard Link -->
+            {% if is_granted('ROLE_ADMIN') %}
+                <div class="profile-card">
+                    <div class="card-header">
+                        <h3>Administration</h3>
+                    </div>
+                    <div class="card-body">
+                        <a href="{{ path('admin_dashboard') }}" class="btn-admin-dashboard">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                            </svg>
+                            Accéder au Tableau de Bord
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- AI Stress Scan Modal -->
+<div id="stressScanModal" class="stress-scan-modal">
+    <div class="stress-scan-container">
+        <div class="scan-modal-header">
+            <h3 class="scan-modal-title">AI Stress Analysis</h3>
+            <button type="button" class="btn-close-modal" id="closeStressModal">&times;</button>
+        </div>
+        <div class="scan-video-container">
+            <video id="stressScanVideo" playsinline></video>
+            <canvas id="stressScanCanvas"></canvas>
+            <div class="scan-overlay" id="stressScanOverlay">
+                <div class="scan-face-guide"></div>
+            </div>
+        </div>
+        <div class="scan-controls">
+            <div class="scan-status status-loading" id="stressScanStatus">Initializing camera...</div>
+            <div class="scan-actions">
+                <button type="button" class="btn-analyze" id="analyzeStressBtn" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19 12a7 7 0 1 0-14 0 7 7 0 0 0 14 0z"></path>
+                    </svg>
+                    Analyze
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Stress Scan Result Modal -->
+<div id="stressResultModal" class="stress-result-modal">
+    <div class="stress-result-container">
+        <div class="result-icon" id="resultIcon">📊</div>
+        <div class="stress-score">
+            <div class="stress-score-value">0%</div>
+            <div class="stress-score-label">Stress Score</div>
+        </div>
+        <div class="stress-pattern">Analyzing...</div>
+        <div class="stress-level">Please wait</div>
+        <div class="product-recommendation" style="display: none;"></div>
+        <div class="result-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeStressResult()">Close</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ============================================
+       MODERN PROFILE HEADER - SaaS Dashboard 2026
+       ============================================ */
+    
+    .profile-container {
+        background: #f8fafc;
+        min-height: 100vh;
+        padding: 60px 2rem 2rem;
+        margin-top: 0;
+    }
+    
+    /* Profile Header Card */
+    .profile-header-card {
+        position: relative;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 
+            0 4px 6px -1px rgba(0, 0, 0, 0.02),
+            0 10px 15px -3px rgba(0, 0, 0, 0.04),
+            0 20px 40px -8px rgba(0, 0, 0, 0.08);
+        overflow: visible;
+        margin: 40px auto 2rem;
+        max-width: 1200px;
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Animated Background */
+    .profile-header-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 180px;
+        overflow: visible;
+        z-index: 0;
+        background: 
+            radial-gradient(ellipse at 20% 0%, rgba(34, 197, 94, 0.15) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 0%, rgba(22, 86, 63, 0.12) 0%, transparent 50%),
+            radial-gradient(ellipse at 50% 100%, rgba(34, 197, 94, 0.08) 0%, transparent 50%);
+        background-size: 200% 200%;
+        animation: gradientMove 15s ease infinite;
+    }
+    
+    @keyframes gradientMove {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    
+    .profile-header-bg::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 70%);
+        animation: floatBlob 20s ease-in-out infinite;
+    }
+    
+    @keyframes floatBlob {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        33% { transform: translate(30px, -30px) rotate(120deg); }
+        66% { transform: translate(-20px, 20px) rotate(240deg); }
+    }
+    
+    /* Header Content */
+    .profile-header-content {
+        position: relative;
+        padding: 40px;
+        display: grid;
+        grid-template-columns: auto 1fr auto auto;
+        gap: 32px;
+        align-items: center;
+    }
+    
+    /* Avatar Section */
+    .profile-avatar-section {
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+    }
+    
+    .profile-avatar-wrapper-modern {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .profile-avatar-modern {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid white;
+        box-shadow: 
+            0 4px 15px rgba(0, 0, 0, 0.1),
+            0 8px 30px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        color: #16a34a;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        overflow: hidden;
+    }
+    
+    .profile-avatar-modern:hover {
+        transform: scale(1.05);
+    }
+    
+    .profile-avatar-img-modern {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    /* Status Dot */
+    .profile-status-dot {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        width: 20px;
+        height: 20px;
+        background: #22c55e;
+        border: 3px solid white;
+        border-radius: 50%;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+    }
+    
+    /* Edit Button */
+    .avatar-edit-btn-modern {
+        position: absolute;
+        bottom: 0;
+        right: -8px;
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #16563f 0%, #1e6b47 100%);
+        border: 3px solid white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 4px 12px rgba(22, 86, 63, 0.3);
+    }
+    
+    .avatar-edit-btn-modern:hover {
+        transform: scale(1.1);
+        box-shadow: 
+            0 6px 20px rgba(22, 86, 63, 0.4),
+            0 0 20px rgba(34, 197, 94, 0.3);
+    }
+    
+    /* Info Section */
+    .profile-info-section {
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+    }
+    
+    .profile-name-modern {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0 0 8px 0;
+        letter-spacing: -0.025em;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .profile-email-modern {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #64748b;
+        font-size: 0.95rem;
+        margin: 0;
+    }
+    
+    .profile-email-modern svg {
+        color: #94a3b8;
+    }
+    
+    /* Meta Cards */
+    .profile-meta-cards {
+        display: flex;
+        gap: 16px;
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+    }
+    
+    .meta-card-modern {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: white;
+        padding: 16px 20px;
+        border-radius: 12px;
+        box-shadow: 
+            0 1px 3px rgba(0, 0, 0, 0.04),
+            0 4px 12px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 1px solid rgba(0, 0, 0, 0.02);
+    }
+    
+    .meta-card-modern:hover {
+        transform: translateY(-4px);
+        box-shadow: 
+            0 4px 6px rgba(0, 0, 0, 0.04),
+            0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+    
+    .meta-card-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #16a34a;
+    }
+    
+    .meta-card-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .meta-card-label {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 500;
+    }
+    
+    .meta-card-value {
+        font-size: 0.9rem;
+        color: #1e293b;
+        font-weight: 600;
+    }
+    
+    /* Status Badge */
+    .status-badge-modern {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        color: #16a34a;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        box-shadow: 0 0 12px rgba(34, 197, 94, 0.2);
+    }
+    
+    /* Action Button */
+    .profile-action-section {
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+    }
+    
+    .btn-edit-profile-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #16563f 0%, #1e6b47 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 
+            0 4px 12px rgba(22, 86, 63, 0.25),
+            0 0 0 0 rgba(22, 86, 63, 0);
+    }
+    
+    .btn-edit-profile-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 
+            0 8px 20px rgba(22, 86, 63, 0.35),
+            0 0 20px rgba(34, 197, 94, 0.25);
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .profile-header-content {
+            grid-template-columns: auto 1fr;
+            gap: 24px;
+        }
+        
+        .profile-meta-cards {
+            grid-column: span 2;
+        }
+        
+        .profile-action-section {
+            grid-column: span 2;
+        }
+    }
+    
+    @media (max-width: 640px) {
+        .profile-header-content {
+            grid-template-columns: 1fr;
+            text-align: center;
+            padding: 32px 20px;
+        }
+        
+        .profile-avatar-section {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .profile-info-section {
+            text-align: center;
+        }
+        
+        .profile-email-modern {
+            justify-content: center;
+        }
+        
+        .profile-meta-cards {
+            flex-direction: column;
+            grid-column: auto;
+        }
+        
+        .profile-action-section {
+            grid-column: auto;
+        }
+        
+        .btn-edit-profile-modern {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* ============================================
+       SECURITY CARD STYLES (Existing - Kept)
+       ============================================ */
+
+    /* Security Card Styles */
+    .security-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+    
+    .security-card-header {
+        display: flex;
+        align-items: center;
+        padding: 24px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .security-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #16a34a;
+        margin-right: 16px;
+    }
+    
+    .security-title {
+        flex: 1;
+    }
+    
+    .security-title h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 4px 0;
+    }
+    
+    .security-title p {
+        font-size: 13px;
+        color: #6b7280;
+        margin: 0;
+    }
+    
+    .security-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+    
+    .security-badge-enabled {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+    
+    .security-badge-disabled {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+    
+    .security-badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        margin-right: 6px;
+    }
+    
+    .security-badge-enabled .security-badge-dot {
+        background: #16a34a;
+    }
+    
+    .security-badge-disabled .security-badge-dot {
+        background: #dc2626;
+    }
+    
+    .security-card-body {
+        padding: 24px;
+    }
+    
+    .security-description {
+        font-size: 14px;
+        color: #6b7280;
+        line-height: 1.6;
+        margin: 0 0 20px 0;
+    }
+    
+    .security-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+    }
+    
+    .security-btn-enable {
+        background: linear-gradient(135deg, #16563f 0%, #1e6b47 100%);
+        color: white;
+    }
+    
+    .security-btn-enable:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(22, 86, 63, 0.25);
+    }
+    
+    .security-btn-disable {
+        background: white;
+        color: #dc2626;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .security-btn-disable:hover {
+        background: #fef2f2;
+        border-color: #fca5a5;
+    }
+    
+    .profile-container {
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding-bottom: 4rem;
+    }
+
+    .profile-cover-section {
+        background: white;
+        position: relative;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-cover-background {
+        height: 200px;
+        background: linear-gradient(135deg, #16563f 0%, #1e6b47 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-cover-background::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120"><path fill="%23ffffff" fill-opacity="0.1" d="M0,50L100,58C200,67,400,83,600,83C800,83,1000,67,1200,58C1300,53,1400,50,1440,48L1440,120L1400,120C1300,120,1100,120,900,120C700,120,500,120,300,120C100,120,0,120,0,120Z"></path></svg>') no-repeat bottom;
+        background-size: cover;
+    }
+
+    .profile-header-content {
+        display: flex;
+        align-items: flex-end;
+        gap: 2rem;
+        padding: 0 2rem 2rem;
+        margin-top: -60px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .profile-avatar-wrapper {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .profile-avatar-large {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #16563f, #28a745);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        border: 5px solid white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .profile-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .avatar-edit-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #16563f, #28a745);
+        border: 2px solid white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+    }
+
+    .avatar-edit-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(22, 86, 63, 0.3);
+    }
+
+    .profile-status-indicator {
+        position: absolute;
+        bottom: -10px;
+        right: 0;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: white;
+        border: 2px solid #28a745;
+        color: #28a745;
+    }
+
+    .status-badge.online {
+        background: transparent;
+        border: none;
+        padding: 0;
+    }
+    
+    .status-dot {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        background: #22c55e;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 0 0 2px #22c55e;
+    }
+    
+    .profile-status-indicator {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+    }
+
+    .profile-basic-info {
+        flex-grow: 1;
+        padding-bottom: 0.5rem;
+    }
+
+    .profile-name {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-email {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6c757d;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .profile-meta-info {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .meta-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .meta-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .profile-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn-edit-profile {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        background: linear-gradient(135deg, #16563f, #1e6b47);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        font-size: 0.95rem;
+    }
+
+    .btn-edit-profile:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(22, 86, 63, 0.3);
+    }
+
+    .profile-content {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .profile-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        transition: box-shadow 0.3s ease;
+    }
+
+    .profile-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 2px solid #f0f2f5;
+        background: #fafbfc;
+    }
+
+    .card-header h2,
+    .card-header h3 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #16563f;
+        margin: 0;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .loyalty-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .loyalty-item {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .loyalty-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .loyalty-icon.level {
+        background: linear-gradient(135deg, #16563f, #1e6b47);
+    }
+
+    .loyalty-icon.points {
+        background: linear-gradient(135deg, #ffc107, #ff9800);
+    }
+
+    .loyalty-icon.segment {
+        background: linear-gradient(135deg, #28a745, #20c997);
+    }
+
+    .loyalty-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .loyalty-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .loyalty-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .loyalty-description {
+        padding: 1rem;
+        background: #f0f8f5;
+        border-radius: 8px;
+        border-left: 4px solid #16563f;
+    }
+
+    .loyalty-description p {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 0.95rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .info-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-value {
+        font-size: 1rem;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-badge.status-actif {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-badge.status-suspendu {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-badge.status-desactif {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        width: fit-content;
+    }
+
+    .role-badge.admin {
+        background: #cfe2ff;
+        color: #084298;
+    }
+
+    .role-badge.user {
+        background: #f0f8f5;
+        color: #16563f;
+    }
+
+    .activity-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .activity-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #16563f;
+    }
+
+    .activity-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 600;
+    }
+
+    .activity-value {
+        font-size: 1rem;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+
+    .no-activity {
+        text-align: center;
+        padding: 2rem;
+        color: #6c757d;
+    }
+
+    .quick-links {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .quick-link-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.8rem 1rem;
+        border-radius: 8px;
+        color: #16563f;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        background: white;
+        border: 1px solid #e9ecef;
+    }
+
+    .quick-link-item:hover {
+        background: #f0f8f5;
+        border-color: #16563f;
+        transform: translateX(4px);
+    }
+
+    .quick-link-item svg {
+        color: #28a745;
+    }
+
+    .btn-admin-dashboard {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 0.8rem;
+        background: linear-gradient(135deg, #16563f, #1e6b47);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .btn-admin-dashboard:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(22, 86, 63, 0.3);
+    }
+
+    .profile-sidebar {
+        /* Sidebar content */
+    }
+
+    @media (max-width: 768px) {
+        .profile-content {
+            grid-template-columns: 1fr;
+        }
+
+        .profile-header-content {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 0 1.5rem 1.5rem;
+            margin-top: -50px;
+        }
+
+        .profile-meta-info {
+            justify-content: center;
+        }
+
+        .loyalty-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .profile-name {
+            font-size: 1.5rem;
+        }
+
+        .profile-avatar-large {
+            width: 100px;
+            height: 100px;
+        }
+    }
+    .theme-toggle-card .card-body {
+        padding: 1rem;
+    }
+
+    .theme-switch-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 10px 0;
+    }
+
+    .theme-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+        color: var(--text-color);
+    }
+
+    .theme-icon {
+        color: #f59e0b;
+    }
+
+    .theme-icon--moon {
+        display: none;
+    }
+
+    .theme-switch {
+        display: inline-block;
+        height: 28px;
+        position: relative;
+        width: 50px;
+    }
+
+    .theme-switch input {
+        display: none;
+    }
+
+    .theme-switch .slider {
+        background-color: #ccc;
+        bottom: 0;
+        cursor: pointer;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .theme-switch .slider:before {
+        background-color: #fff;
+        bottom: 4px;
+        content: "";
+        height: 20px;
+        left: 4px;
+        position: absolute;
+        transition: .4s;
+        width: 20px;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .theme-switch input:checked + .slider {
+        background-color: var(--primary-color);
+    }
+
+    .theme-switch input:checked + .slider:before {
+        transform: translateX(22px);
+    }
+
+    .theme-description {
+        font-size: 0.85rem;
+        color: var(--muted-text);
+        margin-top: 0.5rem;
+    }
+
+    /* Dark mode specific styles for theme toggle */
+    body.dark-mode .theme-icon--sun {
+        display: none;
+    }
+
+    body.dark-mode .theme-icon--moon {
+        display: inline-block;
+        color: #f1c40f;
+    }
+
+    body.dark-mode .theme-label {
+        color: var(--text-color);
+    }
+
+    /* ========================= AI HEALTH CARD STYLES ========================= */
+    .ai-profile-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 24px rgba(22,86,63,0.10), 0 1.5px 6px rgba(0,0,0,0.04);
+        margin: 0 auto 2rem;
+        max-width: 1200px;
+        overflow: hidden;
+        border: 1.5px solid rgba(22,86,63,0.08);
+        animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+    }
+
+    .ai-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 28px 32px 24px;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-bottom: 1px solid rgba(22,86,63,0.08);
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .ai-user-identity {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .ai-avatar-wrap {
+        position: relative;
+    }
+
+    .ai-avatar-img {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 4px 14px rgba(22,86,63,0.18);
+        object-fit: cover;
+    }
+
+    .ai-dot {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 14px;
+        height: 14px;
+        background: #22c55e;
+        border: 2.5px solid white;
+        border-radius: 50%;
+        box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
+    }
+
+    .ai-user-text h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0 0 4px;
+    }
+
+    .ai-user-text p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    .ai-header-right {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    .ai-health-inputs {
+        display: flex;
+        gap: 12px;
+        background: white;
+        border: 1px solid rgba(22,86,63,0.15);
+        border-radius: 12px;
+        padding: 10px 14px;
+        box-shadow: 0 2px 8px rgba(22,86,63,0.06);
+    }
+
+    .ai-input-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        color: #475569;
+    }
+
+    .ai-input-group label {
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .ai-mini-input {
+        width: 64px;
+        padding: 4px 8px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 7px;
+        font-size: 0.85rem;
+        text-align: center;
+        transition: border-color 0.2s;
+        background: #f8fafc;
+    }
+
+    .ai-mini-input:focus {
+        outline: none;
+        border-color: #16563f;
+        background: white;
+    }
+
+    .ai-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: white;
+        border: 1px solid rgba(22,86,63,0.18);
+        color: #16563f;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(22,86,63,0.08);
+    }
+
+    .btn-ai-generate {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, #16563f 0%, #1e6b47 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 4px 14px rgba(22,86,63,0.28);
+    }
+
+    .btn-ai-generate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(22,86,63,0.38);
+    }
+
+    .btn-ai-generate:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .ai-loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px;
+        color: #64748b;
+        gap: 16px;
+    }
+
+    .ai-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid rgba(22,86,63,0.15);
+        border-top: 4px solid #16563f;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .ai-error-state {
+        padding: 28px 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        color: #dc2626;
+        background: #fef2f2;
+        text-align: center;
+    }
+
+    .ai-error-state code {
+        background: #fee2e2;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+    }
+
+    .ai-insights-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        padding: 28px 32px;
+    }
+
+    .ai-insight-card {
+        background: #f8fafc;
+        border-radius: 14px;
+        padding: 20px;
+        border-left: 4px solid #16563f;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        animation: insightPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    .ai-insight-card:nth-child(2) { animation-delay: 0.1s; }
+    .ai-insight-card:nth-child(3) { animation-delay: 0.2s; }
+
+    @keyframes insightPop {
+        from { opacity: 0; transform: translateY(20px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .ai-insight-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(22,86,63,0.12);
+    }
+
+    .ai-insight-card.priority-haute { border-left-color: #dc2626; }
+    .ai-insight-card.priority-moyenne { border-left-color: #f59e0b; }
+    .ai-insight-card.priority-basse { border-left-color: #22c55e; }
+
+    .ai-insight-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0 0 10px;
+    }
+
+    .ai-insight-text {
+        font-size: 0.875rem;
+        color: #475569;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .ai-insight-priority {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .priority-haute .ai-insight-priority { background: #fee2e2; color: #dc2626; }
+    .priority-moyenne .ai-insight-priority { background: #fef3c7; color: #d97706; }
+    .priority-basse .ai-insight-priority { background: #dcfce7; color: #16a34a; }
+
+    .ai-placeholder {
+        padding: 36px;
+        text-align: center;
+        color: #94a3b8;
+    }
+
+    .ai-placeholder-icon {
+        font-size: 3rem;
+        margin-bottom: 12px;
+    }
+
+    .ai-placeholder p {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    /* ========================= PERFECT 3D CINEMATIC HEART ========================= */
+    .heart-overlay-center {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        z-index: 100000;
+        pointer-events: none; /* Let background be interactive */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.5s ease;
+    }
+
+    .heart-overlay-center.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .heart-scale-wrapper {
+        width: 450px;
+        height: 450px;
+        transform: scale(0);
+        transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .heart-overlay-center.active .heart-scale-wrapper {
+        transform: scale(1);
+    }
+
+    .heart-center-container {
+        width: 100%;
+        height: 100%;
+    }
+
+    .heart-svg-3d {
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 20px 30px rgba(0,0,0,0.2));
+        overflow: visible;
+    }
+
+    /* SVG Structure Defaults */
+    .heart-holes path { opacity: 0; }
+    .heart-fragments path { transform-box: fill-box; transform-origin: center; }
+    .heart-cracks path { 
+        stroke: #2a0000; 
+        stroke-width: 2.5; 
+        fill: none; 
+        stroke-linecap: round; 
+        stroke-linejoin: round;
+        opacity: 0;
+        stroke-dasharray: 250;
+        stroke-dashoffset: 250;
+    }
+
+    /* ==================== BON (Perfect) ==================== */
+    .heart-state-bon .heart-center-container {
+        animation: h3d-pulse-bon 1.2s infinite ease-in-out;
+    }
+    @keyframes h3d-pulse-bon {
+        0% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(0,0,0,0)); }
+        15% { transform: scale(1.05); filter: drop-shadow(0 0 20px rgba(220,38,38,0.4)); }
+        30% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(0,0,0,0)); }
+        45% { transform: scale(1.08); filter: drop-shadow(0 0 30px rgba(220,38,38,0.6)); }
+        100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(0,0,0,0)); }
+    }
+
+    /* ==================== MOYEN (Slightly Damaged) ==================== */
+    .heart-state-moyen .heart-center-container {
+        animation: h3d-pulse-moyen 1.5s infinite;
+    }
+    .heart-state-moyen .heart-cracks path {
+        opacity: 0.5; /* Show slight fractures statically */
+        stroke-dashoffset: 150; 
+    }
+    @keyframes h3d-pulse-moyen {
+        0% { transform: scale(1) translate(0, 0); }
+        50% { transform: scale(1.02) translate(-1px, 1px); }
+        100% { transform: scale(1) translate(0, 0); }
+    }
+
+    /* ==================== MAUVAIS (Progressive Destruction) ==================== */
+    .heart-state-bad .heart-center-container {
+        animation: h3d-pulse-bad 0.3s infinite;
+    }
+    @keyframes h3d-pulse-bad {
+        0% { transform: translate(0, 0); }
+        25% { transform: translate(-2px, 2px); }
+        50% { transform: translate(2px, -1px); }
+        75% { transform: translate(-1px, -2px); }
+        100% { transform: translate(0, 0); }
+    }
+
+    /* Progressive Damage Timeline */
+    .heart-state-bad .heart-cracks path {
+        opacity: 1;
+        animation: h3d-draw-cracks 2s forwards ease-in-out 0.5s;
+    }
+    @keyframes h3d-draw-cracks {
+        to { stroke-dashoffset: 0; }
+    }
+
+    .heart-state-bad .heart-holes path {
+        opacity: 1; /* Always active in bad, but covered by fragments until they fall */
+    }
+
+    /* Fragments fall over time */
+    .heart-state-bad #frag1 { animation: h3d-drop1 1.5s forwards cubic-bezier(0.55, 0.085, 0.68, 0.53) 1.5s; }
+    .heart-state-bad #frag2 { animation: h3d-drop2 1.5s forwards cubic-bezier(0.55, 0.085, 0.68, 0.53) 2.2s; }
+    .heart-state-bad #frag3 { animation: h3d-drop3 1.5s forwards cubic-bezier(0.55, 0.085, 0.68, 0.53) 2.8s; }
+    .heart-state-bad #frag4 { animation: h3d-drop4 1.5s forwards cubic-bezier(0.55, 0.085, 0.68, 0.53) 3.5s; }
+
+    @keyframes h3d-drop1 { 100% { transform: translate(40px, 150px) rotate(45deg); opacity: 0; } }
+    @keyframes h3d-drop2 { 100% { transform: translate(-50px, 120px) rotate(-60deg); opacity: 0; } }
+    @keyframes h3d-drop3 { 100% { transform: translate(60px, 100px) rotate(80deg); opacity: 0; } }
+    @keyframes h3d-drop4 { 100% { transform: translate(0px, 180px) rotate(-30deg); opacity: 0; } }
+
+    /* Modern Animations */
+    @keyframes heartbeat {
+        0% { transform: scale(1); filter: drop-shadow(0 20px 40px rgba(0,0,0,0.15)); }
+        15% { transform: scale(1.08); filter: drop-shadow(0 25px 50px rgba(0,0,0,0.2)); }
+        30% { transform: scale(1); filter: drop-shadow(0 20px 40px rgba(0,0,0,0.15)); }
+        45% { transform: scale(1.12); filter: drop-shadow(0 30px 60px rgba(0,0,0,0.25)); }
+        100% { transform: scale(1); filter: drop-shadow(0 20px 40px rgba(0,0,0,0.15)); }
+    }
+
+    .heart-beat {
+        animation: heartbeat 1.5s infinite var(--heart-ease, cubic-bezier(0.445, 0.05, 0.55, 0.95));
+    }
+
+    @keyframes crackReveal {
+        0% { transform: scale(1); }
+        90% { transform: scale(1); }
+        95% { transform: scale(0.98) rotate(-1deg); }
+        100% { transform: scale(1); }
+    }
+
+    .crack-reveal {
+        animation: crackReveal 0.4s forwards;
+    }
+
+    @keyframes cardFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+</style>
+
+<script>
+// Restore saved values from localStorage
+document.addEventListener('DOMContentLoaded', function() {
+    const savedAge = localStorage.getItem('curavita_age');
+    const savedTaille = localStorage.getItem('curavita_taille');
+    if (savedAge) document.getElementById('input-age').value = savedAge;
+    if (savedTaille) document.getElementById('input-taille').value = savedTaille;
+});
+
+function showCenterHeartTextless(verdict) {
+    const overlay = document.getElementById('heart-overlay-center');
+    const container = document.getElementById('heart-center-container');
+
+    // Reset classes
+    container.className = 'heart-center-container';
+    
+    // Force a browser reflow so CSS animations restart properly
+    void container.offsetWidth;
+
+    // Apply strict cinematic state based on verdict
+    if (verdict === 'bon') {
+        container.classList.add('heart-state-bon');
+    } else if (verdict === 'moyen') {
+        container.classList.add('heart-state-moyen');
+    } else {
+        container.classList.add('heart-state-bad');
+    }
+
+    // Show the overlay (scales in)
+    overlay.classList.add('active');
+
+    // Auto-hide after exactly 5 seconds
+    setTimeout(() => {
+        overlay.classList.remove('active');
+    }, 5000);
+}
+
+async function generateHealthSummary() {
+    const btn = document.getElementById('btn-generate-ai');
+    const btnText = document.getElementById('btn-text');
+    const btnIcon = document.getElementById('btn-icon');
+    const loading = document.getElementById('ai-loading');
+    const error = document.getElementById('ai-error');
+    const insights = document.getElementById('ai-insights');
+    const placeholder = document.getElementById('ai-placeholder');
+    const errorMsg = document.getElementById('ai-error-msg');
+
+    // Read and persist age/height
+    const age = document.getElementById('input-age').value;
+    const taille = document.getElementById('input-taille').value;
+    if (age) localStorage.setItem('curavita_age', age);
+    if (taille) localStorage.setItem('curavita_taille', taille);
+
+    // Set loading state
+    btn.disabled = true;
+    btnIcon.textContent = '⏳';
+    btnText.textContent = 'Analyse en cours...';
+    placeholder.style.display = 'none';
+    insights.style.display = 'none';
+    error.style.display = 'none';
+    loading.style.display = 'flex';
+
+    try {
+        const response = await fetch('{{ path('app_profile_ai_summary') }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body: JSON.stringify({ age: age || null, taille: taille || null })
+        });
+
+        const rawText = await response.text();
+        let data;
+        try {
+            data = JSON.parse(rawText.trim());
+        } catch (e) {
+            // Try to find the LAST valid JSON-looking block (our response)
+            const firstBrace = rawText.indexOf('{');
+            const lastBrace = rawText.lastIndexOf('}');
+            
+            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+                const potentialJson = rawText.substring(firstBrace, lastBrace + 1);
+                try {
+                    data = JSON.parse(potentialJson);
+                } catch (e2) {
+                    // One last attempt: find the largest block that is valid JSON
+                    console.error("JSON split attempt failed, raw text:", rawText);
+                    throw new Error("Erreur de format JSON: " + e.message);
+                }
+            } else {
+                throw new Error("Réponse serveur invalide (pas de JSON trouvé).");
+            }
+        }
+
+        if (data.success && data.insights) {
+            loading.style.display = 'none';
+            insights.style.display = 'grid';
+            insights.innerHTML = '';
+
+            data.insights.forEach(insight => {
+                const priorityClass = 'priority-' + (insight.priorite || 'basse').toLowerCase().replace('é', 'e');
+                const card = document.createElement('div');
+                card.className = 'ai-insight-card ' + priorityClass;
+                card.innerHTML = `
+                    <h4 class="ai-insight-title">${insight.titre || ''}</h4>
+                    <p class="ai-insight-text">${insight.conseil || ''}</p>
+                    <span class="ai-insight-priority">${insight.priorite || 'info'}</span>
+                `;
+                insights.appendChild(card);
+            });
+
+            // Trigger the cinematic 3D center heart
+            showCenterHeartTextless(data.verdict || 'moyen');
+
+            btnIcon.textContent = '✅';
+            btnText.textContent = 'Régénérer l\'analyse';
+        } else {
+            throw new Error(data.error || 'Réponse inattendue');
+        }
+    } catch (err) {
+        loading.style.display = 'none';
+        error.style.display = 'flex';
+        errorMsg.textContent = err.message;
+    } finally {
+        btn.disabled = false;
+    }
+}
+</script>
+
+<!-- Air Mouse Modal -->
+<div id="airMouseModal" class="air-mouse-modal">
+    <div class="air-mouse-modal-content">
+        <button class="air-mouse-minimize-btn" id="airMouseMinimize" title="Minimiser">−</button>
+        <button class="air-mouse-close-btn" id="airMouseClose">✕</button>
+        
+        <div class="air-mouse-modal-header">
+            <h2>🖱️ Air Mouse</h2>
+            <p>Contrôlez votre curseur avec votre main</p>
+        </div>
+
+        <div class="air-mouse-modal-body">
+            <div class="video-canvas-wrapper-modal">
+                <video id="videoInputModal" autoplay muted playsinline></video>
+                <canvas id="canvasOutputModal"></canvas>
+            </div>
+
+            <div class="air-mouse-control-panel">
+                <div class="toggle-switch-modal">
+                    <button class="switch-button-modal" id="toggleButtonModal">
+                        <div class="switch-slider"></div>
+                    </button>
+                    <span class="switch-label-modal" id="switchLabelModal">OFF</span>
+                </div>
+
+                <div class="stats-panel-modal">
+                    <div class="stat-item-modal">
+                        <span>Status:</span>
+                        <span id="statusValueModal">Inactif</span>
+                    </div>
+                    <div class="stat-item-modal">
+                        <span>FPS:</span>
+                        <span id="fpsModal">0</span>
+                    </div>
+                    <div class="stat-item-modal">
+                        <span>Main:</span>
+                        <span id="handDetectedModal">Non</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="air-mouse-instructions">
+            <strong>📋 Instructions:</strong>
+            <ul>
+                <li>Cliquer ON pour démarrer</li>
+                <li>Pointe avec l'index</li>
+                <li>Pince pouce + index pour cliquer</li>
+                <li>Cliquer OFF pour arrêter</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Minimized Air Mouse floating preview (shown when modal is minimized while active) -->
+<div id="airMouseMiniPreview" class="air-mouse-mini-preview" style="display:none;">
+    <span class="mini-preview-label">📹 Air Mouse</span>
+    <div class="mini-preview-video-wrap">
+        <!-- Video/canvas will be moved here when minimized -->
+    </div>
+    <div class="mini-preview-controls">
+        <button id="miniPreviewExpand" class="mini-preview-btn" title="Agrandir">⤢</button>
+        <button id="miniPreviewStop" class="mini-preview-btn mini-preview-stop" title="Arrêter">■</button>
+    </div>
+    <div class="mini-preview-status">
+        <span class="mini-status-dot"></span>
+        <span id="miniStatusText">Actif</span>
+    </div>
+</div>
+
+<!-- MediaPipe CDN Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+<style>
+.btn-air-mouse-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.btn-air-mouse-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.5);
+}
+
+.profile-action-section {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/* Air Mouse Modal */
+.air-mouse-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.air-mouse-modal.active {
+    display: flex;
+}
+
+.air-mouse-modal-content {
+    background: linear-gradient(135deg, #1e1e2e 0%, #0f0f1e 100%);
+    border-radius: 20px;
+    border: 2px solid rgba(34, 197, 94, 0.2);
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.air-mouse-close-btn,
+.air-mouse-minimize-btn {
+    position: absolute;
+    top: 15px;
+    width: 35px;
+    height: 35px;
+    background: rgba(255, 0, 0, 0.2);
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 10000;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.air-mouse-close-btn {
+    right: 15px;
+}
+
+.air-mouse-minimize-btn {
+    right: 60px;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    font-size: 24px;
+}
+
+.air-mouse-close-btn:hover {
+    background: rgba(255, 0, 0, 0.4);
+}
+
+.air-mouse-minimize-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Minimized floating preview */
+.air-mouse-mini-preview {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 180px;
+    background: rgba(15, 15, 30, 0.95);
+    border-radius: 12px;
+    border: 2px solid rgba(34, 197, 94, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    z-index: 10001;
+    overflow: hidden;
+    padding: 8px;
+}
+
+.mini-preview-label {
+    display: block;
+    color: #22c55e;
+    font-size: 10px;
+    font-weight: bold;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.mini-preview-video-wrap {
+    width: 100%;
+    height: 100px;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.mini-preview-video-wrap video,
+.mini-preview-video-wrap canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+}
+
+.mini-preview-controls {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 6px;
+}
+
+.mini-preview-btn {
+    width: 28px;
+    height: 22px;
+    background: rgba(34, 197, 94, 0.2);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.mini-preview-btn:hover {
+    background: rgba(34, 197, 94, 0.4);
+}
+
+.mini-preview-stop {
+    background: rgba(255, 100, 100, 0.2);
+    border-color: rgba(255, 100, 100, 0.4);
+    color: #ff6464;
+}
+
+.mini-preview-stop:hover {
+    background: rgba(255, 100, 100, 0.4);
+}
+
+.mini-preview-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    color: #888;
+    font-size: 9px;
+}
+
+.mini-status-dot {
+    width: 6px;
+    height: 6px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: miniStatusPulse 1.5s infinite;
+}
+
+@keyframes miniStatusPulse {
+    0%, 100% { box-shadow: 0 0 3px rgba(34, 197, 94, 0.5); }
+    50% { box-shadow: 0 0 6px rgba(34, 197, 94, 0.8); }
+}
+
+/* Modal minimized state - used when modal is minimized but not closed */
+.air-mouse-modal.minimized {
+    display: none;
+}
+
+.air-mouse-modal-header {
+    padding: 25px;
+    border-bottom: 1px solid rgba(34, 197, 94, 0.1);
+    text-align: center;
+    color: white;
+}
+
+.air-mouse-modal-header h2 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+}
+
+.air-mouse-modal-header p {
+    margin: 0;
+    color: #999;
+    font-size: 14px;
+}
+
+.air-mouse-modal-body {
+    padding: 25px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.video-canvas-wrapper-modal {
+    position: relative;
+    flex: 1;
+    min-width: 300px;
+    aspect-ratio: 4/3;
+    background: #000;
+    border-radius: 15px;
+    overflow: hidden;
+    border: 2px solid rgba(34, 197, 94, 0.2);
+}
+
+.video-canvas-wrapper-modal video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-canvas-wrapper-modal canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.air-mouse-control-panel {
+    flex: 0 0 250px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.toggle-switch-modal {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.switch-button-modal {
+    width: 55px;
+    height: 30px;
+    background: #444;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.3s;
+    padding: 0;
+}
+
+.switch-button-modal.active {
+    background: #22c55e;
+}
+
+.switch-button-modal .switch-slider {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: left 0.3s;
+}
+
+.switch-button-modal.active .switch-slider {
+    left: 27px;
+}
+
+.switch-label-modal {
+    color: #fff;
+    font-weight: 600;
+    min-width: 40px;
+}
+
+.stats-panel-modal {
+    color: #22c55e;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+}
+
+.stat-item-modal {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(34, 197, 94, 0.1);
+}
+
+.air-mouse-instructions {
+    padding: 20px 25px;
+    background: rgba(34, 197, 94, 0.1);
+    border-top: 1px solid rgba(34, 197, 94, 0.1);
+    color: #ccc;
+    font-size: 13px;
+}
+
+.air-mouse-instructions strong {
+    color: #22c55e;
+}
+
+.air-mouse-instructions ul {
+    margin: 10px 0 0 20px;
+    padding: 0;
+}
+
+.air-mouse-instructions li {
+    margin: 5px 0;
+}
+
+/* Modal Cursor */
+.air-mouse-cursor-modal {
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    pointer-events: none;
+    z-index: 99999;
+    display: none;
+    background: rgba(34, 197, 94, 0.1);
+    border-radius: 50%;
+}
+
+.air-mouse-cursor-modal .cursor-ring {
+    width: 100%;
+    height: 100%;
+    border: 3px solid #22c55e;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.8),
+                inset 0 0 10px rgba(34, 197, 94, 0.4);
+    animation: cursorGlowModal 1.5s infinite;
+}
+
+.air-mouse-cursor-modal .cursor-dot {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #22c55e;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
+}
+
+@keyframes cursorGlowModal {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.8),
+                    inset 0 0 10px rgba(34, 197, 94, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(34, 197, 94, 1),
+                    inset 0 0 15px rgba(34, 197, 94, 0.6);
+    }
+}
+
+@media (max-width: 768px) {
+    .air-mouse-modal-body {
+        flex-direction: column;
+    }
+    
+    .air-mouse-control-panel {
+        flex: 1;
+        width: 100%;
+    }
+}
+</style>
+
+{# ID Card Scan CSS #}
+<link rel="stylesheet" href="{{ asset('assets/css/id-scan.css') }}">
+
+{# Tesseract.js for OCR #}
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+{# ID Scan JavaScript #}
+<script src="{{ asset('js/id-scan.js') }}"></script>
+
+{# AI Stress Scan CSS #}
+<link rel="stylesheet" href="{{ asset('assets/css/ai-stress-scan.css') }}">
+
+{# AI Stress Scan JavaScript #}
+<script src="{{ asset('js/ai-stress-scan.js') }}"></script>
+
+<script>
+    // Air Mouse Modal initialization with auto-minimize feature
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('airMouseModal');
+        const openBtn = document.getElementById('airMouseBtn');
+        const closeBtn = document.getElementById('airMouseClose');
+        const minimizeBtn = document.getElementById('airMouseMinimize');
+        const miniPreview = document.getElementById('airMouseMiniPreview');
+        const miniPreviewExpand = document.getElementById('miniPreviewExpand');
+        const miniPreviewStop = document.getElementById('miniPreviewStop');
+        
+        // Video and canvas elements from modal
+        const videoInputModal = document.getElementById('videoInputModal');
+        const canvasOutputModal = document.getElementById('canvasOutputModal');
+        
+        // Mini preview video wrap
+        const miniVideoWrap = document.querySelector('.mini-preview-video-wrap');
+        
+        let isAirMouseActive = false;
+        
+        // Save state to sessionStorage
+        function saveAirMouseState(active) {
+            try {
+                sessionStorage.setItem('airMouseActive', active ? 'true' : 'false');
+            } catch(e) {}
+        }
+        
+        // Check if we should auto-start Air Mouse from previous page
+        function checkAutoStart() {
+            try {
+                const wasActive = sessionStorage.getItem('airMouseActive');
+                if (wasActive === 'true' && modal && !window.airMouseStarted) {
+                    // Auto-start Air Mouse
+                    window.airMouseStarted = true;
+                    setTimeout(() => {
+                        if (window.airMouse && !window.airMouse.isActive) {
+                            modal.classList.add('active');
+                            setTimeout(() => {
+                                window.airMouse.toggle();
+                            }, 500);
+                        }
+                    }, 1000);
+                }
+            } catch(e) {}
+        }
+        
+        // Wait for airmouse.js to be ready
+        const initModal = setInterval(() => {
+            if (typeof window.airMouse !== 'undefined') {
+                clearInterval(initModal);
+                
+                // Check for auto-start from previous page
+                checkAutoStart();
+                
+                // Override the toggle to detect when ON is clicked
+                const originalToggle = window.airMouse.toggle.bind(window.airMouse);
+                window.airMouse.toggle = async function() {
+                    await originalToggle();
+                    isAirMouseActive = this.isActive;
+                    saveAirMouseState(isAirMouseActive);
+                    
+                    if (isAirMouseActive) {
+                        // Air mouse just turned ON - auto minimize after short delay
+                        setTimeout(() => {
+                            minimizeModalToPreview();
+                        }, 800);
+                    }
+                };
+                
+                if (openBtn) {
+                    openBtn.addEventListener('click', function() {
+                        modal.classList.add('active');
+                    });
+                }
+                
+                // Close button behavior - minimize instead of stop when active
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        if (isAirMouseActive) {
+                            // Just minimize to preview, don't stop camera
+                            minimizeModalToPreview();
+                        } else {
+                            // Not active, close completely
+                            window.airMouse.stop(true);
+                            modal.classList.remove('active');
+                        }
+                    });
+                }
+                
+                // Minimize button - always minimize to preview
+                if (minimizeBtn) {
+                    minimizeBtn.addEventListener('click', function() {
+                        if (isAirMouseActive) {
+                            minimizeModalToPreview();
+                        } else {
+                            modal.classList.remove('active');
+                        }
+                    });
+                }
+                
+                // Close modal when clicking outside
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal && isAirMouseActive) {
+                        minimizeModalToPreview();
+                    } else if (e.target === modal) {
+                        window.airMouse.stop(true);
+                        modal.classList.remove('active');
+                    }
+                });
+            }
+        }, 100);
+        
+        // Function to minimize modal to floating preview
+        function minimizeModalToPreview() {
+            if (!isAirMouseActive) return;
+            
+            // Hide modal
+            modal.classList.remove('active');
+            
+            // Move video/canvas to mini preview
+            if (miniVideoWrap && videoInputModal && canvasOutputModal) {
+                miniVideoWrap.appendChild(videoInputModal);
+                miniVideoWrap.appendChild(canvasOutputModal);
+            }
+            
+            // Show mini preview
+            miniPreview.style.display = 'block';
+        }
+        
+        // Expand mini preview back to modal
+        if (miniPreviewExpand) {
+            miniPreviewExpand.addEventListener('click', function() {
+                // Move video/canvas back to modal
+                const wrapper = document.querySelector('.video-canvas-wrapper-modal');
+                if (wrapper && videoInputModal && canvasOutputModal) {
+                    wrapper.appendChild(videoInputModal);
+                    wrapper.appendChild(canvasOutputModal);
+                }
+                
+                // Hide mini preview
+                miniPreview.style.display = 'none';
+                
+                // Show modal
+                modal.classList.add('active');
+            });
+        }
+        
+        // Stop button in mini preview - stops everything
+        if (miniPreviewStop) {
+            miniPreviewStop.addEventListener('click', function() {
+                if (window.airMouse) {
+                    window.airMouse.stop(true);
+                }
+                isAirMouseActive = false;
+                saveAirMouseState(false);
+                
+                // Hide mini preview
+                miniPreview.style.display = 'none';
+                
+                // Update toggle button state
+                const toggleBtn = document.getElementById('toggleButtonModal');
+                const switchLabel = document.getElementById('switchLabelModal');
+                if (toggleBtn) toggleBtn.classList.remove('active');
+                if (switchLabel) switchLabel.textContent = 'OFF';
+            });
+        }
+    });
+    
+    // ID Card delete function
+    async function deleteIdCard() {
+        if (!confirm('Are you sure you want to remove your ID card? This will also remove your student ID.')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('{{ path("profile_id_card_delete") }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                // Reload page to show updated state
+                window.location.reload();
+            } else {
+                alert(data.message || 'Failed to remove ID card.');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            alert('Failed to remove ID card. Please try again.');
+        }
+    }
+    
+    // Edit Student ID functions
+    function editStudentId() {
+        document.getElementById('studentIdDisplay').style.display = 'none';
+        document.getElementById('editStudentIdForm').style.display = 'block';
+        document.getElementById('editStudentIdInput').focus();
+    }
+    
+    function cancelStudentIdEdit() {
+        document.getElementById('studentIdDisplay').style.display = 'block';
+        document.getElementById('editStudentIdForm').style.display = 'none';
+    }
+    
+    async function saveStudentIdEdit() {
+        const newStudentId = document.getElementById('editStudentIdInput').value.trim().toUpperCase();
+        
+        if (!newStudentId) {
+            alert('Please enter a valid Student ID.');
+            return;
+        }
+        
+        // Validate format: 3 digits + 3 letters + 4 digits
+        const validFormat = /^\d{3}[A-Z]{3}\d{4}$/;
+        if (!validFormat.test(newStudentId)) {
+            alert('Invalid format. Student ID should be: 3 digits + 3 letters + 4 digits (e.g., 231JMT0405)');
+            return;
+        }
+        
+        try {
+            const response = await fetch('{{ path("profile_student_id_save") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ student_id: newStudentId })
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                // Update the display
+                document.getElementById('currentStudentId').textContent = newStudentId;
+                document.getElementById('studentIdDisplay').style.display = 'block';
+                document.getElementById('editStudentIdForm').style.display = 'none';
+                
+                // Show success message
+                alert('Student ID updated successfully!');
+            } else {
+                alert(data.message || 'Failed to update Student ID.');
+            }
+        } catch (error) {
+            console.error('Save error:', error);
+            alert('Failed to update Student ID. Please try again.');
+        }
+    }
+    
+    // Profile Page ID Camera Scan Functions
+    let profileIdScanModal = null;
+    let profileIdScanVideo = null;
+    let profileIdScanCanvas = null;
+    let profileIdScanStream = null;
+    let profileIdTesseractWorker = null;
+    
+    async function openProfileIdScanModal() {
+        // Create modal if not exists
+        if (!document.getElementById('profileIdScanModal')) {
+            createProfileIdScanModal();
+        }
+        
+        profileIdScanModal = document.getElementById('profileIdScanModal');
+        profileIdScanModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Initialize Tesseract
+        if (!profileIdTesseractWorker && typeof Tesseract !== 'undefined') {
+            try {
+                profileIdTesseractWorker = await Tesseract.createWorker('eng');
+            } catch (e) {
+                console.error('Tesseract init failed:', e);
+            }
+        }
+        
+        // Start camera
+        await startProfileIdCamera();
+    }
+    
+    function createProfileIdScanModal() {
+        const modalHTML = `
+            <div id="profileIdScanModal" class="id-scan-modal">
+                <div class="id-scan-container" style="max-width: 500px;">
+                    <button type="button" class="close-scan-btn" onclick="closeProfileIdScanModal()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                    
+                    <div class="id-scan-header">
+                        <h3>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="16" rx="3"></rect>
+                                <circle cx="9" cy="10" r="2"></circle>
+                                <path d="M15 8h2"></path>
+                                <path d="M15 12h2"></path>
+                                <path d="M7 16h10"></path>
+                            </svg>
+                            Scan Your ID Card
+                        </h3>
+                        <p>Position your student ID card within the frame</p>
+                    </div>
+                    
+                    <div class="video-container" style="aspect-ratio: 4/3;">
+                        <video id="profileIdScanVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+                        <canvas id="profileIdScanCanvas" style="display: none;"></canvas>
+                        
+                        <div class="scan-overlay" id="profileScanOverlay">
+                            <div class="corner-marker top-left"></div>
+                            <div class="corner-marker top-right"></div>
+                            <div class="corner-marker bottom-left"></div>
+                            <div class="corner-marker bottom-right"></div>
+                            <div class="scan-line"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="scan-status ready" id="profileScanStatus">
+                        Ready to scan
+                    </div>
+                    
+                    <button type="button" class="scan-btn" onclick="performProfileIdScan()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        Scan Now
+                    </button>
+                    
+                    <div class="security-note">
+                        <p>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            Your ID data is processed locally
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+    
+    async function startProfileIdCamera() {
+        profileIdScanVideo = document.getElementById('profileIdScanVideo');
+        profileIdScanCanvas = document.getElementById('profileIdScanCanvas');
+        
+        try {
+            updateProfileScanStatus('Accessing camera...', 'loading');
+            
+            profileIdScanStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+                audio: false
+            });
+            
+            profileIdScanVideo.srcObject = profileIdScanStream;
+            await profileIdScanVideo.play();
+            
+            profileIdScanCanvas.width = profileIdScanVideo.videoWidth || 640;
+            profileIdScanCanvas.height = profileIdScanVideo.videoHeight || 480;
+            
+            updateProfileScanStatus('Position your ID card in the frame', 'ready');
+        } catch (error) {
+            console.error('Camera error:', error);
+            updateProfileScanStatus('Camera access denied', 'error');
+        }
+    }
+    
+    function closeProfileIdScanModal() {
+        if (profileIdScanStream) {
+            profileIdScanStream.getTracks().forEach(track => track.stop());
+            profileIdScanStream = null;
+        }
+        if (profileIdScanModal) {
+            profileIdScanModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+    
+    async function performProfileIdScan() {
+        if (!profileIdScanVideo || !profileIdTesseractWorker) return;
+        
+        updateProfileScanStatus('Scanning...', 'scanning');
+        
+        try {
+            // Capture frame
+            const ctx = profileIdScanCanvas.getContext('2d');
+            ctx.drawImage(profileIdScanVideo, 0, 0, profileIdScanCanvas.width, profileIdScanCanvas.height);
+            
+            const imageData = profileIdScanCanvas.toDataURL('image/jpeg', 0.9);
+            
+            // Run OCR
+            const result = await profileIdTesseractWorker.recognize(imageData);
+            const text = result.data.text;
+            
+            console.log('OCR Result:', text);
+            
+            // Extract student ID
+            const studentId = extractStudentIdFromText(text);
+            
+            if (studentId) {
+                updateProfileScanStatus('ID found! Saving...', 'success');
+                await saveProfileStudentId(studentId);
+            } else {
+                updateProfileScanStatus('No ID detected. Try again.', 'error');
+            }
+        } catch (error) {
+            console.error('Scan error:', error);
+            updateProfileScanStatus('Scan failed. Try again.', 'error');
+        }
+    }
+    
+    function extractStudentIdFromText(text) {
+        const patterns = [
+            /(?:^|\s)(\d{3}[A-Z]{3}\d{4})(?:\s|$)/,
+            /identifiant\s*:?\s*([a-zA-Z0-9]+)/i,
+            /student\s*id\s*:?\s*([a-zA-Z0-9_-]+)/i,
+            /(?:^|\s)([A-Z]{2,4}\d{6,10})(?:\s|$)/,
+            /(?:^|\s)(\d{8,12})(?:\s|$)/,
+        ];
+        
+        for (const pattern of patterns) {
+            const match = text.match(pattern);
+            if (match && match[1]) {
+                return match[1].trim().toUpperCase();
+            }
+        }
+        
+        const fallbackMatch = text.match(/\d{3}[A-Z]{3}\d{4}/);
+        if (fallbackMatch) {
+            return fallbackMatch[0].toUpperCase();
+        }
+        
+        const lastResort = text.match(/[A-Z0-9]{10,11}/);
+        if (lastResort) {
+            return lastResort[0].toUpperCase();
+        }
+        
+        return null;
+    }
+    
+    async function saveProfileStudentId(studentId) {
+        try {
+            // First upload the image
+            const blob = await new Promise(resolve => profileIdScanCanvas.toBlob(resolve, 'image/jpeg', 0.9));
+            const formData = new FormData();
+            formData.append('id_card', blob, 'id-card-scan.jpg');
+            
+            const uploadResponse = await fetch('{{ path("profile_id_card_upload") }}', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            
+            const uploadData = await uploadResponse.json();
+            
+            if (uploadData.status !== 'success') {
+                updateProfileScanStatus('Failed to save image', 'error');
+                return;
+            }
+            
+            // Then save the student ID
+            const saveResponse = await fetch('{{ path("profile_student_id_save") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ student_id: studentId })
+            });
+            
+            const saveData = await saveResponse.json();
+            
+            if (saveData.status === 'success') {
+                updateProfileScanStatus('Success! Redirecting...', 'success');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                updateProfileScanStatus(saveData.message || 'Failed to save', 'error');
+            }
+        } catch (error) {
+            console.error('Save error:', error);
+            updateProfileScanStatus('Failed to save. Try again.', 'error');
+        }
+    }
+    
+    function updateProfileScanStatus(message, type) {
+        const statusEl = document.getElementById('profileScanStatus');
+        if (statusEl) {
+            statusEl.textContent = message;
+            statusEl.className = 'scan-status ' + type;
+        }
+    }
+</script>
+
+{% endblock %}
+
+{# 2FA Modals - included at end of page #}
+
