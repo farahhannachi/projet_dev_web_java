@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.geometry.Insets?>
+
+<HBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.controller.Backoffice.BackofficeController">
+
+    <!-- Dark Green Sidebar -->
+    <VBox prefWidth="220" styleClass="sidebar" spacing="0">
+        <!-- Brand -->
+        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="sidebar-brand">
+            <ImageView fitWidth="30" fitHeight="30" preserveRatio="true">
+                <Image url="@/logo.png"/>
+            </ImageView>
+            <Label text="CuraVita" styleClass="sidebar-brand-text"/>
+        </HBox>
+
+        <Region prefHeight="20"/>
+
+        <!-- Nav Items -->
+        <VBox spacing="4" style="-fx-padding: 0 10;">
+            <Label text="MENU" style="-fx-text-fill: #6B8F7B; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 0 10 5 10;"/>
+            <Button text="📊  Overview" onAction="#goToDashboard" styleClass="sidebar-btn" maxWidth="1.7976931348623157E308"/>
+            <Button fx:id="btnNavOrdonnances" text="📋  Ordonnances" onAction="#showOrdonnances" styleClass="sidebar-btn-active" maxWidth="1.7976931348623157E308"/>
+            <Button fx:id="btnNavTraitements" text="💊  Traitements" onAction="#showTraitements" styleClass="sidebar-btn" maxWidth="1.7976931348623157E308"/>
+            <Button text="👥  Patients" styleClass="sidebar-btn" maxWidth="1.7976931348623157E308"/>
+        </VBox>
+
+        <Region prefHeight="20"/>
+
+        <VBox spacing="4" style="-fx-padding: 0 10;">
+            <Label text="AUTRES" style="-fx-text-fill: #6B8F7B; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 0 10 5 10;"/>
+            <Button text="❓  Aide &amp; Support" styleClass="sidebar-btn" maxWidth="1.7976931348623157E308"/>
+            <Button text="⚙  Paramètres" styleClass="sidebar-btn" maxWidth="1.7976931348623157E308"/>
+        </VBox>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <!-- Upgrade Card -->
+        <VBox spacing="6" style="-fx-background-color: #2D6A4F; -fx-background-radius: 10; -fx-padding: 15; -fx-margin: 10;">
+            <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+            <Label text="CuraVita Pro" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <Label text="Gérez votre pharmacie avec des outils avancés" wrapText="true" style="-fx-text-fill: #A7C4B8; -fx-font-size: 10px;"/>
+        </VBox>
+
+        <Region prefHeight="8"/>
+
+        <!-- Logout -->
+        <HBox spacing="8" alignment="CENTER_LEFT" style="-fx-padding: 10 18;">
+            <Label text="🚪" style="-fx-font-size: 14px;"/>
+            <Button text="Déconnexion" onAction="#goToDashboard"
+                    style="-fx-background-color: transparent; -fx-text-fill: #A7C4B8; -fx-font-size: 12px; -fx-cursor: hand; -fx-padding: 0;"/>
+        </HBox>
+        <Region prefHeight="5"/>
+    </VBox>
+
+    <!-- Main Content Area -->
+    <VBox HBox.hgrow="ALWAYS" style="-fx-background-color: #F5F5F5;">
+        <!-- Top Bar -->
+        <HBox alignment="CENTER_LEFT" spacing="15" styleClass="top-bar-bo">
+            <Label fx:id="lblPageTitle" text="Traitements" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+            <Label text="Gérez vos traitements" style="-fx-text-fill: #9CA3AF; -fx-font-size: 12px;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <HBox spacing="8" alignment="CENTER_LEFT" styleClass="search-box-bo" prefWidth="220">
+                <Label text="🔍" style="-fx-font-size: 12px;"/>
+                <TextField promptText="Search..." style="-fx-background-color: transparent; -fx-border-width: 0; -fx-font-size: 12px;" HBox.hgrow="ALWAYS"/>
+            </HBox>
+            <Region prefWidth="10"/>
+            <Button text="🔔" styleClass="top-bar-icon-btn"/>
+            <ImageView fitWidth="32" fitHeight="32" preserveRatio="true">
+                <Image url="@/logo.png"/>
+            </ImageView>
+            <VBox spacing="0">
+                <Label text="Admin" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+                <Label text="pharmacien" style="-fx-text-fill: #9CA3AF; -fx-font-size: 10px;"/>
+            </VBox>
+        </HBox>
+
+        <!-- Content Swap Area -->
+        <StackPane fx:id="contentArea" VBox.vgrow="ALWAYS"/>
+    </VBox>
+</HBox>

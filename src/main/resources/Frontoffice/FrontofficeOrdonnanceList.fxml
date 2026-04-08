@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane fitToWidth="true" style="-fx-background-color: transparent;"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.controller.Frontoffice.OrdonnanceListController">
+<VBox spacing="20" style="-fx-padding: 30 40;">
+
+    <!-- Header -->
+    <Label text="Mes Ordonnances" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+
+    <!-- Patient Info -->
+    <HBox styleClass="patient-card" spacing="15" alignment="CENTER_LEFT">
+        <VBox alignment="CENTER" prefWidth="50">
+            <Label text="👤" style="-fx-font-size: 32px;"/>
+        </VBox>
+        <VBox spacing="3">
+            <Label fx:id="lblPatientName" text="Julie Martin" styleClass="patient-name"/>
+            <Label fx:id="lblPatientInfo" text="ID Utilisateur: 1" styleClass="patient-info"/>
+        </VBox>
+    </HBox>
+
+    <!-- Search -->
+    <HBox spacing="8" alignment="CENTER_LEFT" styleClass="search-box-bo">
+        <Label text="🔍"/>
+        <TextField fx:id="tfSearch" promptText="Rechercher par numéro ou médecin..." HBox.hgrow="ALWAYS"
+                   style="-fx-background-color: transparent; -fx-border-width: 0;"/>
+    </HBox>
+
+    <!-- Ordonnance Cards -->
+    <VBox fx:id="cardsContainer" spacing="15">
+        <padding><Insets top="5" right="0" bottom="10" left="0"/></padding>
+    </VBox>
+
+</VBox>
+</ScrollPane>

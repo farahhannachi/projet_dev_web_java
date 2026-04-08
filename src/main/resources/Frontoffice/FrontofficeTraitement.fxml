@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane fitToWidth="true" style="-fx-background-color: transparent;"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.controller.Frontoffice.TraitementFrontController">
+<VBox spacing="20" style="-fx-padding: 30 40;">
+
+    <!-- Header -->
+    <Label text="Demande de Traitement" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+
+    <!-- Patient Info -->
+    <HBox styleClass="patient-card" spacing="15" alignment="CENTER_LEFT">
+        <VBox alignment="CENTER" prefWidth="50">
+            <Label text="👤" style="-fx-font-size: 32px;"/>
+        </VBox>
+        <VBox spacing="3">
+            <Label fx:id="lblPatientName" text="Julie Martin" styleClass="patient-name"/>
+            <Label fx:id="lblPatientInfo" text="ID Utilisateur: 1" styleClass="patient-info"/>
+        </VBox>
+    </HBox>
+
+    <!-- ========== FORM ========== -->
+    <VBox spacing="0" styleClass="form-box">
+        <padding><Insets top="25" right="35" bottom="25" left="35"/></padding>
+
+        <Label text="Nouveau Traitement" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+        <Label text="Remplissez le formulaire. Après enregistrement, vous serez redirigé vers la création d'ordonnance."
+               style="-fx-text-fill: #6B7280; -fx-font-size: 12px; -fx-padding: 4 0 10 0;" wrapText="true"/>
+        <Separator style="-fx-padding: 0 0 15 0;"/>
+
+        <!-- dosage -->
+        <VBox spacing="4">
+            <Label text="Dosage *" style="-fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <TextField fx:id="tfDosage" promptText="Ex: Paracétamol 500mg" style="-fx-min-height: 40;"/>
+            <Label fx:id="lblErrDosage" text="" style="-fx-text-fill: #DC2626; -fx-font-size: 11px;"/>
+            <Label text="Minimum 2 caractères, maximum 255 caractères." style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px;"/>
+        </VBox>
+        <Region prefHeight="15"/>
+
+        <!-- frequence -->
+        <VBox spacing="4">
+            <Label text="Fréquence *" style="-fx-text-fill: #2563EB; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <TextField fx:id="tfFrequence" promptText="Ex: 1 comprimé toutes les 6 heures" style="-fx-min-height: 40;"/>
+            <Label fx:id="lblErrFrequence" text="" style="-fx-text-fill: #DC2626; -fx-font-size: 11px;"/>
+            <Label text="Décrivez la fréquence de prise du médicament." style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px;"/>
+        </VBox>
+        <Region prefHeight="15"/>
+
+        <!-- duree_jours -->
+        <VBox spacing="4">
+            <Label text="Durée (jours) *" style="-fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <TextField fx:id="tfDureeJours" promptText="Ex: 30" style="-fx-min-height: 40;"/>
+            <Label fx:id="lblErrDuree" text="" style="-fx-text-fill: #DC2626; -fx-font-size: 11px;"/>
+            <Label text="Nombre entier positif, maximum 365 jours." style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px;"/>
+        </VBox>
+        <Region prefHeight="15"/>
+
+        <!-- date_debut -->
+        <VBox spacing="4">
+            <Label text="Date Début" style="-fx-text-fill: #2563EB; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <TextField fx:id="tfDateDebut" promptText="YYYY-MM-DD HH:MM:SS" style="-fx-min-height: 40;"/>
+            <Label fx:id="lblErrDateDebut" text="" style="-fx-text-fill: #DC2626; -fx-font-size: 11px;"/>
+        </VBox>
+        <Region prefHeight="15"/>
+
+        <!-- date_fin -->
+        <VBox spacing="4">
+            <Label text="Date Fin" style="-fx-text-fill: #2563EB; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <TextField fx:id="tfDateFin" promptText="YYYY-MM-DD HH:MM:SS" style="-fx-min-height: 40;"/>
+            <Label fx:id="lblErrDateFin" text="" style="-fx-text-fill: #DC2626; -fx-font-size: 11px;"/>
+            <Label text="Doit être après la date de début." style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px;"/>
+        </VBox>
+        <Region prefHeight="15"/>
+
+        <!-- status -->
+        <VBox spacing="4">
+            <Label text="Status *" style="-fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <ComboBox fx:id="cbStatus" promptText="Sélectionner un status" maxWidth="1.7976931348623157E308" style="-fx-min-height: 40;"/>
+            <Label fx:id="lblErrStatus" text="" style="-fx-text-fill: #DC2626; -fx-font-size: 11px;"/>
+        </VBox>
+        <Region prefHeight="15"/>
+
+        <!-- notes -->
+        <VBox spacing="4">
+            <Label text="Notes" style="-fx-text-fill: #7C3AED; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <TextArea fx:id="taNotes" promptText="Décrivez vos symptômes, allergies, remarques..."
+                      prefRowCount="4" wrapText="true"
+                      style="-fx-border-color: #D1D5DB; -fx-border-radius: 8; -fx-background-radius: 8;"/>
+            <Label fx:id="lblErrNotes" text="" style="-fx-text-fill: #DC2626; -fx-font-size: 11px;"/>
+            <Label text="Minimum 5 caractères, maximum 1000 caractères." style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px;"/>
+        </VBox>
+        <Region prefHeight="15"/>
+
+        <!-- id_produit -->
+        <VBox spacing="4">
+            <Label text="ID Produit" style="-fx-text-fill: #2563EB; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <TextField fx:id="tfIdProduit" promptText="Ex: 1" style="-fx-min-height: 40;"/>
+            <Label fx:id="lblErrProduit" text="" style="-fx-text-fill: #DC2626; -fx-font-size: 11px;"/>
+        </VBox>
+        <Region prefHeight="20"/>
+
+        <!-- Buttons -->
+        <HBox spacing="12" alignment="CENTER_RIGHT">
+            <Button text="Enregistrer et créer l'ordonnance →" onAction="#save" styleClass="btn-primary" prefHeight="42"/>
+            <Button text="Annuler" onAction="#clearAll" styleClass="btn-clear" prefHeight="42" prefWidth="120"/>
+        </HBox>
+    </VBox>
+
+</VBox>
+</ScrollPane>

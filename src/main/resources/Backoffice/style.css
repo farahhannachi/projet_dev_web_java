@@ -1,0 +1,672 @@
+/* ===== CuraVita - Pharmacy Professional Theme ===== */
+
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 14px;
+    -fx-background-color: #F5F5F5;
+}
+
+/* ===== Dashboard ===== */
+.dashboard {
+    -fx-background-color: linear-gradient(to bottom right, #065F46, #0D9F6E, #10B981);
+}
+.dashboard-title {
+    -fx-font-size: 52px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+.dashboard-subtitle {
+    -fx-font-size: 18px;
+    -fx-text-fill: #D1FAE5;
+    -fx-padding: 0 0 20 0;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+    -fx-background-color: #1B4332;
+    -fx-padding: 0;
+}
+.sidebar-brand {
+    -fx-background-color: #143D2B;
+    -fx-padding: 18 15;
+}
+.sidebar-brand-text {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+.sidebar-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #A7C4B8;
+    -fx-font-size: 13px;
+    -fx-padding: 11 18;
+    -fx-alignment: CENTER_LEFT;
+    -fx-cursor: hand;
+    -fx-background-radius: 8;
+    -fx-max-width: 1.7976931348623157E308;
+}
+.sidebar-btn:hover {
+    -fx-background-color: rgba(255,255,255,0.08);
+    -fx-text-fill: white;
+}
+.sidebar-btn-active {
+    -fx-background-color: #10B981;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 11 18;
+    -fx-alignment: CENTER_LEFT;
+    -fx-cursor: hand;
+    -fx-background-radius: 8;
+    -fx-max-width: 1.7976931348623157E308;
+}
+
+/* ===== Top Bar (Backoffice) ===== */
+.top-bar-bo {
+    -fx-background-color: white;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 12 25;
+}
+.top-bar-title {
+    -fx-font-size: 16px;
+    -fx-text-fill: #6B7280;
+}
+.top-bar-icon-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 16px;
+    -fx-padding: 6 10;
+    -fx-cursor: hand;
+    -fx-background-radius: 20;
+}
+.top-bar-icon-btn:hover {
+    -fx-background-color: #F3F4F6;
+}
+
+/* ===== Top Bar (Frontoffice) ===== */
+.top-bar-fo {
+    -fx-background-color: #1B4332;
+    -fx-padding: 10 25;
+}
+
+.fo-brand {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #10B981;
+}
+.fo-search {
+    -fx-background-color: rgba(255,255,255,0.15);
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #A7C4B8;
+    -fx-border-color: rgba(255,255,255,0.2);
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 8 16;
+    -fx-font-size: 13px;
+}
+.fo-nav-link {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-padding: 6 12;
+    -fx-cursor: hand;
+}
+.fo-nav-link:hover {
+    -fx-text-fill: #10B981;
+}
+/* MenuButton dropdown styled as nav link */
+.fo-nav-link .arrow-button {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+.fo-nav-link .arrow {
+    -fx-background-color: transparent;
+    -fx-shape: "";
+    -fx-padding: 0;
+}
+.fo-nav-link .label {
+    -fx-text-fill: white;
+}
+.fo-nav-link:hover .label {
+    -fx-text-fill: #10B981;
+}
+.fo-nav-link:showing .label {
+    -fx-text-fill: #10B981;
+}
+.fo-nav-dropdown {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #E5E7EB;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 10, 0, 0, 3);
+    -fx-padding: 4 0;
+}
+.fo-nav-dropdown .menu-item {
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+}
+.fo-nav-dropdown .menu-item .label {
+    -fx-text-fill: #374151;
+    -fx-font-size: 13px;
+}
+.fo-nav-dropdown .menu-item:hover {
+    -fx-background-color: #F0FAF4;
+}
+.fo-nav-dropdown .menu-item:hover .label {
+    -fx-text-fill: #1B4332;
+    -fx-font-weight: bold;
+}
+.fo-nav-tabs {
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 25;
+}
+.fo-tab-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 13px;
+    -fx-padding: 12 16;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+}
+.fo-tab-btn:hover {
+    -fx-text-fill: #1B4332;
+}
+.fo-tab-active {
+    -fx-background-color: transparent;
+    -fx-text-fill: #1B4332;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 16;
+    -fx-cursor: hand;
+    -fx-border-color: #1B4332;
+    -fx-border-width: 0 0 2 0;
+}
+
+/* ===== Page Title ===== */
+.page-title-bo {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1F2937;
+}
+.page-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+.page-subtitle {
+    -fx-text-fill: #A7F3D0;
+    -fx-font-size: 11px;
+}
+
+/* ===== Content Area ===== */
+.content-area {
+    -fx-background-color: #F5F5F5;
+    -fx-padding: 25;
+}
+.content-area-fo {
+    -fx-background-color: #F9FAFB;
+    -fx-padding: 25 30;
+}
+
+/* ===== Tab Toggle Buttons ===== */
+.tab-toggle {
+    -fx-background-color: white;
+    -fx-text-fill: #374151;
+    -fx-font-size: 13px;
+    -fx-padding: 8 18;
+    -fx-background-radius: 6;
+    -fx-border-color: #D1D5DB;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+}
+.tab-toggle:hover {
+    -fx-background-color: #F3F4F6;
+}
+.tab-toggle-active {
+    -fx-background-color: #1B4332;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 18;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+/* ===== Buttons ===== */
+.btn-primary {
+    -fx-background-color: #1B4332;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 24;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+.btn-primary:hover { -fx-background-color: #2D6A4F; }
+.btn-primary:pressed { -fx-background-color: #143D2B; }
+
+.btn-secondary {
+    -fx-background-color: white;
+    -fx-text-fill: #1B4332;
+    -fx-font-size: 13px;
+    -fx-padding: 8 16;
+    -fx-background-radius: 6;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+}
+.btn-secondary:hover { -fx-background-color: #F3F4F6; }
+
+.btn-add-green {
+    -fx-background-color: #10B981;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+.btn-add-green:hover { -fx-background-color: #059669; }
+
+.btn-back {
+    -fx-background-color: rgba(255,255,255,0.15);
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-padding: 8 18;
+    -fx-background-radius: 6;
+    -fx-border-color: rgba(255,255,255,0.3);
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+}
+.btn-back:hover { -fx-background-color: rgba(255,255,255,0.25); }
+
+.btn-delete {
+    -fx-background-color: #FEE2E2;
+    -fx-text-fill: #DC2626;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 10;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+.btn-delete:hover { -fx-background-color: #FECACA; }
+
+.btn-edit {
+    -fx-background-color: #DBEAFE;
+    -fx-text-fill: #2563EB;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 10;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+.btn-edit:hover { -fx-background-color: #BFDBFE; }
+
+.btn-clear {
+    -fx-background-color: #F3F4F6;
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 13px;
+    -fx-padding: 10 20;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+.btn-clear:hover { -fx-background-color: #E5E7EB; }
+
+.btn-renewal {
+    -fx-background-color: #FEF3C7;
+    -fx-text-fill: #92400E;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+.btn-renewal:hover { -fx-background-color: #FDE68A; }
+
+.btn-renewal-disabled {
+    -fx-background-color: #F3F4F6;
+    -fx-text-fill: #9CA3AF;
+    -fx-font-size: 12px;
+    -fx-padding: 8 16;
+    -fx-background-radius: 6;
+}
+
+/* ===== Search Box ===== */
+.search-box-bo {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #D1D5DB;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 6 12;
+}
+
+/* ===== Status Badges ===== */
+.badge-en-cours {
+    -fx-background-color: #D1FAE5;
+    -fx-text-fill: #065F46;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 12;
+    -fx-background-radius: 12;
+}
+.badge-completee {
+    -fx-background-color: #D1FAE5;
+    -fx-text-fill: #065F46;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 12;
+    -fx-background-radius: 12;
+}
+.badge-annulee {
+    -fx-background-color: #FEE2E2;
+    -fx-text-fill: #DC2626;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 12;
+    -fx-background-radius: 12;
+}
+.badge-expiree {
+    -fx-background-color: #FEF3C7;
+    -fx-text-fill: #92400E;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 12;
+    -fx-background-radius: 12;
+}
+
+/* ===== Table ===== */
+.table-view {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #E5E7EB;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+.table-view .column-header {
+    -fx-background-color: #F9FAFB;
+    -fx-padding: 10 8;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 0 0 1 0;
+}
+.table-view .column-header .label {
+    -fx-text-fill: #6B7280;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+.table-view .table-row-cell {
+    -fx-background-color: white;
+    -fx-border-color: #F3F4F6;
+    -fx-border-width: 0 0 1 0;
+}
+.table-view .table-row-cell:odd { -fx-background-color: #FAFAFA; }
+.table-view .table-row-cell:selected { -fx-background-color: #EBF5FF; }
+.table-view .table-row-cell:selected .text { -fx-fill: #1F2937; }
+.table-view .table-cell {
+    -fx-padding: 8 8;
+    -fx-text-fill: #374151;
+    -fx-font-size: 13px;
+}
+.table-view .filler {
+    -fx-background-color: #F9FAFB;
+}
+
+/* ===== Form ===== */
+.form-box {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);
+    -fx-border-color: #E5E7EB;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+.form-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1F2937;
+}
+.form-label {
+    -fx-text-fill: #374151;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+/* ===== Text Fields ===== */
+.text-field {
+    -fx-background-color: white;
+    -fx-border-color: #D1D5DB;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 8 12;
+    -fx-font-size: 13px;
+    -fx-prompt-text-fill: #9CA3AF;
+}
+.text-field:focused {
+    -fx-border-color: #10B981;
+    -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.15), 4, 0, 0, 0);
+}
+
+/* ===== ComboBox ===== */
+.combo-box {
+    -fx-background-color: white;
+    -fx-border-color: #D1D5DB;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 2 4;
+}
+.combo-box:focused { -fx-border-color: #10B981; }
+
+/* ===== CheckBox ===== */
+.check-box { -fx-text-fill: #374151; }
+.check-box:selected > .box {
+    -fx-background-color: #10B981;
+    -fx-border-color: #10B981;
+}
+.check-box:selected > .box > .mark { -fx-background-color: white; }
+
+/* ===== Cards (Frontoffice) ===== */
+.fo-card {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #E5E7EB;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 6, 0, 0, 2);
+}
+.fo-card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 3);
+}
+.fo-card-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1F2937;
+}
+.fo-card-info {
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 13px;
+}
+.fo-card-date {
+    -fx-text-fill: #9CA3AF;
+    -fx-font-size: 12px;
+}
+
+/* ===== Patient Info Card ===== */
+.patient-card {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #E5E7EB;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 20;
+}
+.patient-name {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1F2937;
+}
+.patient-info {
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 13px;
+}
+
+/* ===== ScrollPane ===== */
+.scroll-pane { -fx-background-color: transparent; }
+.scroll-pane > .viewport { -fx-background-color: transparent; }
+
+/* ===== Separator ===== */
+.separator .line { -fx-border-color: #E5E7EB; }
+
+/* ===== Tab Pane (hidden headers for programmatic tabs) ===== */
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: white;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: white;
+    -fx-background-radius: 0;
+    -fx-padding: 10 22;
+    -fx-border-color: transparent transparent #E5E7EB transparent;
+    -fx-border-width: 0 0 3 0;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-border-color: transparent transparent #1B4332 transparent;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab:selected > .tab-container > .tab-label {
+    -fx-text-fill: #1B4332;
+}
+
+/* ===== Tab Content ===== */
+.tab-content {
+    -fx-background-color: #F5F5F5;
+}
+
+/* ===== Modal Overlay ===== */
+.modal-overlay {
+    -fx-background-color: rgba(0,0,0,0.4);
+}
+.modal-box {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 20, 0, 0, 5);
+    -fx-padding: 25;
+}
+.modal-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1F2937;
+}
+.modal-close {
+    -fx-background-color: transparent;
+    -fx-text-fill: #9CA3AF;
+    -fx-font-size: 18px;
+    -fx-cursor: hand;
+    -fx-padding: 4 8;
+}
+.modal-close:hover { -fx-text-fill: #374151; }
+
+/* ===== Pagination ===== */
+.pagination-btn {
+    -fx-background-color: white;
+    -fx-text-fill: #374151;
+    -fx-font-size: 12px;
+    -fx-padding: 6 10;
+    -fx-background-radius: 4;
+    -fx-border-color: #D1D5DB;
+    -fx-border-radius: 4;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+}
+.pagination-btn:hover { -fx-background-color: #F3F4F6; }
+
+/* ===== User Label ===== */
+.user-label {
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+}
+
+/* ===== Main Pane ===== */
+.main-pane { -fx-background-color: #F5F5F5; }
+
+/* ===== Backoffice White Card Container ===== */
+.white-card {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #E5E7EB;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 6, 0, 0, 2);
+}
+
+/* ===== Filter Row ===== */
+.filter-row {
+    -fx-padding: 8 0;
+}
+.filter-label {
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 12px;
+}
+
+/* ===== Stat Cards ===== */
+.stat-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-color: #E5E7EB;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.03), 4, 0, 0, 1);
+}
+.stat-card-green {
+    -fx-background-color: #1B4332;
+    -fx-background-radius: 12;
+    -fx-padding: 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 6, 0, 0, 2);
+}
+.stat-card-yellow {
+    -fx-background-color: #FFFBEB;
+    -fx-background-radius: 12;
+    -fx-border-color: #FDE68A;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 18;
+}
+.stat-value {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1F2937;
+}
+.stat-value-white {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+.stat-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6B7280;
+}
+.stat-label-white {
+    -fx-font-size: 12px;
+    -fx-text-fill: #A7C4B8;
+}
+.stat-change-green {
+    -fx-text-fill: #10B981;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+.stat-change-red {
+    -fx-text-fill: #EF4444;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}

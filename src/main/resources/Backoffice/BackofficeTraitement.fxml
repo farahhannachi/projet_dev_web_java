@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane fitToWidth="true" style="-fx-background-color: transparent;"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.controller.Backoffice.TraitementBackController">
+<VBox spacing="18" styleClass="content-area">
+    <padding><Insets top="20" right="25" bottom="20" left="25"/></padding>
+
+    <!-- Stat Cards Row -->
+    <HBox spacing="15">
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="6">
+            <Label text="Total Traitements" styleClass="stat-label"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="📊" style="-fx-font-size: 18px;"/>
+                <Label fx:id="lblTotalTraitements" text="0" styleClass="stat-value"/>
+            </HBox>
+            <Label text="↑ Depuis la semaine dernière" styleClass="stat-change-green"/>
+        </VBox>
+        <VBox styleClass="stat-card-green" HBox.hgrow="ALWAYS" spacing="6">
+            <Label text="En Cours" styleClass="stat-label-white"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="✅" style="-fx-font-size: 18px;"/>
+                <Label fx:id="lblEnCours" text="0" styleClass="stat-value-white"/>
+            </HBox>
+            <Label text="Traitements actifs" styleClass="stat-label-white"/>
+        </VBox>
+        <VBox styleClass="stat-card-yellow" HBox.hgrow="ALWAYS" spacing="6">
+            <Label text="En Attente" style="-fx-text-fill: #92400E; -fx-font-size: 12px;"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="⚠" style="-fx-font-size: 18px;"/>
+                <Label fx:id="lblEnAttente" text="0" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #92400E;"/>
+            </HBox>
+            <Label text="À valider" style="-fx-text-fill: #92400E; -fx-font-size: 11px;"/>
+        </VBox>
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="6">
+            <Label text="Terminés" styleClass="stat-label"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="🏁" style="-fx-font-size: 18px;"/>
+                <Label fx:id="lblTermines" text="0" styleClass="stat-value"/>
+            </HBox>
+            <Label text="Ce mois" styleClass="stat-change-green"/>
+        </VBox>
+    </HBox>
+
+    <!-- Action Bar -->
+    <HBox spacing="12" alignment="CENTER_LEFT">
+        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="search-box-bo" HBox.hgrow="ALWAYS">
+            <Label text="🔍"/>
+            <TextField fx:id="tfSearch" promptText="Search..." HBox.hgrow="ALWAYS"
+                       style="-fx-background-color: transparent; -fx-border-width: 0;"/>
+        </HBox>
+        <Button fx:id="btnAddTab" text="+ Ajouter Traitement" onAction="#showAddView" styleClass="btn-add-green"/>
+        <Button text="📊 Filtres" styleClass="btn-secondary"/>
+    </HBox>
+
+    <StackPane VBox.vgrow="ALWAYS">
+        <!-- LIST VIEW -->
+        <VBox fx:id="listView" spacing="0">
+            <VBox styleClass="white-card" VBox.vgrow="ALWAYS">
+                <TableView fx:id="tableTraitement" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colId" text="ID" prefWidth="45"/>
+                        <TableColumn fx:id="colIdOrdonnance" text="Ord." prefWidth="50"/>
+                        <TableColumn fx:id="colIdUtilisateur" text="Patient" prefWidth="80"/>
+                        <TableColumn fx:id="colDosage" text="Dosage" prefWidth="120"/>
+                        <TableColumn fx:id="colFrequence" text="Fréquence" prefWidth="110"/>
+                        <TableColumn fx:id="colDureeJours" text="Durée" prefWidth="55"/>
+                        <TableColumn fx:id="colDateDebut" text="Début" prefWidth="100"/>
+                        <TableColumn fx:id="colDateFin" text="Fin" prefWidth="100"/>
+                        <TableColumn fx:id="colStatus" text="Status" prefWidth="90"/>
+                        <TableColumn fx:id="colNotes" text="Notes" prefWidth="100"/>
+                        <TableColumn fx:id="colIdProduit" text="Produit" prefWidth="60"/>
+                    </columns>
+                </TableView>
+            </VBox>
+        </VBox>
+
+        <!-- ADD/EDIT VIEW -->
+        <VBox fx:id="addView" spacing="15" visible="false" managed="false">
+            <VBox styleClass="form-box" spacing="12">
+                <padding><Insets top="20" right="25" bottom="20" left="25"/></padding>
+
+                <Label fx:id="lblFormTitle" text="Nouveau Traitement" styleClass="form-title"/>
+                <Separator/>
+
+                <HBox spacing="20">
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label text="Ordonnance *" styleClass="form-label"/>
+                        <ComboBox fx:id="cbOrdonnance" promptText="Sélectionner une ordonnance" maxWidth="1.7976931348623157E308"/>
+                        <Label text="ID Utilisateur *" styleClass="form-label"/>
+                        <TextField fx:id="tfIdUtilisateur" promptText="Ex: 1"/>
+                        <Label text="Dosage *" styleClass="form-label"/>
+                        <TextField fx:id="tfDosage" promptText="Ex: 500mg"/>
+                        <Label text="Fréquence *" styleClass="form-label"/>
+                        <TextField fx:id="tfFrequence" promptText="Ex: 2 fois/jour"/>
+                    </VBox>
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label text="Durée (jours) *" styleClass="form-label"/>
+                        <TextField fx:id="tfDureeJours" promptText="Ex: 7"/>
+                        <Label text="Date Début" styleClass="form-label"/>
+                        <TextField fx:id="tfDateDebut" promptText="YYYY-MM-DD HH:MM:SS"/>
+                        <Label text="Date Fin" styleClass="form-label"/>
+                        <TextField fx:id="tfDateFin" promptText="YYYY-MM-DD HH:MM:SS"/>
+                    </VBox>
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label text="Status *" styleClass="form-label"/>
+                        <TextField fx:id="tfStatus" promptText="Ex: actif, terminé, suspendu"/>
+                        <Label text="Notes" styleClass="form-label"/>
+                        <TextField fx:id="tfNotes" promptText="Notes supplémentaires..."/>
+                        <Label text="ID Produit *" styleClass="form-label"/>
+                        <TextField fx:id="tfIdProduit" promptText="Ex: 1"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <padding><Insets top="8"/></padding>
+                    <Button text="Enregistrer" onAction="#save" styleClass="btn-primary" prefWidth="160"/>
+                    <Button text="Annuler" onAction="#cancelForm" styleClass="btn-clear" prefWidth="120"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </StackPane>
+</VBox>
+</ScrollPane>

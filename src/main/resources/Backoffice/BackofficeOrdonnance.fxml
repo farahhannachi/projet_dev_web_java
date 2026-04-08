@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane fitToWidth="true" style="-fx-background-color: transparent;"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.controller.Backoffice.OrdonnanceBackController">
+<VBox spacing="18" styleClass="content-area">
+    <padding><Insets top="20" right="25" bottom="20" left="25"/></padding>
+
+    <!-- Stat Cards Row -->
+    <HBox spacing="15">
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="6">
+            <Label text="Total Ordonnances" styleClass="stat-label"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="📋" style="-fx-font-size: 18px;"/>
+                <Label fx:id="lblTotalOrd" text="0" styleClass="stat-value"/>
+            </HBox>
+        </VBox>
+        <VBox styleClass="stat-card-green" HBox.hgrow="ALWAYS" spacing="6">
+            <Label text="Actives" styleClass="stat-label-white"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="✅" style="-fx-font-size: 18px;"/>
+                <Label fx:id="lblActives" text="0" styleClass="stat-value-white"/>
+            </HBox>
+        </VBox>
+        <VBox styleClass="stat-card-yellow" HBox.hgrow="ALWAYS" spacing="6">
+            <Label text="Expirées" style="-fx-text-fill: #92400E; -fx-font-size: 12px;"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="⚠" style="-fx-font-size: 18px;"/>
+                <Label fx:id="lblExpirees" text="0" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #92400E;"/>
+            </HBox>
+        </VBox>
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="6">
+            <Label text="Annulées" styleClass="stat-label"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="❌" style="-fx-font-size: 18px;"/>
+                <Label fx:id="lblAnnulees" text="0" styleClass="stat-value"/>
+            </HBox>
+        </VBox>
+    </HBox>
+
+    <!-- Action Bar -->
+    <HBox spacing="12" alignment="CENTER_LEFT">
+        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="search-box-bo" HBox.hgrow="ALWAYS">
+            <Label text="🔍"/>
+            <TextField fx:id="tfSearch" promptText="Search..." HBox.hgrow="ALWAYS"
+                       style="-fx-background-color: transparent; -fx-border-width: 0;"/>
+        </HBox>
+        <Button fx:id="btnAddTab" text="+ Ajouter Ordonnance" onAction="#showAddView" styleClass="btn-add-green"/>
+        <Button text="📊 Filtres" styleClass="btn-secondary"/>
+    </HBox>
+
+    <StackPane VBox.vgrow="ALWAYS">
+        <!-- LIST VIEW -->
+        <VBox fx:id="listView" spacing="0">
+            <VBox styleClass="white-card" VBox.vgrow="ALWAYS">
+                <TableView fx:id="tableOrdonnance" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colId" text="ID" prefWidth="50"/>
+                        <TableColumn fx:id="colIdUtilisateur" text="Patient" prefWidth="140"/>
+                        <TableColumn fx:id="colDateOrdonnance" text="Date" prefWidth="130"/>
+                        <TableColumn fx:id="colNumero" text="Numéro" prefWidth="140"/>
+                        <TableColumn fx:id="colStatut" text="Statut" prefWidth="100"/>
+                        <TableColumn fx:id="colActions" text="Actions" prefWidth="150"/>
+                    </columns>
+                </TableView>
+            </VBox>
+        </VBox>
+
+        <!-- ADD/EDIT VIEW -->
+        <VBox fx:id="addView" spacing="15" visible="false" managed="false">
+            <VBox styleClass="form-box" spacing="12">
+                <padding><Insets top="20" right="25" bottom="20" left="25"/></padding>
+
+                <Label fx:id="lblFormTitle" text="Nouvelle Ordonnance" styleClass="form-title"/>
+                <Separator/>
+
+                <HBox spacing="20">
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label text="ID Utilisateur *" styleClass="form-label"/>
+                        <TextField fx:id="tfIdUtilisateur" promptText="Ex: 1"/>
+                        <Label text="Numéro Ordonnance *" styleClass="form-label"/>
+                        <TextField fx:id="tfNumero" promptText="Ex: ORD-2026-001"/>
+                        <Label text="Date Ordonnance *" styleClass="form-label"/>
+                        <TextField fx:id="tfDateOrdonnance" promptText="YYYY-MM-DD HH:MM:SS"/>
+                    </VBox>
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label text="Date Expiration *" styleClass="form-label"/>
+                        <TextField fx:id="tfDateExpiration" promptText="YYYY-MM-DD HH:MM:SS"/>
+                        <Label text="Statut *" styleClass="form-label"/>
+                        <TextField fx:id="tfStatut" promptText="Ex: active, expirée, annulée"/>
+                        <Label text="Note Médicale" styleClass="form-label"/>
+                        <TextField fx:id="tfNoteMedical" promptText="Notes du médecin..."/>
+                    </VBox>
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label text="Médecin Signataire" styleClass="form-label"/>
+                        <TextField fx:id="tfSignatureMedecin" promptText="Nom du médecin"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <padding><Insets top="8"/></padding>
+                    <Button text="Enregistrer" onAction="#save" styleClass="btn-primary" prefWidth="160"/>
+                    <Button text="Annuler" onAction="#cancelForm" styleClass="btn-clear" prefWidth="120"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </StackPane>
+</VBox>
+</ScrollPane>

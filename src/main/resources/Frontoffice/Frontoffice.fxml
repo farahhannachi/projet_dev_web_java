@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.controller.Frontoffice.FrontofficeController">
+
+    <!-- Single Green Top Bar -->
+    <HBox alignment="CENTER_LEFT" spacing="15" styleClass="top-bar-fo">
+        <padding><Insets top="10" right="25" bottom="10" left="25"/></padding>
+        <ImageView fitWidth="28" fitHeight="28" preserveRatio="true">
+            <Image url="@/logo.png"/>
+        </ImageView>
+        <Label text="CuraVita" styleClass="fo-brand"/>
+        <Region prefWidth="20"/>
+        <TextField promptText="Search shopping items..." prefWidth="250" styleClass="fo-search"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Accueil" styleClass="fo-nav-link" onAction="#goToDashboard"/>
+        <Button fx:id="btnNavTraitements" text="Traitements" styleClass="fo-nav-link" onAction="#showTraitements"/>
+
+        <!-- Ordonnances with dropdown -->
+        <VBox fx:id="ordonnanceNavBox" spacing="0" style="-fx-cursor: hand;">
+            <Button fx:id="btnNavOrdonnances" text="Ordonnances ▾" styleClass="fo-nav-link" onAction="#showOrdonnanceForm"/>
+            <!-- Dropdown (hidden by default) -->
+            <VBox fx:id="ordDropdown" visible="false" managed="false"
+                  style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #E5E7EB; -fx-border-radius: 8; -fx-border-width: 1; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 10, 0, 0, 3); -fx-padding: 4 0; -fx-translate-y: 2;">
+                <Button text="📋 Mes Ordonnances" onAction="#showMesOrdonnances" maxWidth="1.7976931348623157E308"
+                        style="-fx-background-color: transparent; -fx-text-fill: #374151; -fx-font-size: 13px; -fx-padding: 10 20; -fx-cursor: hand; -fx-alignment: CENTER_LEFT;"/>
+            </VBox>
+        </VBox>
+
+        <Region prefWidth="10"/>
+        <Label text="👤" style="-fx-font-size: 20px;"/>
+        <VBox alignment="CENTER_RIGHT" spacing="0">
+            <Label fx:id="lblUserName" text="Utilisateur" styleClass="user-label" style="-fx-font-weight: bold;"/>
+            <Label fx:id="lblUserId" text="ID: 1" style="-fx-text-fill: #A7C4B8; -fx-font-size: 10px;"/>
+        </VBox>
+    </HBox>
+
+    <!-- Content Area -->
+    <StackPane fx:id="contentArea" VBox.vgrow="ALWAYS" styleClass="content-area-fo">
+        <fx:include source="FrontofficeTraitement.fxml"/>
+    </StackPane>
+</VBox>

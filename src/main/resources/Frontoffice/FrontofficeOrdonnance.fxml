@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane fitToWidth="true" style="-fx-background-color: transparent;"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.controller.Frontoffice.OrdonnanceFrontController">
+<VBox spacing="20" style="-fx-padding: 30 40;">
+
+    <!-- Header -->
+    <Label text="Créer une Ordonnance" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+
+    <!-- Patient Info -->
+    <HBox styleClass="patient-card" spacing="15" alignment="CENTER_LEFT">
+        <VBox alignment="CENTER" prefWidth="50">
+            <Label text="👤" style="-fx-font-size: 32px;"/>
+        </VBox>
+        <VBox spacing="3">
+            <Label fx:id="lblPatientName" text="Julie Martin" styleClass="patient-name"/>
+            <Label fx:id="lblPatientInfo" text="ID Utilisateur: 1" styleClass="patient-info"/>
+        </VBox>
+    </HBox>
+
+    <!-- ========== FORM (always visible) ========== -->
+    <VBox spacing="0" styleClass="form-box">
+        <padding><Insets top="25" right="35" bottom="25" left="35"/></padding>
+
+        <!-- Green banner -->
+        <VBox alignment="CENTER" style="-fx-background-color: #1B4332; -fx-background-radius: 10; -fx-padding: 18;">
+            <Label text="NUMÉRO D'ORDONNANCE" style="-fx-text-fill: #A7C4B8; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+            <Label fx:id="lblBannerNumero" text="" style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;"/>
+        </VBox>
+        <Region prefHeight="20"/>
+
+        <Label fx:id="lblFormTitle" text="Nouvelle Ordonnance" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+        <Separator style="-fx-padding: 10 0 15 0;"/>
+
+        <!-- Pending Traitement Info -->
+        <VBox fx:id="pendingTraitBox" visible="false" managed="false" spacing="6"
+              style="-fx-background-color: #F0FAF4; -fx-background-radius: 8; -fx-border-color: #10B981; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 12;">
+            <Label text="💊 Traitement associé" style="-fx-font-weight: bold; -fx-text-fill: #065F46; -fx-font-size: 13px;"/>
+            <Label fx:id="lblPendingInfo" text="" wrapText="true" style="-fx-text-fill: #374151; -fx-font-size: 12px;"/>
+        </VBox>
+        <Region fx:id="pendingSpacer" prefHeight="0"/>
+
+        <!-- Numéro Ordonnance -->
+        <VBox spacing="4">
+            <Label text="Numéro d'ordonnance *" style="-fx-text-fill: #1F2937; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <TextField fx:id="tfNumero" promptText="Ex: ORD-2026-001" style="-fx-min-height: 40;"/>
+            <Label fx:id="lblErrNumero" text="" style="-fx-text-fill: #DC2626; -fx-font-size: 11px;"/>
+        </VBox>
+        <Region prefHeight="15"/>
+
+        <!-- Date Ordonnance -->
+        <VBox spacing="4">
+            <Label text="Date de l'ordonnance *" style="-fx-text-fill: #1F2937; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <TextField fx:id="tfDateOrdonnance" promptText="JJ/MM/AAAA" style="-fx-min-height: 40;"/>
+            <Label fx:id="lblErrDateOrd" text="" style="-fx-text-fill: #DC2626; -fx-font-size: 11px;"/>
+            <Label text="Format: JJ/MM/AAAA ou YYYY-MM-DD HH:MM:SS" style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px;"/>
+        </VBox>
+        <Region prefHeight="15"/>
+
+        <!-- Date Expiration -->
+        <VBox spacing="4">
+            <Label text="Date d'expiration *" style="-fx-text-fill: #1F2937; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <TextField fx:id="tfDateExpiration" promptText="JJ/MM/AAAA" style="-fx-min-height: 40;"/>
+            <Label fx:id="lblErrDateExp" text="" style="-fx-text-fill: #DC2626; -fx-font-size: 11px;"/>
+            <Label text="Doit être après la date de l'ordonnance." style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px;"/>
+        </VBox>
+        <Region prefHeight="15"/>
+
+        <!-- Statut -->
+        <VBox spacing="4">
+            <Label text="Statut *" style="-fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <ComboBox fx:id="cbStatut" promptText="Sélectionner un statut" maxWidth="1.7976931348623157E308" style="-fx-min-height: 40;"/>
+            <Label fx:id="lblErrStatut" text="" style="-fx-text-fill: #DC2626; -fx-font-size: 11px;"/>
+        </VBox>
+        <Region prefHeight="15"/>
+
+        <!-- Médecin Signataire -->
+        <VBox spacing="4">
+            <Label text="Médecin Signataire" style="-fx-text-fill: #2563EB; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <TextField fx:id="tfSignatureMedecin" promptText="Nom du médecin" style="-fx-min-height: 40;"/>
+            <Label fx:id="lblErrMedecin" text="" style="-fx-text-fill: #DC2626; -fx-font-size: 11px;"/>
+        </VBox>
+        <Region prefHeight="15"/>
+
+        <!-- Message -->
+        <VBox spacing="4">
+            <Label text="Message pour le pharmacien (Optionnel)" style="-fx-text-fill: #7C3AED; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <TextArea fx:id="taNoteMedical" promptText="Précisez un dosage, une allergie..."
+                      prefRowCount="4" wrapText="true"
+                      style="-fx-border-color: #D1D5DB; -fx-border-radius: 8; -fx-background-radius: 8;"/>
+            <Label fx:id="lblErrNote" text="" style="-fx-text-fill: #DC2626; -fx-font-size: 11px;"/>
+            <Label text="Minimum 5 caractères, maximum 1000 caractères." style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px;"/>
+        </VBox>
+        <Region prefHeight="20"/>
+
+        <HBox spacing="12" alignment="CENTER_RIGHT">
+            <Button text="Enregistrer" onAction="#save" styleClass="btn-primary" prefHeight="42" prefWidth="180"/>
+            <Button text="Annuler" onAction="#clearAll" styleClass="btn-clear" prefHeight="42" prefWidth="120"/>
+        </HBox>
+    </VBox>
+
+</VBox>
+</ScrollPane>
