@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.controller.BackTraitementController" styleClass="root">
+    <left>
+        <VBox styleClass="sidebar" spacing="15">
+            <Label text="CuraVita" styleClass="sidebar-logo"/>
+            <VBox spacing="10">
+                <Button text="Clients" styleClass="sidebar-item"/>
+                <Button text="Produits" styleClass="sidebar-item"/>
+                <Button text="Commandes" styleClass="sidebar-item"/>
+                <Button text="Promotions" styleClass="sidebar-item"/>
+                <Button text="Coupons" styleClass="sidebar-item"/>
+                <Button text="D&#233;p&#244;ts" styleClass="sidebar-item"/>
+                <Button text="Stocks" styleClass="sidebar-item"/>
+                <Button text="Ordonnances" onAction="#goToOrdonnances" styleClass="sidebar-item"/>
+                <Button text="Traitements" styleClass="sidebar-item-active"/>
+            </VBox>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Button text="&#8592; Back" onAction="#goToDashboard" styleClass="sidebar-button-bottom"/>
+            <Button text="Logout" onAction="#logout" styleClass="sidebar-button-bottom"/>
+        </VBox>
+    </left>
+    <center>
+        <VBox fx:id="pageContainer" style="-fx-background-color: #f5f5f5;" spacing="0"/>
+    </center>
+</BorderPane>
