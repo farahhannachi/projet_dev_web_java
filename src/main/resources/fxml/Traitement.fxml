@@ -91,9 +91,15 @@
                 <TextArea fx:id="symptomesField" promptText="Exemple: J'ai mal &#224; la t&#234;te depuis ce matin, avec de la fi&#232;vre..." prefRowCount="4" wrapText="true" styleClass="traitement-input"/>
                 <Label text="D&#233;crivez vos sympt&#244;mes en d&#233;tail." style="-fx-font-size: 11; -fx-text-fill: #888;"/>
 
-                <!-- Choisir un produit -->
-                <Label text="Choisir un traitement" styleClass="traitement-field-label"/>
-                <ComboBox fx:id="produitCombo" promptText="-- S&#233;lectionnez un produit --" maxWidth="Infinity" styleClass="traitement-input"/>
+                <!-- Choisir un ou plusieurs produits -->
+                <Label text="Choisir un ou plusieurs traitements" styleClass="traitement-field-label"/>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <ComboBox fx:id="produitCombo" promptText="-- S&#233;lectionnez un produit --" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="traitement-input"/>
+                    <Button fx:id="addProduitBtn" text="+" styleClass="traitement-btn-add" onAction="#addProduit"/>
+                </HBox>
+                <VBox fx:id="selectedProduitsBox" spacing="5">
+                    <VBox.margin><Insets top="5"/></VBox.margin>
+                </VBox>
 
                 <!-- Conditions -->
                 <HBox spacing="10" alignment="CENTER_LEFT">
@@ -106,7 +112,7 @@
                     <padding>
                         <Insets top="10"/>
                     </padding>
-                    <Button text="Envoyer la demande" styleClass="traitement-btn-submit" onAction="#handleSubmit"/>
+                    <Button fx:id="submitButton" text="Envoyer la demande" styleClass="traitement-btn-submit" onAction="#handleSubmit"/>
                     <Button text="Annuler" styleClass="traitement-btn-cancel" onAction="#handleCancel"/>
                 </HBox>
 

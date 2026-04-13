@@ -17,14 +17,15 @@ import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDate;
 
+// Contrôleur back-office pour la gestion des traitements par l'administrateur (CRUD + statistiques + PieChart)
 public class BackTraitementController {
 
-    @FXML private VBox pageContainer;
+    @FXML private VBox pageContainer; // Conteneur principal de la page (remplacé dynamiquement)
 
     @FXML
-    public void initialize() { showList(); }
+    public void initialize() { showList(); } // Initialisation : afficher la liste des traitements
 
-    public void openNewForm() { showForm(null); }
+    public void openNewForm() { showForm(null); } // Ouvrir le formulaire d'ajout (appelé depuis le Dashboard)
 
     private void showList() {
         pageContainer.getChildren().clear();
@@ -89,39 +90,61 @@ public class BackTraitementController {
         pageContainer.getChildren().addAll(greenBar, header, actionBar, filterCard, tw);
     }
 
+    // Charger les données de la table avec filtres dynamiques, groupées par ordonnance
     private void loadData(TableView<ObservableList<String>> table, LocalDate dD, LocalDate dF, String cl, String pr, String st, String tri) {
         ObservableList<ObservableList<String>> data = FXCollections.observableArrayList();
         try {
-            StringBuilder sql = new StringBuilder("SELECT t.id_traitement, o.numero_ordonnance, u.nom AS unom, p.nom AS pnom, t.dosage, t.frequence, t.duree_jours, t.date_debut, t.date_fin, t.status FROM traitement t LEFT JOIN utilisateur u ON t.id_utilisateur_id=u.id_utilisateur LEFT JOIN produit p ON t.id_produit_id=p.id_produit LEFT JOIN ordonnance o ON t.id_ordonnance_id=o.id_ordonnance WHERE 1=1 ");
-            if (dD != null) sql.append("AND t.date_debut >= '").append(dD).append(" 00:00:00' ");
-            if (dF != null) sql.append("AND t.date_debut <= '").append(dF).append(" 23:59:59' ");
-            if (!cl.isEmpty()) sql.append("AND u.nom LIKE '%").append(cl.replace("'","''")).append("%' ");
-            if (!pr.isEmpty()) sql.append("AND p.nom LIKE '%").append(pr.replace("'","''")).append("%' ");
-            if (st != null && !"Tous les statuts".equals(st)) sql.append("AND t.status='").append(st).append("' ");
-            sql.append("ORDER BY t.id_traitement ").append("Plus ancien".equals(tri) ? "ASC" : "DESC");
-            ResultSet rs = DatabaseUtil.getConnection().createStatement().executeQuery(sql.toString());
+            // Requête groupée par ordonnance : concatène les produits, dosages, fréquences
+            StringBuilder sql = new StringBuilder(
+                "SELECT MIN(t.id_traitement) AS id_traitement, o.numero_ordonnance, u.nom AS unom, " +
+                "GROUP_CONCAT(p.nom SEPARATOR ', ') AS pnoms, " +
+                "GROUP_CONCAT(IFNULL(t.dosage,'') SEPARATOR ', ') AS dosages, " +
+                "GROUP_CONCAT(IFNULL(t.frequence,'') SEPARATOR ', ') AS frequences, " +
+                "MAX(t.duree_jours) AS duree_jours, MIN(t.date_debut) AS date_debut, MAX(t.date_fin) AS date_fin, " +
+                "t.status, t.id_ordonnance_id " +
+                "FROM traitement t " +
+                "LEFT JOIN utilisateur u ON t.id_utilisateur_id=u.id_utilisateur " +
+                "LEFT JOIN produit p ON t.id_produit_id=p.id_produit " +
+                "LEFT JOIN ordonnance o ON t.id_ordonnance_id=o.id_ordonnance " +
+                "WHERE 1=1 ");
+            java.util.List<Object> params = new java.util.ArrayList<>();
+            if (dD != null) { sql.append("AND t.date_debut >= ? "); params.add(Timestamp.valueOf(dD.atStartOfDay())); }
+            if (dF != null) { sql.append("AND t.date_debut <= ? "); params.add(Timestamp.valueOf(dF.atTime(23,59,59))); }
+            if (!cl.isEmpty()) { sql.append("AND u.nom LIKE ? "); params.add("%" + cl + "%"); }
+            if (!pr.isEmpty()) { sql.append("AND p.nom LIKE ? "); params.add("%" + pr + "%"); }
+            if (st != null && !"Tous les statuts".equals(st)) { sql.append("AND t.status = ? "); params.add(st); }
+            sql.append("GROUP BY t.id_ordonnance_id, o.numero_ordonnance, u.nom, t.status ");
+            sql.append("ORDER BY MIN(t.id_traitement) ").append("Plus ancien".equals(tri) ? "ASC" : "DESC");
+            PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                Object p = params.get(i);
+                if (p instanceof Timestamp) ps.setTimestamp(i + 1, (Timestamp) p);
+                else ps.setString(i + 1, (String) p);
+            }
+            ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 ObservableList<String> row = FXCollections.observableArrayList();
-                row.add(String.valueOf(rs.getInt("id_traitement")));
+                row.add(String.valueOf(rs.getInt("id_traitement"))); // ID du premier traitement (pour modifier)
                 row.add(rs.getString("numero_ordonnance") != null ? rs.getString("numero_ordonnance") : "N/A");
                 row.add(rs.getString("unom") != null ? rs.getString("unom") : "N/A");
-                row.add(rs.getString("pnom") != null ? rs.getString("pnom") : "N/A");
-                row.add(rs.getString("dosage") != null ? rs.getString("dosage") : "");
-                row.add(rs.getString("frequence") != null ? rs.getString("frequence") : "");
+                row.add(rs.getString("pnoms") != null ? rs.getString("pnoms") : "N/A"); // Produits concaténés
+                row.add(rs.getString("dosages") != null ? rs.getString("dosages") : ""); // Dosages concaténés
+                row.add(rs.getString("frequences") != null ? rs.getString("frequences") : ""); // Fréquences concaténées
                 row.add(String.valueOf(rs.getInt("duree_jours")));
                 row.add(rs.getTimestamp("date_debut") != null ? rs.getTimestamp("date_debut").toLocalDateTime().toLocalDate().toString() : "");
                 row.add(rs.getTimestamp("date_fin") != null ? rs.getTimestamp("date_fin").toLocalDateTime().toLocalDate().toString() : "");
                 row.add(rs.getString("status") != null ? rs.getString("status") : "");
                 row.add(""); data.add(row);
-            } rs.close();
+            } rs.close(); ps.close();
         } catch (SQLException e) { System.out.println(e.getMessage()); }
         table.setItems(data);
         if (data.isEmpty()) table.setPlaceholder(new Label("Aucun traitement trouv\u00e9"));
     }
 
+    // Afficher le formulaire d'ajout ou de modification d'un traitement (sélection multiple de produits)
     private void showForm(String editId) {
-        pageContainer.getChildren().clear();
-        boolean isEdit = editId != null;
+        pageContainer.getChildren().clear(); // Vider le conteneur
+        boolean isEdit = editId != null; // Mode édition si un ID est fourni
 
         VBox card = new VBox(0);
         card.setMaxWidth(700);
@@ -135,33 +158,84 @@ public class BackTraitementController {
 
         VBox form = new VBox(12); form.setPadding(new Insets(15, 30, 25, 30));
 
-        ComboBox<String> ordC = new ComboBox<>(); ordC.setMaxWidth(Double.MAX_VALUE); ordC.setPromptText("S\u00e9lectionner une ordonnance");
-        ComboBox<String> prodC = new ComboBox<>(); prodC.setMaxWidth(Double.MAX_VALUE); prodC.setPromptText("S\u00e9lectionner un produit");
-        ComboBox<String> userC = new ComboBox<>(); userC.setMaxWidth(Double.MAX_VALUE); userC.setPromptText("S\u00e9lectionner un patient");
+        ComboBox<String> ordC = new ComboBox<>(); ordC.setPrefWidth(220); ordC.setPromptText("S\u00e9lectionner une ordonnance");
+        ComboBox<String> prodC = new ComboBox<>(); prodC.setPrefWidth(220); prodC.setPromptText("S\u00e9lectionner un produit");
+        // Structure : chaque produit a ses propres champs dosage/fréquence/repas
+        java.util.List<java.util.Map<String, Object>> produitEntries = new java.util.ArrayList<>();
+        VBox produitsFieldsBox = new VBox(10); // Conteneur des blocs produit
+
+        // Rafraîchir l'affichage des blocs produit avec champs individuels
+        Runnable[] refreshRef = new Runnable[1]; // Wrapper pour auto-référence
+        refreshRef[0] = () -> {
+            produitsFieldsBox.getChildren().clear();
+            for (java.util.Map<String, Object> entry : new java.util.ArrayList<>(produitEntries)) {
+                String prodName = ((String) entry.get("produit")).split(" - ")[1];
+                VBox block = new VBox(6);
+                block.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-padding: 12; -fx-border-color: #1f6f5c; -fx-border-radius: 10; -fx-border-width: 1;");
+                HBox titleRow = new HBox(10); titleRow.setAlignment(Pos.CENTER_LEFT);
+                Label prodLabel = new Label("\uD83D\uDC8A " + prodName);
+                prodLabel.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #1f6f5c;");
+                Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+                Button rmBtn = new Button("\u00d7"); rmBtn.getStyleClass().add("traitement-btn-remove");
+                final java.util.Map<String, Object> ref = entry;
+                rmBtn.setOnAction(ev -> { produitEntries.remove(ref); refreshRef[0].run(); });
+                titleRow.getChildren().addAll(prodLabel, sp, rmBtn);
+                HBox fieldsRow = new HBox(15);
+                VBox dBox = new VBox(3, new Label("Dosage"), (TextField) entry.get("dosage")); HBox.setHgrow(dBox, Priority.ALWAYS);
+                VBox fBox = new VBox(3, new Label("Fr\u00e9quence"), (TextField) entry.get("frequence")); HBox.setHgrow(fBox, Priority.ALWAYS);
+                fieldsRow.getChildren().addAll(dBox, fBox);
+                VBox rBox = new VBox(3, new Label("Repas"), (ComboBox<?>) entry.get("repas"));
+                block.getChildren().addAll(titleRow, fieldsRow, rBox);
+                produitsFieldsBox.getChildren().add(block);
+            }
+        };
+
+        Button addProdBtn = new Button("+"); addProdBtn.getStyleClass().add("traitement-btn-add");
+        addProdBtn.setOnAction(ev -> {
+            String sel = prodC.getValue();
+            if (sel == null) return;
+            for (java.util.Map<String, Object> e2 : produitEntries) { if (sel.equals(e2.get("produit"))) return; }
+            java.util.Map<String, Object> entry = new java.util.HashMap<>();
+            entry.put("produit", sel);
+            TextField dF = new TextField(); dF.setPromptText("Ex: 500mg");
+            TextField fF = new TextField(); fF.setPromptText("Ex: 3 fois par jour");
+            ComboBox<String> rC = new ComboBox<>(FXCollections.observableArrayList("Avant le repas","Pendant le repas","Apr\u00e8s le repas","En dehors des repas"));
+            rC.setPrefWidth(220); rC.setPromptText("-- Moment du repas --");
+            entry.put("dosage", dF); entry.put("frequence", fF); entry.put("repas", rC);
+            produitEntries.add(entry);
+            refreshRef[0].run();
+            prodC.setValue(null);
+        });
+        HBox prodRow = new HBox(10, prodC, addProdBtn); prodRow.setAlignment(Pos.CENTER_LEFT); javafx.scene.layout.HBox.setHgrow(prodC, Priority.ALWAYS);
+        ComboBox<String> userC = new ComboBox<>(); userC.setPrefWidth(220); userC.setPromptText("S\u00e9lectionner un patient");
         TextArea notesF = new TextArea(); notesF.setPromptText("Exemple:\nAnt\u00e9c\u00e9dents: Allergie au parac\u00e9tamol\nSympt\u00f4mes: Maux de t\u00eate\nPrescription: Ibuprof\u00e8ne 400mg");
         notesF.setPrefRowCount(5); notesF.setWrapText(true);
-
-        HBox r1 = new HBox(20);
-        VBox db = new VBox(4); TextField dosF = new TextField(); dosF.setPromptText("Ex: 500mg, 1 comprim\u00e9"); db.getChildren().addAll(new Label("Dosage"), dosF);
-        VBox fb = new VBox(4); TextField freqF = new TextField(); freqF.setPromptText("Ex: 3 fois par jour"); fb.getChildren().addAll(new Label("Fr\u00e9quence"), freqF);
-        r1.getChildren().addAll(db, fb); HBox.setHgrow(db, Priority.ALWAYS); HBox.setHgrow(fb, Priority.ALWAYS);
-
-        ComboBox<String> repasC = new ComboBox<>(FXCollections.observableArrayList("Avant le repas","Pendant le repas","Apr\u00e8s le repas","En dehors des repas"));
-        repasC.setMaxWidth(Double.MAX_VALUE); repasC.setPromptText("-- Moment du repas --");
 
         TextField dureeF = new TextField("7"); dureeF.setPromptText("7");
 
         HBox r2 = new HBox(20);
-        VBox ddB = new VBox(4); DatePicker ddP = new DatePicker(LocalDate.now()); ddB.getChildren().addAll(new Label("Date de d\u00e9but"), ddP);
-        VBox dfB = new VBox(4); DatePicker dfP = new DatePicker(LocalDate.now().plusDays(7)); dfB.getChildren().addAll(new Label("Date de fin"), dfP);
+        VBox ddB = new VBox(4); DatePicker ddP = new DatePicker(LocalDate.now()); ddB.getChildren().addAll(new Label("Date de début"), ddP);
+        VBox dfB = new VBox(4); DatePicker dfP = new DatePicker(LocalDate.now().plusDays(7)); dfB.getChildren().addAll(new Label("Date de fin (auto-calculée)"), dfP);
         r2.getChildren().addAll(ddB, dfB); HBox.setHgrow(ddB, Priority.ALWAYS); HBox.setHgrow(dfB, Priority.ALWAYS);
+
+        // Calcul automatique : date fin = date début + durée
+        Runnable calcDateFin = () -> {
+            if (ddP.getValue() != null && !dureeF.getText().trim().isEmpty()) {
+                try {
+                    int d = Integer.parseInt(dureeF.getText().trim());
+                    if (d > 0) dfP.setValue(ddP.getValue().plusDays(d));
+                } catch (NumberFormatException ignored) {}
+            }
+        };
+        dureeF.textProperty().addListener((o, a, b) -> calcDateFin.run());
+        ddP.valueProperty().addListener((o, a, b) -> calcDateFin.run());
 
         HBox banner = new HBox(8); banner.setAlignment(Pos.CENTER_LEFT); banner.setPadding(new Insets(10, 15, 10, 15));
         banner.setStyle("-fx-background-color: #e8f4fd; -fx-background-radius: 8; -fx-border-color: #bee5eb; -fx-border-radius: 8;");
         banner.getChildren().addAll(new Label("\u2139"), new Label("Le statut sera automatiquement d\u00e9fini \u00e0 \"En attente\" lors de la cr\u00e9ation."));
 
         ComboBox<String> statC = new ComboBox<>(FXCollections.observableArrayList("en_attente","actif","termin\u00e9","annul\u00e9"));
-        statC.setMaxWidth(Double.MAX_VALUE); statC.setValue("en_attente");
+        statC.setPrefWidth(220); statC.setValue("en_attente");
         Label err = new Label(); err.setStyle("-fx-text-fill: #e74c3c;");
 
         try {
@@ -172,28 +246,59 @@ public class BackTraitementController {
             rs = conn.createStatement().executeQuery("SELECT id_produit, nom FROM produit ORDER BY nom");
             while (rs.next()) prodC.getItems().add(rs.getInt(1) + " - " + rs.getString(2));
             rs.close();
-            rs = conn.createStatement().executeQuery("SELECT id_ordonnance, numero_ordonnance FROM ordonnance ORDER BY id_ordonnance DESC");
+            if (isEdit) {
+                // En modification, afficher toutes les ordonnances (pour garder la valeur actuelle)
+                rs = conn.createStatement().executeQuery("SELECT id_ordonnance, numero_ordonnance FROM ordonnance ORDER BY id_ordonnance DESC");
+            } else {
+                // En ajout, afficher uniquement les ordonnances validées sans traitement
+                rs = conn.createStatement().executeQuery(
+                        "SELECT o.id_ordonnance, o.numero_ordonnance FROM ordonnance o " +
+                        "WHERE o.statut = 'validée' " +
+                        "AND NOT EXISTS (SELECT 1 FROM traitement t WHERE t.id_ordonnance_id = o.id_ordonnance) " +
+                        "ORDER BY o.id_ordonnance DESC");
+            }
             while (rs.next()) ordC.getItems().add(rs.getInt(1) + " - " + rs.getString(2));
             rs.close();
         } catch (SQLException e) { System.out.println(e.getMessage()); }
 
         if (isEdit) {
             try {
+                // Charger les infos communes depuis le premier traitement
                 PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement("SELECT * FROM traitement WHERE id_traitement=?");
                 ps.setInt(1, Integer.parseInt(editId)); ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
-                    dosF.setText(rs.getString("dosage") != null ? rs.getString("dosage") : "");
-                    freqF.setText(rs.getString("frequence") != null ? rs.getString("frequence") : "");
                     dureeF.setText(String.valueOf(rs.getInt("duree_jours")));
                     notesF.setText(rs.getString("notes") != null ? rs.getString("notes") : "");
-                    repasC.setValue(rs.getString("repas")); statC.setValue(rs.getString("status"));
+                    statC.setValue(rs.getString("status"));
                     if (rs.getTimestamp("date_debut") != null) ddP.setValue(rs.getTimestamp("date_debut").toLocalDateTime().toLocalDate());
                     if (rs.getTimestamp("date_fin") != null) dfP.setValue(rs.getTimestamp("date_fin").toLocalDateTime().toLocalDate());
-                    String uid=String.valueOf(rs.getInt("id_utilisateur_id")), pid=String.valueOf(rs.getInt("id_produit_id")), oid=String.valueOf(rs.getInt("id_ordonnance_id"));
+                    String uid=String.valueOf(rs.getInt("id_utilisateur_id")), oid=String.valueOf(rs.getInt("id_ordonnance_id"));
                     for (String x : userC.getItems()) if (x.startsWith(uid+" -")) { userC.setValue(x); break; }
-                    for (String x : prodC.getItems()) if (x.startsWith(pid+" -")) { prodC.setValue(x); break; }
                     for (String x : ordC.getItems()) if (x.startsWith(oid+" -")) { ordC.setValue(x); break; }
                 } rs.close(); ps.close();
+
+                // Charger tous les produits liés à cette ordonnance avec leurs champs individuels
+                PreparedStatement psProd = DatabaseUtil.getConnection().prepareStatement(
+                        "SELECT t.id_produit_id, t.dosage, t.frequence, t.repas FROM traitement t WHERE t.id_ordonnance_id = (SELECT id_ordonnance_id FROM traitement WHERE id_traitement = ?)");
+                psProd.setInt(1, Integer.parseInt(editId));
+                ResultSet rsProd = psProd.executeQuery();
+                while (rsProd.next()) {
+                    String pidStr = String.valueOf(rsProd.getInt("id_produit_id"));
+                    String prodStr = null;
+                    for (String item : prodC.getItems()) { if (item.startsWith(pidStr + " - ")) { prodStr = item; break; } }
+                    if (prodStr != null) {
+                        java.util.Map<String, Object> entry = new java.util.HashMap<>();
+                        entry.put("produit", prodStr);
+                        TextField dF = new TextField(rsProd.getString("dosage") != null ? rsProd.getString("dosage") : ""); dF.setPromptText("Ex: 500mg");
+                        TextField fF = new TextField(rsProd.getString("frequence") != null ? rsProd.getString("frequence") : ""); fF.setPromptText("Ex: 3 fois par jour");
+                        ComboBox<String> rC = new ComboBox<>(FXCollections.observableArrayList("Avant le repas","Pendant le repas","Apr\u00e8s le repas","En dehors des repas"));
+                        rC.setPrefWidth(220); rC.setValue(rsProd.getString("repas"));
+                        entry.put("dosage", dF); entry.put("frequence", fF); entry.put("repas", rC);
+                        produitEntries.add(entry);
+                    }
+                }
+                rsProd.close(); psProd.close();
+                refreshRef[0].run();
             } catch (SQLException e) { System.out.println(e.getMessage()); }
         }
 
@@ -203,41 +308,230 @@ public class BackTraitementController {
         Button save = new Button(isEdit ? "\uD83D\uDCBE Mettre \u00e0 jour" : "\uD83D\uDCBE Ajouter");
         save.setStyle("-fx-background-color: #1f6f5c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25; -fx-cursor: hand;");
         save.setOnAction(e -> {
-            if (userC.getValue()==null||prodC.getValue()==null||ordC.getValue()==null) { err.setText("Remplissez les champs obligatoires."); return; }
+            err.setText("");
+            // Anti double-clic
+            save.setDisable(true);
+
+            // Contrôle : ordonnance obligatoire
+            if (ordC.getValue() == null) {
+                err.setText("Veuillez sélectionner une ordonnance.");
+                save.setDisable(false);
+                return;
+            }
+
+            // Contrôle : ordonnance doit être validée et sans traitement (en ajout)
+            if (!isEdit) {
+                try {
+                    int ordIdCheck = Integer.parseInt(ordC.getValue().split(" - ")[0]);
+                    PreparedStatement psOrdCheck = DatabaseUtil.getConnection().prepareStatement(
+                            "SELECT statut FROM ordonnance WHERE id_ordonnance = ?");
+                    psOrdCheck.setInt(1, ordIdCheck);
+                    ResultSet rsOrdCheck = psOrdCheck.executeQuery();
+                    if (rsOrdCheck.next()) {
+                        String statut = rsOrdCheck.getString("statut");
+                        if (!"validée".equals(statut)) {
+                            err.setText("L'ordonnance sélectionnée n'est pas validée (statut actuel : " + statut + ").");
+                            save.setDisable(false);
+                            rsOrdCheck.close(); psOrdCheck.close();
+                            return;
+                        }
+                    }
+                    rsOrdCheck.close(); psOrdCheck.close();
+
+                    PreparedStatement psTraitCheck = DatabaseUtil.getConnection().prepareStatement(
+                            "SELECT COUNT(*) AS nb FROM traitement WHERE id_ordonnance_id = ?");
+                    psTraitCheck.setInt(1, ordIdCheck);
+                    ResultSet rsTraitCheck = psTraitCheck.executeQuery();
+                    if (rsTraitCheck.next() && rsTraitCheck.getInt("nb") > 0) {
+                        err.setText("Cette ordonnance a déjà un traitement associé.");
+                        save.setDisable(false);
+                        rsTraitCheck.close(); psTraitCheck.close();
+                        return;
+                    }
+                    rsTraitCheck.close(); psTraitCheck.close();
+                } catch (SQLException ex) {
+                    err.setText("Erreur vérification ordonnance: " + ex.getMessage());
+                    save.setDisable(false);
+                    return;
+                }
+            }
+            // Auto-ajouter le produit sélectionné dans le ComboBox si pas encore ajouté
+            String pendingProd = prodC.getValue();
+            if (pendingProd != null) {
+                boolean exists = false;
+                for (java.util.Map<String, Object> e2 : produitEntries) { if (pendingProd.equals(e2.get("produit"))) { exists = true; break; } }
+                if (!exists) {
+                    java.util.Map<String, Object> entry = new java.util.HashMap<>();
+                    entry.put("produit", pendingProd);
+                    TextField dF = new TextField(); dF.setPromptText("Ex: 500mg");
+                    TextField fF = new TextField(); fF.setPromptText("Ex: 3 fois par jour");
+                    ComboBox<String> rC = new ComboBox<>(FXCollections.observableArrayList("Avant le repas","Pendant le repas","Apr\u00e8s le repas","En dehors des repas"));
+                    rC.setPrefWidth(220);
+                    entry.put("dosage", dF); entry.put("frequence", fF); entry.put("repas", rC);
+                    produitEntries.add(entry);
+                    refreshRef[0].run();
+                    prodC.setValue(null);
+                }
+            }
+            if (produitEntries.isEmpty()) {
+                err.setText("Veuillez ajouter au moins un produit.");
+                save.setDisable(false);
+                return;
+            }
+            // Contrôle : patient obligatoire
+            if (userC.getValue() == null) {
+                err.setText("Veuillez sélectionner un patient.");
+                save.setDisable(false);
+                return;
+            }
+            // Contrôle : dosage/fréquence/repas obligatoires pour chaque produit
+            for (java.util.Map<String, Object> entry : produitEntries) {
+                String pName = ((String) entry.get("produit")).split(" - ")[1];
+                String dos = ((TextField) entry.get("dosage")).getText() != null ? ((TextField) entry.get("dosage")).getText().trim() : "";
+                if (dos.isEmpty()) { err.setText("Dosage invalide pour " + pName); save.setDisable(false); return; }
+                String dosNum = dos.replaceAll("[^0-9.]", "");
+                if (dosNum.isEmpty()) { err.setText("Dosage invalide pour " + pName); save.setDisable(false); return; }
+                try { double dv = Double.parseDouble(dosNum); if (dv <= 0) { err.setText("Dosage invalide pour " + pName); save.setDisable(false); return; } }
+                catch (NumberFormatException ex2) { err.setText("Dosage invalide pour " + pName); save.setDisable(false); return; }
+                String freq = ((TextField) entry.get("frequence")).getText() != null ? ((TextField) entry.get("frequence")).getText().trim() : "";
+                if (freq.isEmpty() || freq.length() < 3) { err.setText("Fr\u00e9quence obligatoire pour " + pName); save.setDisable(false); return; }
+                if (((ComboBox<?>) entry.get("repas")).getValue() == null) { err.setText("Repas obligatoire pour " + pName); save.setDisable(false); return; }
+            }
+            // Contrôle : durée doit être un nombre positif
+            String dureeText = dureeF.getText() != null ? dureeF.getText().trim() : "";
+            if (dureeText.isEmpty()) {
+                err.setText("La durée en jours est obligatoire.");
+                save.setDisable(false);
+                return;
+            }
+            int dureeVal;
             try {
-                int duree = 0; try { duree = Integer.parseInt(dureeF.getText().trim()); } catch (NumberFormatException ignored) {}
+                dureeVal = Integer.parseInt(dureeText);
+            } catch (NumberFormatException ex2) {
+                err.setText("La durée doit être un nombre entier valide.");
+                save.setDisable(false);
+                return;
+            }
+            if (dureeVal <= 0) {
+                err.setText("La durée doit être supérieure à 0 jours.");
+                save.setDisable(false);
+                return;
+            }
+            if (dureeVal > 365) {
+                err.setText("La durée ne peut pas dépasser 365 jours.");
+                save.setDisable(false);
+                return;
+            }
+            // Contrôle : date début obligatoire
+            if (ddP.getValue() == null) {
+                err.setText("Date invalide");
+                save.setDisable(false);
+                return;
+            }
+            // Contrôle : date début pas dans le futur
+            if (ddP.getValue().isAfter(java.time.LocalDate.now())) {
+                err.setText("La date de début ne peut pas être dans le futur.");
+                save.setDisable(false);
+                return;
+            }
+            // Contrôle : date fin obligatoire
+            if (dfP.getValue() == null) {
+                err.setText("Date invalide");
+                save.setDisable(false);
+                return;
+            }
+            // Contrôle : date fin après date début
+            if (!dfP.getValue().isAfter(ddP.getValue())) {
+                err.setText("La date de fin doit être postérieure à la date de début.");
+                save.setDisable(false);
+                return;
+            }
+            // Contrôle : notes longueur max
+            String notesText = notesF.getText() != null ? notesF.getText().trim() : "";
+            if (notesText.length() > 2000) {
+                err.setText("Les notes ne doivent pas dépasser 2000 caractères.");
+                save.setDisable(false);
+                return;
+            }
+
+            // Unicité : même patient + même produit (seulement pour les nouveaux produits en mode edit)
+            try {
+                int checkUserId = Integer.parseInt(userC.getValue().split(" - ")[0]);
+                int currentOrdId = Integer.parseInt(ordC.getValue().split(" - ")[0]);
+                // En mode edit, récupérer les produits déjà existants sur cette ordonnance
+                java.util.Set<Integer> existingProdIds = new java.util.HashSet<>();
                 if (isEdit) {
-                    PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement("UPDATE traitement SET id_utilisateur_id=?,dosage=?,frequence=?,duree_jours=?,date_debut=?,date_fin=?,status=?,notes=?,id_ordonnance_id=?,id_produit_id=?,repas=? WHERE id_traitement=?");
-                    ps.setInt(1,Integer.parseInt(userC.getValue().split(" - ")[0])); ps.setString(2,dosF.getText().trim()); ps.setString(3,freqF.getText().trim()); ps.setInt(4,duree);
-                    ps.setTimestamp(5,ddP.getValue()!=null?Timestamp.valueOf(ddP.getValue().atStartOfDay()):null);
-                    ps.setTimestamp(6,dfP.getValue()!=null?Timestamp.valueOf(dfP.getValue().atStartOfDay()):null);
-                    ps.setString(7,statC.getValue()); ps.setString(8,notesF.getText()!=null?notesF.getText().trim():"");
-                    ps.setInt(9,Integer.parseInt(ordC.getValue().split(" - ")[0])); ps.setInt(10,Integer.parseInt(prodC.getValue().split(" - ")[0]));
-                    ps.setString(11,repasC.getValue()!=null?repasC.getValue():""); ps.setInt(12,Integer.parseInt(editId)); ps.executeUpdate(); ps.close();
+                    PreparedStatement psExist = DatabaseUtil.getConnection().prepareStatement(
+                            "SELECT id_produit_id FROM traitement WHERE id_ordonnance_id = ?");
+                    psExist.setInt(1, currentOrdId);
+                    ResultSet rsExist = psExist.executeQuery();
+                    while (rsExist.next()) existingProdIds.add(rsExist.getInt("id_produit_id"));
+                    rsExist.close(); psExist.close();
+                }
+                for (java.util.Map<String, Object> entry : produitEntries) {
+                    int checkProdId = Integer.parseInt(((String) entry.get("produit")).split(" - ")[0]);
+                    // En mode edit, ignorer les produits déjà liés à cette ordonnance
+                    if (isEdit && existingProdIds.contains(checkProdId)) continue;
+                    PreparedStatement psDup = DatabaseUtil.getConnection().prepareStatement(
+                            "SELECT COUNT(*) AS nb FROM traitement WHERE id_utilisateur_id = ? AND id_produit_id = ? AND status IN ('en_attente','actif')");
+                    psDup.setInt(1, checkUserId); psDup.setInt(2, checkProdId);
+                    ResultSet rsDup = psDup.executeQuery();
+                    if (rsDup.next() && rsDup.getInt("nb") > 0) {
+                        err.setText("Le traitement \"" + ((String) entry.get("produit")).split(" - ")[1] + "\" existe d\u00e9j\u00e0 pour ce patient.");
+                        save.setDisable(false); rsDup.close(); psDup.close(); return;
+                    }
+                    rsDup.close(); psDup.close();
+                }
+            } catch (SQLException ex) { err.setText("Erreur: " + ex.getMessage()); save.setDisable(false); return; }
+
+            try {
+                int duree = dureeVal;
+                int userId = Integer.parseInt(userC.getValue().split(" - ")[0]);
+                int ordId = Integer.parseInt(ordC.getValue().split(" - ")[0]);
+                if (isEdit) {
+                    PreparedStatement psDel = DatabaseUtil.getConnection().prepareStatement("DELETE FROM traitement WHERE id_ordonnance_id = ?");
+                    psDel.setInt(1, ordId); psDel.executeUpdate(); psDel.close();
+                    for (java.util.Map<String, Object> entry : produitEntries) {
+                        int prodId = Integer.parseInt(((String) entry.get("produit")).split(" - ")[0]);
+                        String dos = ((TextField) entry.get("dosage")).getText().trim();
+                        String freq = ((TextField) entry.get("frequence")).getText().trim();
+                        String repas = ((ComboBox<?>) entry.get("repas")).getValue() != null ? ((ComboBox<?>) entry.get("repas")).getValue().toString() : "";
+                        PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement("INSERT INTO traitement (id_utilisateur_id,dosage,frequence,duree_jours,date_debut,date_fin,status,notes,id_ordonnance_id,id_produit_id,repas) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+                        ps.setInt(1, userId); ps.setString(2, dos); ps.setString(3, freq); ps.setInt(4, duree);
+                        ps.setTimestamp(5, ddP.getValue() != null ? Timestamp.valueOf(ddP.getValue().atStartOfDay()) : null);
+                        ps.setTimestamp(6, dfP.getValue() != null ? Timestamp.valueOf(dfP.getValue().atStartOfDay()) : null);
+                        ps.setString(7, statC.getValue()); ps.setString(8, notesText);
+                        ps.setInt(9, ordId); ps.setInt(10, prodId); ps.setString(11, repas); ps.executeUpdate(); ps.close();
+                    }
                 } else {
-                    // Vérifier si l'ordonnance est déjà validée
-                    int ordId = Integer.parseInt(ordC.getValue().split(" - ")[0]);
                     String traitStatus = "en_attente";
                     PreparedStatement psCheck = DatabaseUtil.getConnection().prepareStatement("SELECT statut FROM ordonnance WHERE id_ordonnance=?");
                     psCheck.setInt(1, ordId); ResultSet rsCheck = psCheck.executeQuery();
                     if (rsCheck.next() && "valid\u00e9e".equals(rsCheck.getString("statut"))) { traitStatus = "actif"; }
                     rsCheck.close(); psCheck.close();
-
-                    PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement("INSERT INTO traitement (id_utilisateur_id,dosage,frequence,duree_jours,date_debut,date_fin,status,notes,id_ordonnance_id,id_produit_id,repas) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
-                    ps.setInt(1,Integer.parseInt(userC.getValue().split(" - ")[0])); ps.setString(2,dosF.getText().trim()); ps.setString(3,freqF.getText().trim()); ps.setInt(4,duree);
-                    ps.setTimestamp(5,ddP.getValue()!=null?Timestamp.valueOf(ddP.getValue().atStartOfDay()):Timestamp.valueOf(java.time.LocalDateTime.now()));
-                    ps.setTimestamp(6,dfP.getValue()!=null?Timestamp.valueOf(dfP.getValue().atStartOfDay()):null);
-                    ps.setString(7,traitStatus); ps.setString(8,notesF.getText()!=null?notesF.getText().trim():"");
-                    ps.setInt(9,ordId); ps.setInt(10,Integer.parseInt(prodC.getValue().split(" - ")[0]));
-                    ps.setString(11,repasC.getValue()!=null?repasC.getValue():""); ps.executeUpdate(); ps.close();
+                    for (java.util.Map<String, Object> entry : produitEntries) {
+                        int prodId = Integer.parseInt(((String) entry.get("produit")).split(" - ")[0]);
+                        String dos = ((TextField) entry.get("dosage")).getText().trim();
+                        String freq = ((TextField) entry.get("frequence")).getText().trim();
+                        String repas = ((ComboBox<?>) entry.get("repas")).getValue() != null ? ((ComboBox<?>) entry.get("repas")).getValue().toString() : "";
+                        PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement("INSERT INTO traitement (id_utilisateur_id,dosage,frequence,duree_jours,date_debut,date_fin,status,notes,id_ordonnance_id,id_produit_id,repas) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+                        ps.setInt(1, userId); ps.setString(2, dos); ps.setString(3, freq); ps.setInt(4, duree);
+                        ps.setTimestamp(5, ddP.getValue() != null ? Timestamp.valueOf(ddP.getValue().atStartOfDay()) : Timestamp.valueOf(java.time.LocalDateTime.now()));
+                        ps.setTimestamp(6, dfP.getValue() != null ? Timestamp.valueOf(dfP.getValue().atStartOfDay()) : null);
+                        ps.setString(7, traitStatus); ps.setString(8, notesText);
+                        ps.setInt(9, ordId); ps.setInt(10, prodId); ps.setString(11, repas); ps.executeUpdate(); ps.close();
+                    }
                 }
                 showList();
-            } catch (SQLException ex) { err.setText("Erreur: " + ex.getMessage()); }
+            } catch (SQLException ex) {
+                err.setText("Erreur: " + ex.getMessage());
+                save.setDisable(false);
+            }
         });
         btns.getChildren().addAll(cancel, save);
 
-        form.getChildren().addAll(new Label("Ordonnance"), ordC, new Label("Produit"), prodC, new Label("Patient"), userC,
-                new Label("Notes"), notesF, r1, new Label("Repas"), repasC, new Label("Dur\u00e9e (jours)"), dureeF, r2);
+        form.getChildren().addAll(new Label("Ordonnance"), ordC, new Label("Produit(s)"), prodRow, produitsFieldsBox, new Label("Patient"), userC,
+                new Label("Notes"), notesF, new Label("Dur\u00e9e (jours)"), dureeF, r2);
         if (isEdit) form.getChildren().addAll(new Label("Statut"), statC); else form.getChildren().add(banner);
         form.getChildren().addAll(err, new Separator(), btns);
         card.getChildren().addAll(hdr, new Separator(), form);
@@ -247,6 +541,7 @@ public class BackTraitementController {
         pageContainer.getChildren().add(sc); VBox.setVgrow(sc, Priority.ALWAYS);
     }
 
+    // Afficher la page de statistiques avec PieCharts, cartes récapitulatives et top produits
     private void showStats() {
         pageContainer.getChildren().clear();
 
@@ -334,12 +629,70 @@ public class BackTraitementController {
         } catch (SQLException e) { System.out.println(e.getMessage()); }
         if (topCard.getChildren().isEmpty()) topCard.getChildren().add(new Label("Aucune donn\u00e9e disponible"));
 
-        page.getChildren().addAll(hdr, row1, traitTitle, row2, ordTitle, row3, topTitle, topCard);
+        page.getChildren().addAll(hdr);
+
+        // PieChart Traitements
+        javafx.scene.chart.PieChart traitPie = new javafx.scene.chart.PieChart(
+                javafx.collections.FXCollections.observableArrayList(
+                        new javafx.scene.chart.PieChart.Data("En attente (" + enAttente + ")", enAttente),
+                        new javafx.scene.chart.PieChart.Data("Actifs (" + actifs + ")", actifs),
+                        new javafx.scene.chart.PieChart.Data("Terminés (" + termines + ")", termines),
+                        new javafx.scene.chart.PieChart.Data("Annulés (" + annules + ")", annules)
+                ));
+        traitPie.setTitle("Répartition des Traitements (en %)");
+        traitPie.setLabelsVisible(true);
+        traitPie.setLegendVisible(true);
+        traitPie.setPrefHeight(350);
+
+        // PieChart Ordonnances
+        javafx.scene.chart.PieChart ordPie = new javafx.scene.chart.PieChart(
+                javafx.collections.FXCollections.observableArrayList(
+                        new javafx.scene.chart.PieChart.Data("Brouillon (" + ordBrouillon + ")", ordBrouillon),
+                        new javafx.scene.chart.PieChart.Data("En attente (" + ordAttente + ")", ordAttente),
+                        new javafx.scene.chart.PieChart.Data("Validées (" + ordValidee + ")", ordValidee),
+                        new javafx.scene.chart.PieChart.Data("Expirées (" + ordExpiree + ")", ordExpiree)
+                ));
+        ordPie.setTitle("Répartition des Ordonnances (en %)");
+        ordPie.setLabelsVisible(true);
+        ordPie.setLegendVisible(true);
+        ordPie.setPrefHeight(350);
+
+        HBox chartsRow = new HBox(30); chartsRow.setAlignment(Pos.CENTER);
+        chartsRow.getChildren().addAll(traitPie, ordPie);
+
+        page.getChildren().addAll(chartsRow, topTitle, topCard);
+
+        // Derniers traitements créés
+        Label recentTitle = new Label("\uD83D\uDD52 Derniers traitements créés");
+        recentTitle.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #333;");
+        VBox recentCard = new VBox(8); recentCard.setPadding(new Insets(20));
+        recentCard.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0.3, 0, 2);");
+        try {
+            ResultSet rs = DatabaseUtil.getConnection().createStatement().executeQuery(
+                "SELECT t.id_traitement, o.numero_ordonnance, u.nom, p.nom AS pnom, t.status, t.date_debut " +
+                "FROM traitement t LEFT JOIN utilisateur u ON t.id_utilisateur_id=u.id_utilisateur " +
+                "LEFT JOIN produit p ON t.id_produit_id=p.id_produit " +
+                "LEFT JOIN ordonnance o ON t.id_ordonnance_id=o.id_ordonnance " +
+                "ORDER BY t.id_traitement DESC LIMIT 5");
+            while (rs.next()) {
+                String date = rs.getTimestamp("date_debut") != null ? rs.getTimestamp("date_debut").toLocalDateTime().toLocalDate().toString() : "";
+                Label row = new Label("\uD83D\uDC8A " + (rs.getString("numero_ordonnance") != null ? rs.getString("numero_ordonnance") : "N/A") +
+                        " \u2014 " + (rs.getString("nom") != null ? rs.getString("nom") : "N/A") +
+                        " \u2014 " + (rs.getString("pnom") != null ? rs.getString("pnom") : "N/A") +
+                        " \u2014 " + rs.getString("status") + " \u2014 " + date);
+                row.setStyle("-fx-font-size: 13; -fx-text-fill: #333; -fx-padding: 5 10;");
+                recentCard.getChildren().add(row);
+            } rs.close();
+        } catch (SQLException e) { System.out.println(e.getMessage()); }
+        if (recentCard.getChildren().isEmpty()) recentCard.getChildren().add(new Label("Aucune donnée"));
+
+        page.getChildren().addAll(recentTitle, recentCard);
 
         ScrollPane sc = new ScrollPane(page); sc.setFitToWidth(true); sc.setStyle("-fx-background-color: #f5f5f5;");
         pageContainer.getChildren().add(sc); VBox.setVgrow(sc, Priority.ALWAYS);
     }
 
+    // Créer une carte statistique colorée avec icône, valeur et label
     private VBox statCard(String icon, String value, String label, String bgColor, String textColor) {
         VBox card = new VBox(5); card.setAlignment(Pos.CENTER); card.setPadding(new Insets(20, 30, 20, 30));
         card.setMinWidth(180); card.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.3, 0, 3);");
@@ -350,9 +703,10 @@ public class BackTraitementController {
         return card;
     }
 
-    @FXML private void goToDashboard() throws IOException { nav("/fxml/Dashboard.fxml"); }
-    @FXML private void goToOrdonnances() throws IOException { nav("/fxml/BackOrdonnance.fxml"); }
-    @FXML private void logout() throws IOException { nav("/fxml/Login.fxml"); }
+    @FXML private void goToDashboard() throws IOException { nav("/fxml/Dashboard.fxml"); } // Navigation vers le tableau de bord
+    @FXML private void goToOrdonnances() throws IOException { nav("/fxml/BackOrdonnance.fxml"); } // Navigation vers la gestion des ordonnances
+    @FXML private void logout() throws IOException { nav("/fxml/Login.fxml"); } // Déconnexion et retour au login
+    // Méthode utilitaire de navigation entre les pages
     private void nav(String fxml) throws IOException {
         Parent root = FXMLLoader.load(getClass().getResource(fxml));
         Scene scene = new Scene(root); scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());

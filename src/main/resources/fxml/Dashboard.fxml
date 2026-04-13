@@ -47,6 +47,14 @@
                             <Label text="Alertes Stock" styleClass="stat-label"/>
                             <Label fx:id="alertesStockLabel" text="0" styleClass="stat-value"/>
                         </VBox>
+                        <VBox styleClass="stat-card" GridPane.columnIndex="4" GridPane.rowIndex="0">
+                            <Label text="Ordonnances" styleClass="stat-label"/>
+                            <Label fx:id="totalOrdonnancesLabel" text="0" styleClass="stat-value"/>
+                        </VBox>
+                        <VBox styleClass="stat-card" GridPane.columnIndex="5" GridPane.rowIndex="0">
+                            <Label text="Traitements" styleClass="stat-label"/>
+                            <Label fx:id="totalTraitementsLabel" text="0" styleClass="stat-value"/>
+                        </VBox>
                     </GridPane>
                 </VBox>
                 <VBox styleClass="card" spacing="20">

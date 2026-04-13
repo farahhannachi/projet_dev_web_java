@@ -114,7 +114,7 @@
                     </VBox>
 
                     <!-- Submit -->
-                    <Button text="Envoyer mon ordonnance" styleClass="ord-btn-submit" onAction="#handleSubmitOrdonnance" maxWidth="Infinity"/>
+                    <Button fx:id="submitButton" text="Envoyer mon ordonnance" styleClass="ord-btn-submit" onAction="#handleSubmitOrdonnance" maxWidth="Infinity"/>
                     <Label text="En envoyant ce formulaire, j'accepte que mes donn&#233;es soient trait&#233;es par CuraVita dans le cadre strict de la d&#233;livrance de m&#233;dicaments."
                            style="-fx-font-size: 10; -fx-text-fill: #999; -fx-wrap-text: true; -fx-text-alignment: center;"/>
 

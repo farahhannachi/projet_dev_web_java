@@ -17,14 +17,15 @@ import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDate;
 
+// Contrôleur back-office pour la gestion des ordonnances par l'administrateur (CRUD + statistiques + PieChart)
 public class BackOrdonnanceController {
 
-    @FXML private VBox pageContainer;
+    @FXML private VBox pageContainer; // Conteneur principal de la page (remplacé dynamiquement selon la vue)
 
     @FXML
-    public void initialize() { showList(); }
+    public void initialize() { showList(); } // Initialisation : afficher la liste des ordonnances
 
-    public void openNewForm() { showForm(null); }
+    public void openNewForm() { showForm(null); } // Ouvrir le formulaire d'ajout (appelé depuis le Dashboard)
 
     private void showList() {
         pageContainer.getChildren().clear();
@@ -87,16 +88,24 @@ public class BackOrdonnanceController {
         pageContainer.getChildren().addAll(greenBar, header, actionBar, filterCard, tw);
     }
 
+    // Charger les données de la table avec filtres dynamiques (PreparedStatement anti injection SQL)
     private void loadData(TableView<ObservableList<String>> table, LocalDate dO, LocalDate dE, String cl, String st, String tri) {
         ObservableList<ObservableList<String>> data = FXCollections.observableArrayList();
         try {
             StringBuilder sql = new StringBuilder("SELECT o.id_ordonnance, o.numero_ordonnance, u.nom AS unom, o.date_ordonnance, o.date_expiration, o.statut, (SELECT COUNT(*) FROM traitement t WHERE t.id_ordonnance_id=o.id_ordonnance) AS nb_trait FROM ordonnance o LEFT JOIN utilisateur u ON o.id_utilisateur_id=u.id_utilisateur WHERE 1=1 ");
-            if (dO != null) sql.append("AND o.date_ordonnance >= '").append(dO).append(" 00:00:00' ");
-            if (dE != null) sql.append("AND o.date_expiration <= '").append(dE).append(" 23:59:59' ");
-            if (!cl.isEmpty()) sql.append("AND u.nom LIKE '%").append(cl.replace("'","''")).append("%' ");
-            if (st != null && !"Tous les statuts".equals(st)) sql.append("AND o.statut='").append(st).append("' ");
+            java.util.List<Object> params = new java.util.ArrayList<>();
+            if (dO != null) { sql.append("AND o.date_ordonnance >= ? "); params.add(Timestamp.valueOf(dO.atStartOfDay())); }
+            if (dE != null) { sql.append("AND o.date_expiration <= ? "); params.add(Timestamp.valueOf(dE.atTime(23,59,59))); }
+            if (!cl.isEmpty()) { sql.append("AND u.nom LIKE ? "); params.add("%" + cl + "%"); }
+            if (st != null && !"Tous les statuts".equals(st)) { sql.append("AND o.statut = ? "); params.add(st); }
             sql.append("ORDER BY o.date_ordonnance ").append(tri.contains("ancien") ? "ASC" : "DESC");
-            ResultSet rs = DatabaseUtil.getConnection().createStatement().executeQuery(sql.toString());
+            PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                Object p = params.get(i);
+                if (p instanceof Timestamp) ps.setTimestamp(i + 1, (Timestamp) p);
+                else ps.setString(i + 1, (String) p);
+            }
+            ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 ObservableList<String> row = FXCollections.observableArrayList();
                 row.add(String.valueOf(rs.getInt("id_ordonnance")));
@@ -107,15 +116,16 @@ public class BackOrdonnanceController {
                 row.add(rs.getString("statut") != null ? rs.getString("statut") : "");
                 row.add(String.valueOf(rs.getInt("nb_trait")));
                 row.add(""); data.add(row);
-            } rs.close();
+            } rs.close(); ps.close();
         } catch (SQLException e) { System.out.println(e.getMessage()); }
         table.setItems(data);
         if (data.isEmpty()) table.setPlaceholder(new Label("Aucune ordonnance trouv\u00e9e"));
     }
 
+    // Afficher le formulaire d'ajout ou de modification d'une ordonnance
     private void showForm(String editId) {
-        pageContainer.getChildren().clear();
-        boolean isEdit = editId != null;
+        pageContainer.getChildren().clear(); // Vider le conteneur
+        boolean isEdit = editId != null; // Mode édition si un ID est fourni
 
         VBox card = new VBox(0);
         card.setMaxWidth(700);
@@ -133,9 +143,9 @@ public class BackOrdonnanceController {
         HBox r1 = new HBox(20);
         VBox numB = new VBox(4); TextField numF = new TextField();
         numF.setPromptText("Num\u00e9ro d'ordonnance");
-        if (!isEdit) numF.setText("ORD-" + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + "-" + (int)(Math.random()*10));
+        if (!isEdit) numF.setText("ORD-" + java.time.LocalDate.now().getYear() + "-" + String.format("%04d", (int)(Math.random() * 10000)));
         numB.getChildren().addAll(new Label("Num\u00e9ro d'ordonnance"), numF);
-        VBox patB = new VBox(4); ComboBox<String> userC = new ComboBox<>(); userC.setMaxWidth(Double.MAX_VALUE); userC.setPromptText("S\u00e9lectionner un patient");
+        VBox patB = new VBox(4); ComboBox<String> userC = new ComboBox<>(); userC.setPrefWidth(220); userC.setPromptText("S\u00e9lectionner un patient");
         patB.getChildren().addAll(new Label("Patient"), userC);
         r1.getChildren().addAll(numB, patB); HBox.setHgrow(numB, Priority.ALWAYS); HBox.setHgrow(patB, Priority.ALWAYS);
 
@@ -151,7 +161,7 @@ public class BackOrdonnanceController {
         banner.getChildren().addAll(new Label("\u2139"), new Label("Le statut sera automatiquement d\u00e9fini \u00e0 \"En attente\" lors de la cr\u00e9ation."));
 
         ComboBox<String> statC = new ComboBox<>(FXCollections.observableArrayList("brouillon","en_attente","valid\u00e9e","expir\u00e9e"));
-        statC.setMaxWidth(Double.MAX_VALUE); statC.setValue("en_attente");
+        statC.setPrefWidth(220); statC.setValue("en_attente");
 
         TextArea noteF = new TextArea(); noteF.setPromptText("Note m\u00e9dicale"); noteF.setPrefRowCount(4); noteF.setWrapText(true);
         Label err = new Label(); err.setStyle("-fx-text-fill: #e74c3c;");
@@ -184,28 +194,196 @@ public class BackOrdonnanceController {
         Button save = new Button(isEdit ? "\uD83D\uDCBE Mettre \u00e0 jour" : "\uD83D\uDCBE Ajouter");
         save.setStyle("-fx-background-color: #1f6f5c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25; -fx-cursor: hand;");
         save.setOnAction(e -> {
-            if (userC.getValue()==null||doP.getValue()==null||deP.getValue()==null) { err.setText("Remplissez les champs obligatoires."); return; }
+            err.setText("");
+            // Cas 10 : anti double-clic
+            save.setDisable(true);
+
+            // Contrôle : patient obligatoire
+            if (userC.getValue() == null) {
+                err.setText("Veuillez sélectionner un patient.");
+                save.setDisable(false);
+                return;
+            }
+
+            // Vérifier existence du patient en base
+            int patientId = Integer.parseInt(userC.getValue().split(" - ")[0]);
+            try {
+                PreparedStatement psPatient = DatabaseUtil.getConnection().prepareStatement("SELECT COUNT(*) AS nb FROM utilisateur WHERE id_utilisateur = ?");
+                psPatient.setInt(1, patientId);
+                ResultSet rsPatient = psPatient.executeQuery();
+                if (rsPatient.next() && rsPatient.getInt("nb") == 0) {
+                    err.setText("Le patient sélectionné n'existe pas en base.");
+                    save.setDisable(false);
+                    rsPatient.close(); psPatient.close();
+                    return;
+                }
+                rsPatient.close(); psPatient.close();
+            } catch (SQLException ex) {
+                err.setText("Erreur vérification patient: " + ex.getMessage());
+                save.setDisable(false);
+                return;
+            }
+
+            // Contrôle : numéro d'ordonnance obligatoire et format
+            String numero = numF.getText() != null ? numF.getText().trim() : "";
+            if (numero.isEmpty()) {
+                err.setText("Le numéro d'ordonnance est obligatoire.");
+                save.setDisable(false);
+                return;
+            }
+            if (!numero.matches("^ORD-\\d{4}-\\d{4}$")) {
+                err.setText("Le numéro d'ordonnance doit respecter le format ORD-AAAA-XXXX (ex: ORD-2026-4837).");
+                save.setDisable(false);
+                return;
+            }
+
+            // Cas 8/9/11 : vérifier unicité du numéro (trim + insensible casse)
+            try {
+                String sqlUniq = isEdit
+                        ? "SELECT COUNT(*) AS nb FROM ordonnance WHERE LOWER(TRIM(numero_ordonnance)) = LOWER(?) AND id_ordonnance != ?"
+                        : "SELECT COUNT(*) AS nb FROM ordonnance WHERE LOWER(TRIM(numero_ordonnance)) = LOWER(?)";
+                PreparedStatement psUniq = DatabaseUtil.getConnection().prepareStatement(sqlUniq);
+                psUniq.setString(1, numero);
+                if (isEdit) psUniq.setInt(2, Integer.parseInt(editId));
+                ResultSet rsUniq = psUniq.executeQuery();
+                if (rsUniq.next() && rsUniq.getInt("nb") > 0) {
+                    err.setText("Ce numéro d'ordonnance existe déjà.");
+                    save.setDisable(false);
+                    rsUniq.close(); psUniq.close();
+                    return;
+                }
+                rsUniq.close(); psUniq.close();
+            } catch (SQLException ex) {
+                err.setText("Erreur vérification numéro: " + ex.getMessage());
+                save.setDisable(false);
+                return;
+            }
+
+            // Contrôle : date ordonnance obligatoire
+            if (doP.getValue() == null) {
+                err.setText("Date invalide");
+                save.setDisable(false);
+                return;
+            }
+            // Contrôle : date ordonnance pas dans le futur
+            if (doP.getValue().isAfter(java.time.LocalDate.now())) {
+                err.setText("La date de l'ordonnance ne peut pas être dans le futur.");
+                save.setDisable(false);
+                return;
+            }
+            // Contrôle : date expiration obligatoire
+            if (deP.getValue() == null) {
+                err.setText("Date invalide");
+                save.setDisable(false);
+                return;
+            }
+            // Contrôle : date expiration après date ordonnance
+            if (!deP.getValue().isAfter(doP.getValue())) {
+                err.setText("La date d'expiration doit être postérieure à la date de l'ordonnance.");
+                save.setDisable(false);
+                return;
+            }
+
+            // Contrôle : note médicale longueur max
+            String noteText = noteF.getText() != null ? noteF.getText().trim() : "";
+            if (noteText.length() > 1000) {
+                err.setText("La note médicale ne doit pas dépasser 1000 caractères.");
+                save.setDisable(false);
+                return;
+            }
+
+            // Doublon : même patient + même date ordonnance
+            try {
+                String sqlDup = isEdit
+                        ? "SELECT COUNT(*) AS nb FROM ordonnance WHERE id_utilisateur_id = ? AND DATE(date_ordonnance) = ? AND id_ordonnance != ?"
+                        : "SELECT COUNT(*) AS nb FROM ordonnance WHERE id_utilisateur_id = ? AND DATE(date_ordonnance) = ?";
+                PreparedStatement psDup = DatabaseUtil.getConnection().prepareStatement(sqlDup);
+                psDup.setInt(1, patientId);
+                psDup.setDate(2, java.sql.Date.valueOf(doP.getValue()));
+                if (isEdit) psDup.setInt(3, Integer.parseInt(editId));
+                ResultSet rsDup = psDup.executeQuery();
+                if (rsDup.next() && rsDup.getInt("nb") > 0) {
+                    err.setText("Une ordonnance existe déjà pour ce patient à cette date.");
+                    save.setDisable(false);
+                    rsDup.close(); psDup.close();
+                    return;
+                }
+                rsDup.close(); psDup.close();
+            } catch (SQLException ex) {
+                err.setText("Erreur vérification doublon: " + ex.getMessage());
+                save.setDisable(false);
+                return;
+            }
+
+            // Validation en modification : vérifier que les traitements liés existent en base
+            if (isEdit) {
+                try {
+                    PreparedStatement psTrait = DatabaseUtil.getConnection().prepareStatement(
+                            "SELECT COUNT(*) AS nb FROM traitement WHERE id_ordonnance_id = ?");
+                    psTrait.setInt(1, Integer.parseInt(editId));
+                    ResultSet rsTrait = psTrait.executeQuery();
+                    // Info seulement, pas bloquant pour la modification
+                    rsTrait.close(); psTrait.close();
+                } catch (SQLException ex) {
+                    // Non bloquant
+                }
+            }
+
             try {
                 if (isEdit) {
                     PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement("UPDATE ordonnance SET numero_ordonnance=?,date_ordonnance=?,date_expiration=?,statut=?,note_medical=?,id_utilisateur_id=? WHERE id_ordonnance=?");
-                    ps.setString(1,numF.getText().trim()); ps.setTimestamp(2,Timestamp.valueOf(doP.getValue().atStartOfDay()));
-                    ps.setTimestamp(3,Timestamp.valueOf(deP.getValue().atStartOfDay())); ps.setString(4,statC.getValue());
-                    ps.setString(5,noteF.getText()!=null?noteF.getText().trim():""); ps.setInt(6,Integer.parseInt(userC.getValue().split(" - ")[0]));
-                    ps.setInt(7,Integer.parseInt(editId)); ps.executeUpdate(); ps.close();
-                    // Si ordonnance validée, valider automatiquement tous les traitements liés
-                    if ("valid\u00e9e".equals(statC.getValue())) {
+                    ps.setString(1, numero); ps.setTimestamp(2, Timestamp.valueOf(doP.getValue().atStartOfDay()));
+                    ps.setTimestamp(3, Timestamp.valueOf(deP.getValue().atStartOfDay())); ps.setString(4, statC.getValue());
+                    ps.setString(5, noteText); ps.setInt(6, patientId);
+                    ps.setInt(7, Integer.parseInt(editId)); ps.executeUpdate(); ps.close();
+                    // Propagation automatique du statut ordonnance vers les traitements liés
+                    String newStatut = statC.getValue();
+                    if ("validée".equals(newStatut)) {
                         PreparedStatement ps2 = DatabaseUtil.getConnection().prepareStatement("UPDATE traitement SET status='actif' WHERE id_ordonnance_id=? AND status='en_attente'");
+                        ps2.setInt(1, Integer.parseInt(editId)); ps2.executeUpdate(); ps2.close();
+                    } else if ("expirée".equals(newStatut)) {
+                        PreparedStatement ps2 = DatabaseUtil.getConnection().prepareStatement("UPDATE traitement SET status='terminé' WHERE id_ordonnance_id=? AND status IN ('en_attente','actif')");
+                        ps2.setInt(1, Integer.parseInt(editId)); ps2.executeUpdate(); ps2.close();
+                    } else if ("brouillon".equals(newStatut)) {
+                        PreparedStatement ps2 = DatabaseUtil.getConnection().prepareStatement("UPDATE traitement SET status='en_attente' WHERE id_ordonnance_id=?");
                         ps2.setInt(1, Integer.parseInt(editId)); ps2.executeUpdate(); ps2.close();
                     }
                 } else {
-                    PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement("INSERT INTO ordonnance (numero_ordonnance,date_ordonnance,date_expiration,statut,note_medical,id_utilisateur_id) VALUES (?,?,?,?,?,?)");
-                    ps.setString(1,numF.getText().trim()); ps.setTimestamp(2,Timestamp.valueOf(doP.getValue().atStartOfDay()));
-                    ps.setTimestamp(3,Timestamp.valueOf(deP.getValue().atStartOfDay())); ps.setString(4,"en_attente");
-                    ps.setString(5,noteF.getText()!=null?noteF.getText().trim():""); ps.setInt(6,Integer.parseInt(userC.getValue().split(" - ")[0]));
-                    ps.executeUpdate(); ps.close();
+                    // Insérer la nouvelle ordonnance et récupérer son ID
+                    PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement(
+                            "INSERT INTO ordonnance (numero_ordonnance,date_ordonnance,date_expiration,statut,note_medical,id_utilisateur_id) VALUES (?,?,?,?,?,?)",
+                            Statement.RETURN_GENERATED_KEYS);
+                    ps.setString(1, numero); ps.setTimestamp(2, Timestamp.valueOf(doP.getValue().atStartOfDay()));
+                    ps.setTimestamp(3, Timestamp.valueOf(deP.getValue().atStartOfDay())); ps.setString(4, "en_attente");
+                    ps.setString(5, noteText); ps.setInt(6, patientId);
+                    ps.executeUpdate();
+                    // Récupérer l'ID de l'ordonnance créée
+                    ResultSet genKeys = ps.getGeneratedKeys();
+                    int newOrdId = 0;
+                    if (genKeys.next()) newOrdId = genKeys.getInt(1);
+                    genKeys.close(); ps.close();
+
+                    // Créer automatiquement un traitement vide lié à cette ordonnance (pour qu'elle apparaisse dans la liste traitements)
+                    if (newOrdId > 0) {
+                        PreparedStatement psTrait = DatabaseUtil.getConnection().prepareStatement(
+                                "INSERT INTO traitement (id_utilisateur_id, dosage, frequence, duree_jours, date_debut, status, notes, id_ordonnance_id, id_produit_id, repas) VALUES (?,?,?,?,?,?,?,?,NULL,?)");
+                        psTrait.setInt(1, patientId); // Même patient que l'ordonnance
+                        psTrait.setString(2, ""); // Dosage vide (à remplir par l'admin)
+                        psTrait.setString(3, ""); // Fréquence vide
+                        psTrait.setInt(4, 0); // Durée = 0
+                        psTrait.setTimestamp(5, Timestamp.valueOf(doP.getValue().atStartOfDay())); // Date début = date ordonnance
+                        psTrait.setString(6, "en_attente"); // Statut en attente
+                        psTrait.setString(7, ""); // Notes vides
+                        psTrait.setInt(8, newOrdId); // Lier à l'ordonnance créée
+                        psTrait.setString(9, ""); // Repas vide
+                        psTrait.executeUpdate(); psTrait.close();
+                    }
                 }
                 showList();
-            } catch (SQLException ex) { err.setText("Erreur: " + ex.getMessage()); }
+            } catch (SQLException ex) {
+                err.setText("Erreur: " + ex.getMessage());
+                save.setDisable(false);
+            }
         });
         btns.getChildren().addAll(cancel, save);
 
@@ -219,6 +397,7 @@ public class BackOrdonnanceController {
         pageContainer.getChildren().add(sc); VBox.setVgrow(sc, Priority.ALWAYS);
     }
 
+    // Afficher la page de statistiques avec PieCharts et cartes récapitulatives
     private void showStats() {
         pageContainer.getChildren().clear();
         VBox page = new VBox(20); page.setPadding(new Insets(30)); page.setStyle("-fx-background-color: #f5f5f5;");
@@ -288,11 +467,41 @@ public class BackOrdonnanceController {
         } catch (SQLException e) { System.out.println(e.getMessage()); }
         if (recentCard.getChildren().isEmpty()) recentCard.getChildren().add(new Label("Aucune donn\u00e9e"));
 
-        page.getChildren().addAll(hdr, row1, ordTitle, row2, traitTitle, row3, recentTitle, recentCard);
+        page.getChildren().addAll(hdr);
+
+        // PieChart Ordonnances
+        javafx.scene.chart.PieChart ordPie = new javafx.scene.chart.PieChart(
+                javafx.collections.FXCollections.observableArrayList(
+                        new javafx.scene.chart.PieChart.Data("Brouillon (" + ordBrouillon + ")", ordBrouillon),
+                        new javafx.scene.chart.PieChart.Data("En attente (" + ordAttente + ")", ordAttente),
+                        new javafx.scene.chart.PieChart.Data("Validées (" + ordValidee + ")", ordValidee),
+                        new javafx.scene.chart.PieChart.Data("Expirées (" + ordExpiree + ")", ordExpiree)
+                ));
+        ordPie.setTitle("Répartition des Ordonnances (en %)");
+        ordPie.setLabelsVisible(true);
+        ordPie.setLegendVisible(true);
+        ordPie.setPrefHeight(350);
+
+        // PieChart Traitements
+        javafx.scene.chart.PieChart traitPie = new javafx.scene.chart.PieChart(
+                javafx.collections.FXCollections.observableArrayList(
+                        new javafx.scene.chart.PieChart.Data("En attente (" + traitAttente + ")", traitAttente),
+                        new javafx.scene.chart.PieChart.Data("Actifs (" + traitActif + ")", traitActif)
+                ));
+        traitPie.setTitle("Répartition des Traitements (en %)");
+        traitPie.setLabelsVisible(true);
+        traitPie.setLegendVisible(true);
+        traitPie.setPrefHeight(350);
+
+        HBox chartsRow = new HBox(30); chartsRow.setAlignment(Pos.CENTER);
+        chartsRow.getChildren().addAll(ordPie, traitPie);
+
+        page.getChildren().addAll(chartsRow, recentTitle, recentCard);
         ScrollPane sc = new ScrollPane(page); sc.setFitToWidth(true); sc.setStyle("-fx-background-color: #f5f5f5;");
         pageContainer.getChildren().add(sc); VBox.setVgrow(sc, Priority.ALWAYS);
     }
 
+    // Créer une carte statistique colorée avec icône, valeur et label
     private VBox statCard(String icon, String value, String label, String bgColor, String textColor) {
         VBox card = new VBox(5); card.setAlignment(Pos.CENTER); card.setPadding(new Insets(20, 30, 20, 30));
         card.setMinWidth(180); card.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.3, 0, 3);");
@@ -303,9 +512,10 @@ public class BackOrdonnanceController {
         return card;
     }
 
-    @FXML private void goToDashboard() throws IOException { nav("/fxml/Dashboard.fxml"); }
-    @FXML private void goToTraitements() throws IOException { nav("/fxml/BackTraitement.fxml"); }
-    @FXML private void logout() throws IOException { nav("/fxml/Login.fxml"); }
+    @FXML private void goToDashboard() throws IOException { nav("/fxml/Dashboard.fxml"); } // Navigation vers le tableau de bord
+    @FXML private void goToTraitements() throws IOException { nav("/fxml/BackTraitement.fxml"); } // Navigation vers la gestion des traitements
+    @FXML private void logout() throws IOException { nav("/fxml/Login.fxml"); } // Déconnexion et retour au login
+    // Méthode utilitaire de navigation entre les pages
     private void nav(String fxml) throws IOException {
         Parent root = FXMLLoader.load(getClass().getResource(fxml));
         Scene scene = new Scene(root); scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());

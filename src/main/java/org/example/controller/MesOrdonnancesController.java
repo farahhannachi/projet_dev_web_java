@@ -21,13 +21,19 @@ import java.util.List;
 public class MesOrdonnancesController {
 
     @FXML private Button profileButton;
+    @FXML private Button triButton;
     @FXML private TextField searchField;
     @FXML private VBox cardsContainer;
     @FXML private StackPane ordonnanceMenuContainer;
     @FXML private VBox ordonnanceDropdown;
     @FXML private VBox profileDropdown;
+    @FXML private javafx.scene.chart.PieChart statPieChart;
+    @FXML private VBox statsContainer;
+    @FXML private Button statsToggleBtn;
 
     private UserService userService = new UserService();
+    private boolean triRecent = true;
+    private String filtreStatut = null;
 
     @FXML
     public void initialize() {
@@ -64,16 +70,23 @@ public class MesOrdonnancesController {
             if (!search.isEmpty()) {
                 sql += "AND (o.numero_ordonnance LIKE ? OR p.nom LIKE ? OR t.dosage LIKE ? OR o.statut LIKE ?) ";
             }
-            sql += "ORDER BY o.date_ordonnance DESC";
+            if (filtreStatut != null) {
+                sql += "AND o.statut = ? ";
+            }
+            sql += "ORDER BY o.date_ordonnance " + (triRecent ? "DESC" : "ASC");
 
             PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setInt(1, currentUser.getId());
+            int paramIdx = 1;
+            ps.setInt(paramIdx++, currentUser.getId());
             if (!search.isEmpty()) {
                 String like = "%" + search + "%";
-                ps.setString(2, like);
-                ps.setString(3, like);
-                ps.setString(4, like);
-                ps.setString(5, like);
+                ps.setString(paramIdx++, like);
+                ps.setString(paramIdx++, like);
+                ps.setString(paramIdx++, like);
+                ps.setString(paramIdx++, like);
+            }
+            if (filtreStatut != null) {
+                ps.setString(paramIdx++, filtreStatut);
             }
 
             ResultSet rs = ps.executeQuery();
@@ -149,7 +162,18 @@ public class MesOrdonnancesController {
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        header.getChildren().addAll(numLabel, spacer, statutLabel);
+
+        // Bouton Télécharger PDF (uniquement pour les ordonnances validées)
+        HBox btnBox = new HBox(10);
+        btnBox.setAlignment(Pos.CENTER_RIGHT);
+        if ("validée".equals(statut) || "valid\u00e9e".equals(statut)) {
+            Button pdfBtn = new Button("\uD83D\uDCC4 Télécharger PDF");
+            pdfBtn.setStyle("-fx-background-color: #1f6f5c; -fx-text-fill: white; -fx-font-size: 12; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16; -fx-cursor: hand;");
+            pdfBtn.setOnAction(e -> exportOrdonnancePDF(numero, dateOrd, dateExp, statut, note));
+            btnBox.getChildren().add(pdfBtn);
+        }
+
+        header.getChildren().addAll(numLabel, statutLabel, spacer, btnBox);
 
         // Dates
         HBox dates = new HBox(30);
@@ -214,10 +238,186 @@ public class MesOrdonnancesController {
     }
 
     @FXML
+    private void toggleTri() {
+        triRecent = !triRecent;
+        triButton.setText(triRecent ? "\uD83D\uDCC5 Plus récent" : "\uD83D\uDCC5 Plus ancien");
+        loadOrdonnances(searchField.getText().trim());
+    }
+
+    // Filtres par statut
+    @FXML private void filterAll() { filtreStatut = null; loadOrdonnances(searchField.getText().trim()); }
+
+    // Afficher/masquer le PieChart statistiques
+    @FXML
+    private void toggleStats() {
+        boolean visible = statsContainer.isVisible();
+        statsContainer.setVisible(!visible);
+        statsContainer.setManaged(!visible);
+        statsToggleBtn.setText(visible ? "\uD83D\uDCCA Statistiques" : "\uD83D\uDCCA Masquer");
+        if (!visible) loadStats(); // Recharger les stats à l'ouverture
+    }
+    @FXML private void filterEnAttente() { filtreStatut = "en_attente"; loadOrdonnances(searchField.getText().trim()); }
+    @FXML private void filterValidee() { filtreStatut = "validée"; loadOrdonnances(searchField.getText().trim()); }
+    @FXML private void filterBrouillon() { filtreStatut = "brouillon"; loadOrdonnances(searchField.getText().trim()); }
+    @FXML private void filterExpiree() { filtreStatut = "expirée"; loadOrdonnances(searchField.getText().trim()); }
+
+    // Statistiques PieChart
+    private void loadStats() {
+        User currentUser = userService.getCurrentUser();
+        if (currentUser == null || statPieChart == null) return;
+        try {
+            Connection conn = DatabaseUtil.getConnection();
+            int attente = 0, validee = 0, brouillon = 0, expiree = 0;
+            PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) AS c FROM ordonnance WHERE id_utilisateur_id = ? AND statut = 'en_attente'");
+            ps.setInt(1, currentUser.getId()); ResultSet rs = ps.executeQuery(); if (rs.next()) attente = rs.getInt("c"); rs.close(); ps.close();
+            ps = conn.prepareStatement("SELECT COUNT(*) AS c FROM ordonnance WHERE id_utilisateur_id = ? AND statut = 'validée'");
+            ps.setInt(1, currentUser.getId()); rs = ps.executeQuery(); if (rs.next()) validee = rs.getInt("c"); rs.close(); ps.close();
+            ps = conn.prepareStatement("SELECT COUNT(*) AS c FROM ordonnance WHERE id_utilisateur_id = ? AND statut = 'brouillon'");
+            ps.setInt(1, currentUser.getId()); rs = ps.executeQuery(); if (rs.next()) brouillon = rs.getInt("c"); rs.close(); ps.close();
+            ps = conn.prepareStatement("SELECT COUNT(*) AS c FROM ordonnance WHERE id_utilisateur_id = ? AND statut = 'expirée'");
+            ps.setInt(1, currentUser.getId()); rs = ps.executeQuery(); if (rs.next()) expiree = rs.getInt("c"); rs.close(); ps.close();
+            statPieChart.setData(javafx.collections.FXCollections.observableArrayList(
+                    new javafx.scene.chart.PieChart.Data("En attente (" + attente + ")", attente),
+                    new javafx.scene.chart.PieChart.Data("Validées (" + validee + ")", validee),
+                    new javafx.scene.chart.PieChart.Data("Brouillon (" + brouillon + ")", brouillon),
+                    new javafx.scene.chart.PieChart.Data("Expirées (" + expiree + ")", expiree)
+            ));
+        } catch (SQLException e) { System.out.println(e.getMessage()); }
+    }
+
+    // Export PDF (texte simple)
+    @FXML
+    private void exportPDF() {
+        User currentUser = userService.getCurrentUser();
+        if (currentUser == null) return;
+        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        fc.setTitle("Exporter mes ordonnances");
+        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Fichier texte", "*.txt"));
+        fc.setInitialFileName("mes_ordonnances.txt");
+        java.io.File file = fc.showSaveDialog(cardsContainer.getScene().getWindow());
+        if (file == null) return;
+        try (java.io.PrintWriter pw = new java.io.PrintWriter(file)) {
+            pw.println("=== MES ORDONNANCES - CuraVita ===");
+            pw.println("Patient: " + (currentUser.getNom() != null ? currentUser.getNom() : "") + " - " + (currentUser.getEmail() != null ? currentUser.getEmail() : ""));
+            pw.println("Date export: " + java.time.LocalDate.now());
+            pw.println("=========================================\n");
+            Connection conn = DatabaseUtil.getConnection();
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT o.numero_ordonnance, o.date_ordonnance, o.date_expiration, o.statut, o.note_medical, " +
+                    "t.dosage, t.frequence, t.repas, t.duree_jours, t.status, p.nom AS produit_nom " +
+                    "FROM ordonnance o LEFT JOIN traitement t ON t.id_ordonnance_id = o.id_ordonnance " +
+                    "LEFT JOIN produit p ON t.id_produit_id = p.id_produit " +
+                    "WHERE o.id_utilisateur_id = ? ORDER BY o.date_ordonnance DESC");
+            ps.setInt(1, currentUser.getId());
+            ResultSet rs = ps.executeQuery();
+            String lastNum = "";
+            while (rs.next()) {
+                String num = rs.getString("numero_ordonnance");
+                if (!num.equals(lastNum)) {
+                    pw.println("Ordonnance: " + num);
+                    pw.println("  Date: " + (rs.getTimestamp("date_ordonnance") != null ? rs.getTimestamp("date_ordonnance").toLocalDateTime().toLocalDate() : "N/A"));
+                    pw.println("  Expiration: " + (rs.getTimestamp("date_expiration") != null ? rs.getTimestamp("date_expiration").toLocalDateTime().toLocalDate() : "N/A"));
+                    pw.println("  Statut: " + rs.getString("statut"));
+                    String note = rs.getString("note_medical");
+                    if (note != null && !note.trim().isEmpty()) pw.println("  Note: " + note);
+                    pw.println("  Traitements:");
+                    lastNum = num;
+                }
+                if (rs.getString("produit_nom") != null) {
+                    pw.println("    - " + rs.getString("produit_nom") + " | " +
+                            (rs.getString("dosage") != null ? rs.getString("dosage") : "") + " | " +
+                            (rs.getString("frequence") != null ? rs.getString("frequence") : "") + " | " +
+                            rs.getInt("duree_jours") + "j | " +
+                            (rs.getString("status") != null ? rs.getString("status") : ""));
+                }
+            }
+            rs.close(); ps.close();
+            pw.println("\n=========================================");
+            pw.println("Généré par CuraVita");
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Export réussi");
+            alert.setHeaderText(null);
+            alert.setContentText("Vos ordonnances ont été exportées vers:\n" + file.getAbsolutePath());
+            alert.showAndWait();
+        } catch (Exception e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Erreur");
+            alert.setContentText("Erreur lors de l'export: " + e.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
     private void handleSearch() {
         // Focus on search field
         searchField.requestFocus();
     }
+
+    // Export PDF d'une ordonnance individuelle validée
+    private void exportOrdonnancePDF(String numero, Timestamp dateOrd, Timestamp dateExp, String statut, String note) {
+        User currentUser = userService.getCurrentUser();
+        if (currentUser == null) return;
+        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        fc.setTitle("Télécharger l'ordonnance");
+        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Fichier texte", "*.txt"));
+        fc.setInitialFileName("ordonnance_" + (numero != null ? numero : "export") + ".txt");
+        java.io.File file = fc.showSaveDialog(cardsContainer.getScene().getWindow());
+        if (file == null) return;
+        try (java.io.PrintWriter pw = new java.io.PrintWriter(file)) {
+            pw.println("══════════════════════════════════════════");
+            pw.println("        ORDONNANCE - CuraVita             ");
+            pw.println("══════════════════════════════════════════");
+            pw.println();
+            pw.println("Numéro      : " + (numero != null ? numero : "N/A"));
+            pw.println("Statut      : " + (statut != null ? statut : "N/A"));
+            pw.println("Patient     : " + (currentUser.getNom() != null ? currentUser.getNom() : ""));
+            pw.println("Email       : " + (currentUser.getEmail() != null ? currentUser.getEmail() : ""));
+            pw.println("Date        : " + (dateOrd != null ? dateOrd.toLocalDateTime().toLocalDate() : "N/A"));
+            pw.println("Expiration  : " + (dateExp != null ? dateExp.toLocalDateTime().toLocalDate() : "N/A"));
+            if (note != null && !note.trim().isEmpty()) {
+                pw.println("Note        : " + note);
+            }
+            pw.println();
+            pw.println("--- Traitements associés ---");
+            pw.println();
+            Connection conn = DatabaseUtil.getConnection();
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT t.dosage, t.frequence, t.repas, t.duree_jours, t.status, p.nom AS produit_nom " +
+                    "FROM traitement t LEFT JOIN produit p ON t.id_produit_id = p.id_produit " +
+                    "LEFT JOIN ordonnance o ON t.id_ordonnance_id = o.id_ordonnance " +
+                    "WHERE o.numero_ordonnance = ? AND o.id_utilisateur_id = ?");
+            ps.setString(1, numero);
+            ps.setInt(2, currentUser.getId());
+            ResultSet rs = ps.executeQuery();
+            int idx = 1;
+            while (rs.next()) {
+                pw.println("  " + idx + ". " + (rs.getString("produit_nom") != null ? rs.getString("produit_nom") : "N/A"));
+                pw.println("     Dosage    : " + (rs.getString("dosage") != null ? rs.getString("dosage") : "-"));
+                pw.println("     Fréquence : " + (rs.getString("frequence") != null ? rs.getString("frequence") : "-"));
+                pw.println("     Repas     : " + (rs.getString("repas") != null ? rs.getString("repas") : "-"));
+                pw.println("     Durée     : " + rs.getInt("duree_jours") + " jours");
+                pw.println("     Statut    : " + (rs.getString("status") != null ? rs.getString("status") : "-"));
+                pw.println();
+                idx++;
+            }
+            rs.close(); ps.close();
+            if (idx == 1) pw.println("  Aucun traitement associé.");
+            pw.println();
+            pw.println("──────────────────────────────────────────");
+            pw.println("Généré le " + java.time.LocalDate.now() + " par CuraVita");
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Téléchargement réussi");
+            alert.setHeaderText(null);
+            alert.setContentText("Ordonnance " + numero + " exportée vers:\n" + file.getAbsolutePath());
+            alert.showAndWait();
+        } catch (Exception e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Erreur");
+            alert.setContentText("Erreur: " + e.getMessage());
+            alert.showAndWait();
+        }
+    }
+
 
     @FXML
     private void toggleProfileDropdown() {

@@ -36,6 +36,8 @@ public class DashboardController {
     @FXML private Label totalProduitsLabel;
     @FXML private Label totalCommandesLabel;
     @FXML private Label alertesStockLabel;
+    @FXML private Label totalOrdonnancesLabel;
+    @FXML private Label totalTraitementsLabel;
     @FXML private Button nouveauClientBtn;
     @FXML private Button ajouterProduitBtn;
     @FXML private Button nouvelleCommandeBtn;
@@ -80,6 +82,19 @@ public class DashboardController {
         totalProduitsLabel.setText(String.valueOf(produitService.getAll().size()));
         totalCommandesLabel.setText(String.valueOf(commandeService.getAll().size()));
         alertesStockLabel.setText(String.valueOf(stockService.getStocksFaibles().size()));
+
+        // Charger les stats ordonnances et traitements depuis la base
+        try {
+            Connection conn = DatabaseUtil.getConnection();
+            ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) AS c FROM ordonnance");
+            if (rs.next()) totalOrdonnancesLabel.setText(String.valueOf(rs.getInt("c")));
+            rs.close();
+            rs = conn.createStatement().executeQuery("SELECT COUNT(*) AS c FROM traitement");
+            if (rs.next()) totalTraitementsLabel.setText(String.valueOf(rs.getInt("c")));
+            rs.close();
+        } catch (SQLException e) {
+            System.out.println("Erreur stats: " + e.getMessage());
+        }
     }
 
     @FXML
