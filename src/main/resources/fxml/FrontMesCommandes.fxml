@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="org.example.controller.FrontMesCommandesController"
+        fitToWidth="true" fitToHeight="true" pannable="true"
+        hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+    <BorderPane styleClass="admin-root">
+    <top>
+        <VBox spacing="12" styleClass="admin-header-wrap">
+            <HBox styleClass="navbar-pill" alignment="CENTER">
+                <Label text="CuraVita" styleClass="logo-text"/>
+                <Region HBox.hgrow="SOMETIMES"/>
+                <HBox styleClass="menu-container" alignment="CENTER">
+                    <Button text="Accueil" styleClass="menu-item" onAction="#goHome"/>
+                    <Button text="Produits" styleClass="menu-item" onAction="#showFrontProduits"/>
+                    <Button text="Panier" styleClass="menu-item" onAction="#showFrontPanier"/>
+                    <Button text="Commandes" styleClass="menu-item" onAction="#showFrontTracking"/>
+                    <Button text="Ordonnance" styleClass="menu-item"/>
+                    <Button text="Traitement" styleClass="menu-item"/>
+                    <Button text="Guide Sant&#233;" styleClass="menu-item"/>
+                    <Button text="Contact" styleClass="menu-item"/>
+                    <Button text="&#192; propos" styleClass="menu-item"/>
+                </HBox>
+                <Region HBox.hgrow="SOMETIMES"/>
+
+                <StackPane>
+                    <HBox styleClass="icon-container" alignment="CENTER">
+                        <Button text="&#128269;" styleClass="icon-button" onAction="#handleSearch"/>
+                        <Button fx:id="profileButton" text="&#128100;" styleClass="icon-button" onAction="#toggleProfileDropdown"/>
+                    </HBox>
+
+                    <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false">
+                        <VBox.margin>
+                            <Insets top="45" right="0" bottom="0" left="0"/>
+                        </VBox.margin>
+                        <Button text="Profil" styleClass="dropdown-item" onAction="#showProfile"/>
+                        <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                        <Button text="Logout" styleClass="dropdown-item" onAction="#logout"/>
+                    </VBox>
+                </StackPane>
+            </HBox>
+
+            <HBox spacing="12" styleClass="stats-row">
+                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                    <Label text="Total" styleClass="stat-label"/>
+                    <Label fx:id="totalCommandesLabel" text="0" styleClass="stat-value"/>
+                </VBox>
+                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                    <Label text="En attente" styleClass="stat-label"/>
+                    <Label fx:id="enAttenteLabel" text="0" styleClass="stat-value warning"/>
+                </VBox>
+                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                    <Label text="Livrees" styleClass="stat-label"/>
+                    <Label fx:id="livreesLabel" text="0" styleClass="stat-value success"/>
+                </VBox>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox styleClass="table-card" BorderPane.alignment="CENTER">
+            <TableView fx:id="commandesTable" styleClass="admin-table" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="idCol" text="ID" prefWidth="80"/>
+                    <TableColumn fx:id="dateCol" text="Date" prefWidth="140"/>
+                    <TableColumn fx:id="statutCol" text="Statut" prefWidth="120"/>
+                    <TableColumn fx:id="totalCol" text="Total" prefWidth="120"/>
+                    <TableColumn fx:id="paiementCol" text="Paiement" prefWidth="120"/>
+                    <TableColumn fx:id="adresseCol" text="Adresse" prefWidth="380"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </center>
+        </BorderPane>
+    </content>
+</ScrollPane>

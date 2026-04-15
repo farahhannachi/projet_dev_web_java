@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.controller.ProduitsBackofficeController"
+            fitToWidth="true" fitToHeight="true" pannable="true"
+            hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+        <VBox spacing="15" alignment="TOP_CENTER" styleClass="main-content">
+            <Label text="Gestion des Produits" styleClass="main-title" />
+            <TableView fx:id="produitsTable" prefHeight="400" prefWidth="800">
+                <columns>
+                    <TableColumn fx:id="idCol" text="ID" prefWidth="50" />
+                    <TableColumn fx:id="nomCol" text="Nom" prefWidth="150" />
+                    <TableColumn fx:id="descriptionCol" text="Description" prefWidth="200" />
+                    <TableColumn fx:id="prixCol" text="Prix" prefWidth="80" />
+                    <TableColumn fx:id="quantiteCol" text="Quantité" prefWidth="80" />
+                    <TableColumn fx:id="categorieCol" text="Catégorie" prefWidth="120" />
+                    <TableColumn fx:id="actifCol" text="Actif" prefWidth="60" />
+                    <TableColumn fx:id="actionsCol" text="Actions" prefWidth="120" />
+                </columns>
+            </TableView>
+            <HBox spacing="10" alignment="CENTER">
+                <Button text="Ajouter" onAction="#handleAjouterProduit" styleClass="button-primary" />
+                <Button text="Modifier" onAction="#handleModifierProduit" styleClass="button-secondary" />
+                <Button text="Supprimer" onAction="#handleSupprimerProduit" styleClass="button-danger" />
+            </HBox>
+        </VBox>
+    </content>
+</ScrollPane>
+

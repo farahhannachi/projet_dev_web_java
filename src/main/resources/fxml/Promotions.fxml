@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.controller.PromotionsController"
+            fitToWidth="true" fitToHeight="true" pannable="true"
+            hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+        <StackPane styleClass="admin-root">
+    <BorderPane>
+        <top>
+            <VBox spacing="14" styleClass="admin-header-wrap">
+                <HBox alignment="CENTER_LEFT" spacing="20" styleClass="admin-header">
+                    <VBox spacing="2">
+                        <Label text="Promotions" styleClass="admin-title"/>
+                        <Label text="Offres et remises produit" styleClass="admin-subtitle"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Retour" onAction="#goBack" styleClass="btn-admin-primary"/>
+                </HBox>
+
+                <HBox spacing="12" styleClass="stats-row">
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Total" styleClass="stat-label"/>
+                        <Label fx:id="totalPromotionsLabel" text="0" styleClass="stat-value"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Actives" styleClass="stat-label"/>
+                        <Label fx:id="activePromotionsLabel" text="0" styleClass="stat-value success"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Inactives" styleClass="stat-label"/>
+                        <Label fx:id="inactivePromotionsLabel" text="0" styleClass="stat-value warning"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="A venir" styleClass="stat-label"/>
+                        <Label fx:id="upcomingPromotionsLabel" text="0" styleClass="stat-value"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="10" styleClass="filters-row">
+                    <TextField fx:id="searchField" promptText="Recherche titre/produit..." HBox.hgrow="ALWAYS" styleClass="filter-field"/>
+                    <ComboBox fx:id="statutFilterCombo" promptText="Statut" styleClass="filter-field"/>
+                    <ComboBox fx:id="sortCombo" promptText="Tri" styleClass="filter-field"/>
+                    <CheckBox fx:id="activeOnlyCheck" text="Actives uniquement"/>
+                </HBox>
+            </VBox>
+        </top>
+        <center>
+            <VBox styleClass="table-card" BorderPane.alignment="CENTER">
+            <TableView fx:id="promotionsTable" styleClass="admin-table" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="idCol" text="ID" prefWidth="60"/>
+                    <TableColumn fx:id="produitIdCol" text="Produit" prefWidth="180"/>
+                    <TableColumn fx:id="titreCol" text="Titre" prefWidth="170"/>
+                    <TableColumn fx:id="reductionCol" text="Reduction %" prefWidth="110"/>
+                    <TableColumn fx:id="statutCol" text="Statut" prefWidth="100"/>
+                    <TableColumn fx:id="debutCol" text="Date debut" prefWidth="150"/>
+                    <TableColumn fx:id="finCol" text="Date fin" prefWidth="150"/>
+                </columns>
+            </TableView>
+            </VBox>
+        </center>
+        <bottom>
+            <HBox spacing="10" alignment="CENTER_LEFT" styleClass="admin-actions-row">
+                <Button text="Ajouter" onAction="#handleAjouterPromotion" styleClass="btn-admin-primary"/>
+                <Button text="Modifier" onAction="#handleModifierPromotion" styleClass="btn-admin-outline"/>
+                <Button text="Supprimer" onAction="#handleSupprimerPromotion" styleClass="btn-admin-danger"/>
+            </HBox>
+        </bottom>
+    </BorderPane>
+
+    <VBox fx:id="modalOverlay" visible="false" managed="false" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.4);">
+        <VBox spacing="10" styleClass="admin-modal" maxWidth="540">
+            <Label text="Produit cible" styleClass="field-label"/>
+            <ComboBox fx:id="produitCombo" promptText="Selectionner un produit existant" styleClass="form-field"/>
+
+            <Label text="Titre promotion" styleClass="field-label"/>
+            <TextField fx:id="titreField" promptText="Ex: Offre Ramadan" styleClass="form-field"/>
+
+            <Label text="Description" styleClass="field-label"/>
+            <TextArea fx:id="descriptionArea" promptText="Conditions et details de la promotion" prefRowCount="2" styleClass="form-field"/>
+
+            <Label text="Reduction (%)" styleClass="field-label"/>
+            <TextField fx:id="reductionField" promptText="Ex: 15" styleClass="form-field"/>
+
+            <HBox spacing="12">
+                <VBox HBox.hgrow="ALWAYS" spacing="6">
+                    <Label text="Date debut" styleClass="field-label"/>
+                    <DatePicker fx:id="debutPicker" styleClass="form-field"/>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS" spacing="6">
+                    <Label text="Date fin" styleClass="field-label"/>
+                    <DatePicker fx:id="finPicker" styleClass="form-field"/>
+                </VBox>
+            </HBox>
+
+            <HBox spacing="12">
+                <VBox HBox.hgrow="ALWAYS" spacing="6">
+                    <Label text="Statut" styleClass="field-label"/>
+                    <ComboBox fx:id="statutCombo" styleClass="form-field"/>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS" spacing="6">
+                    <Label text="Admin connecte" styleClass="field-label"/>
+                    <Label fx:id="adminInfoLabel" styleClass="admin-meta-badge"/>
+                </VBox>
+            </HBox>
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button text="Annuler" onAction="#handleCloseModal" styleClass="btn-admin-outline"/>
+                <Button text="Enregistrer" onAction="#handleSavePromotion" styleClass="btn-admin-primary"/>
+            </HBox>
+        </VBox>
+    </VBox>
+        </StackPane>
+    </content>
+</ScrollPane>
