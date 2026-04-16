@@ -85,7 +85,7 @@ public class DashboardController {
 
         // Charger les stats ordonnances et traitements depuis la base
         try {
-            Connection conn = DatabaseUtil.getConnection();
+            Connection conn = DatabaseUtil.getInstance().getConnection();
             ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) AS c FROM ordonnance");
             if (rs.next()) totalOrdonnancesLabel.setText(String.valueOf(rs.getInt("c")));
             rs.close();

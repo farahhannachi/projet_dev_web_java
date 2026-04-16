@@ -73,7 +73,7 @@ public class BackOrdonnanceController {
                       eb.setOnAction(e -> showForm(getTableView().getItems().get(getIndex()).get(0)));
                       db2.setOnAction(e -> { String id = getTableView().getItems().get(getIndex()).get(0);
                           new Alert(Alert.AlertType.CONFIRMATION,"Supprimer ordonnance #"+id+" ?",ButtonType.YES,ButtonType.NO).showAndWait().ifPresent(b -> {
-                              if(b==ButtonType.YES){try{PreparedStatement p2=DatabaseUtil.getConnection().prepareStatement("DELETE FROM ordonnance WHERE id_ordonnance=?");p2.setInt(1,Integer.parseInt(id));p2.executeUpdate();p2.close();showList();}catch(SQLException ex){}}});});}
+                              if(b==ButtonType.YES){try{PreparedStatement p2=DatabaseUtil.getInstance().getConnection().prepareStatement("DELETE FROM ordonnance WHERE id_ordonnance=?");p2.setInt(1,Integer.parseInt(id));p2.executeUpdate();p2.close();showList();}catch(SQLException ex){}}});});}
                     @Override protected void updateItem(String item, boolean empty) { super.updateItem(item, empty); setGraphic(empty ? null : bx); }
                 });
             }
@@ -99,7 +99,7 @@ public class BackOrdonnanceController {
             if (!cl.isEmpty()) { sql.append("AND u.nom LIKE ? "); params.add("%" + cl + "%"); }
             if (st != null && !"Tous les statuts".equals(st)) { sql.append("AND o.statut = ? "); params.add(st); }
             sql.append("ORDER BY o.date_ordonnance ").append(tri.contains("ancien") ? "ASC" : "DESC");
-            PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement(sql.toString());
+            PreparedStatement ps = DatabaseUtil.getInstance().getConnection().prepareStatement(sql.toString());
             for (int i = 0; i < params.size(); i++) {
                 Object p = params.get(i);
                 if (p instanceof Timestamp) ps.setTimestamp(i + 1, (Timestamp) p);
@@ -167,14 +167,14 @@ public class BackOrdonnanceController {
         Label err = new Label(); err.setStyle("-fx-text-fill: #e74c3c;");
 
         try {
-            ResultSet rs = DatabaseUtil.getConnection().createStatement().executeQuery("SELECT id_utilisateur, nom, prenom, email FROM utilisateur ORDER BY nom");
+            ResultSet rs = DatabaseUtil.getInstance().getConnection().createStatement().executeQuery("SELECT id_utilisateur, nom, prenom, email FROM utilisateur ORDER BY nom");
             while (rs.next()) userC.getItems().add(rs.getInt(1) + " - " + rs.getString(2) + " " + rs.getString(3) + " (" + rs.getString(4) + ")");
             rs.close();
         } catch (SQLException e) { System.out.println(e.getMessage()); }
 
         if (isEdit) {
             try {
-                PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement("SELECT * FROM ordonnance WHERE id_ordonnance=?");
+                PreparedStatement ps = DatabaseUtil.getInstance().getConnection().prepareStatement("SELECT * FROM ordonnance WHERE id_ordonnance=?");
                 ps.setInt(1, Integer.parseInt(editId)); ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
                     numF.setText(rs.getString("numero_ordonnance"));
@@ -208,7 +208,7 @@ public class BackOrdonnanceController {
             // Vérifier existence du patient en base
             int patientId = Integer.parseInt(userC.getValue().split(" - ")[0]);
             try {
-                PreparedStatement psPatient = DatabaseUtil.getConnection().prepareStatement("SELECT COUNT(*) AS nb FROM utilisateur WHERE id_utilisateur = ?");
+                PreparedStatement psPatient = DatabaseUtil.getInstance().getConnection().prepareStatement("SELECT COUNT(*) AS nb FROM utilisateur WHERE id_utilisateur = ?");
                 psPatient.setInt(1, patientId);
                 ResultSet rsPatient = psPatient.executeQuery();
                 if (rsPatient.next() && rsPatient.getInt("nb") == 0) {
@@ -242,7 +242,7 @@ public class BackOrdonnanceController {
                 String sqlUniq = isEdit
                         ? "SELECT COUNT(*) AS nb FROM ordonnance WHERE LOWER(TRIM(numero_ordonnance)) = LOWER(?) AND id_ordonnance != ?"
                         : "SELECT COUNT(*) AS nb FROM ordonnance WHERE LOWER(TRIM(numero_ordonnance)) = LOWER(?)";
-                PreparedStatement psUniq = DatabaseUtil.getConnection().prepareStatement(sqlUniq);
+                PreparedStatement psUniq = DatabaseUtil.getInstance().getConnection().prepareStatement(sqlUniq);
                 psUniq.setString(1, numero);
                 if (isEdit) psUniq.setInt(2, Integer.parseInt(editId));
                 ResultSet rsUniq = psUniq.executeQuery();
@@ -297,7 +297,7 @@ public class BackOrdonnanceController {
                 String sqlDup = isEdit
                         ? "SELECT COUNT(*) AS nb FROM ordonnance WHERE id_utilisateur_id = ? AND DATE(date_ordonnance) = ? AND id_ordonnance != ?"
                         : "SELECT COUNT(*) AS nb FROM ordonnance WHERE id_utilisateur_id = ? AND DATE(date_ordonnance) = ?";
-                PreparedStatement psDup = DatabaseUtil.getConnection().prepareStatement(sqlDup);
+                PreparedStatement psDup = DatabaseUtil.getInstance().getConnection().prepareStatement(sqlDup);
                 psDup.setInt(1, patientId);
                 psDup.setDate(2, java.sql.Date.valueOf(doP.getValue()));
                 if (isEdit) psDup.setInt(3, Integer.parseInt(editId));
@@ -318,7 +318,7 @@ public class BackOrdonnanceController {
             // Validation en modification : vérifier que les traitements liés existent en base
             if (isEdit) {
                 try {
-                    PreparedStatement psTrait = DatabaseUtil.getConnection().prepareStatement(
+                    PreparedStatement psTrait = DatabaseUtil.getInstance().getConnection().prepareStatement(
                             "SELECT COUNT(*) AS nb FROM traitement WHERE id_ordonnance_id = ?");
                     psTrait.setInt(1, Integer.parseInt(editId));
                     ResultSet rsTrait = psTrait.executeQuery();
@@ -331,7 +331,7 @@ public class BackOrdonnanceController {
 
             try {
                 if (isEdit) {
-                    PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement("UPDATE ordonnance SET numero_ordonnance=?,date_ordonnance=?,date_expiration=?,statut=?,note_medical=?,id_utilisateur_id=? WHERE id_ordonnance=?");
+                    PreparedStatement ps = DatabaseUtil.getInstance().getConnection().prepareStatement("UPDATE ordonnance SET numero_ordonnance=?,date_ordonnance=?,date_expiration=?,statut=?,note_medical=?,id_utilisateur_id=? WHERE id_ordonnance=?");
                     ps.setString(1, numero); ps.setTimestamp(2, Timestamp.valueOf(doP.getValue().atStartOfDay()));
                     ps.setTimestamp(3, Timestamp.valueOf(deP.getValue().atStartOfDay())); ps.setString(4, statC.getValue());
                     ps.setString(5, noteText); ps.setInt(6, patientId);
@@ -339,18 +339,18 @@ public class BackOrdonnanceController {
                     // Propagation automatique du statut ordonnance vers les traitements liés
                     String newStatut = statC.getValue();
                     if ("validée".equals(newStatut)) {
-                        PreparedStatement ps2 = DatabaseUtil.getConnection().prepareStatement("UPDATE traitement SET status='actif' WHERE id_ordonnance_id=? AND status='en_attente'");
+                        PreparedStatement ps2 = DatabaseUtil.getInstance().getConnection().prepareStatement("UPDATE traitement SET status='actif' WHERE id_ordonnance_id=? AND status='en_attente'");
                         ps2.setInt(1, Integer.parseInt(editId)); ps2.executeUpdate(); ps2.close();
                     } else if ("expirée".equals(newStatut)) {
-                        PreparedStatement ps2 = DatabaseUtil.getConnection().prepareStatement("UPDATE traitement SET status='terminé' WHERE id_ordonnance_id=? AND status IN ('en_attente','actif')");
+                        PreparedStatement ps2 = DatabaseUtil.getInstance().getConnection().prepareStatement("UPDATE traitement SET status='terminé' WHERE id_ordonnance_id=? AND status IN ('en_attente','actif')");
                         ps2.setInt(1, Integer.parseInt(editId)); ps2.executeUpdate(); ps2.close();
                     } else if ("brouillon".equals(newStatut)) {
-                        PreparedStatement ps2 = DatabaseUtil.getConnection().prepareStatement("UPDATE traitement SET status='en_attente' WHERE id_ordonnance_id=?");
+                        PreparedStatement ps2 = DatabaseUtil.getInstance().getConnection().prepareStatement("UPDATE traitement SET status='en_attente' WHERE id_ordonnance_id=?");
                         ps2.setInt(1, Integer.parseInt(editId)); ps2.executeUpdate(); ps2.close();
                     }
                 } else {
                     // Insérer la nouvelle ordonnance et récupérer son ID
-                    PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement(
+                    PreparedStatement ps = DatabaseUtil.getInstance().getConnection().prepareStatement(
                             "INSERT INTO ordonnance (numero_ordonnance,date_ordonnance,date_expiration,statut,note_medical,id_utilisateur_id) VALUES (?,?,?,?,?,?)",
                             Statement.RETURN_GENERATED_KEYS);
                     ps.setString(1, numero); ps.setTimestamp(2, Timestamp.valueOf(doP.getValue().atStartOfDay()));
@@ -365,7 +365,7 @@ public class BackOrdonnanceController {
 
                     // Créer automatiquement un traitement vide lié à cette ordonnance (pour qu'elle apparaisse dans la liste traitements)
                     if (newOrdId > 0) {
-                        PreparedStatement psTrait = DatabaseUtil.getConnection().prepareStatement(
+                        PreparedStatement psTrait = DatabaseUtil.getInstance().getConnection().prepareStatement(
                                 "INSERT INTO traitement (id_utilisateur_id, dosage, frequence, duree_jours, date_debut, status, notes, id_ordonnance_id, id_produit_id, repas) VALUES (?,?,?,?,?,?,?,?,NULL,?)");
                         psTrait.setInt(1, patientId); // Même patient que l'ordonnance
                         psTrait.setString(2, ""); // Dosage vide (à remplir par l'admin)
@@ -413,7 +413,7 @@ public class BackOrdonnanceController {
         int totalOrd=0, ordBrouillon=0, ordAttente=0, ordValidee=0, ordExpiree=0;
         int totalTrait=0, traitActif=0, traitAttente=0, totalPatients=0;
         try {
-            Connection conn = DatabaseUtil.getConnection();
+            Connection conn = DatabaseUtil.getInstance().getConnection();
             ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) AS c FROM ordonnance"); if(rs.next()) totalOrd=rs.getInt("c"); rs.close();
             rs = conn.createStatement().executeQuery("SELECT COUNT(*) AS c FROM ordonnance WHERE statut='brouillon'"); if(rs.next()) ordBrouillon=rs.getInt("c"); rs.close();
             rs = conn.createStatement().executeQuery("SELECT COUNT(*) AS c FROM ordonnance WHERE statut='en_attente'"); if(rs.next()) ordAttente=rs.getInt("c"); rs.close();
@@ -456,7 +456,7 @@ public class BackOrdonnanceController {
         VBox recentCard = new VBox(8); recentCard.setPadding(new Insets(20));
         recentCard.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0.3, 0, 2);");
         try {
-            ResultSet rs = DatabaseUtil.getConnection().createStatement().executeQuery(
+            ResultSet rs = DatabaseUtil.getInstance().getConnection().createStatement().executeQuery(
                 "SELECT o.numero_ordonnance, u.nom, o.statut, o.date_ordonnance FROM ordonnance o LEFT JOIN utilisateur u ON o.id_utilisateur_id=u.id_utilisateur ORDER BY o.id_ordonnance DESC LIMIT 5");
             while (rs.next()) {
                 String date = rs.getTimestamp("date_ordonnance") != null ? rs.getTimestamp("date_ordonnance").toLocalDateTime().toLocalDate().toString() : "";

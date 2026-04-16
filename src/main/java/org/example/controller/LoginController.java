@@ -30,7 +30,7 @@ public class LoginController {
     @FXML private StackPane signUpPanel;
     @FXML private StackPane backgroundPane;
 
-    private UserService userService = new UserService();
+    private UserService userService = UserService.getInstance();
     private boolean isSignInMode = true;
     private boolean isAnimating = false;
 

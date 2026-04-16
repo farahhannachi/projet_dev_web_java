@@ -37,7 +37,7 @@ public class TraitementController {
     @FXML private StackPane ordonnanceMenuContainer; // Conteneur du menu déroulant ordonnance
     @FXML private VBox ordonnanceDropdown; // Menu déroulant ordonnance
 
-    private UserService userService = new UserService(); // Service pour récupérer l'utilisateur connecté
+    private UserService userService = UserService.getInstance(); // Service pour récupérer l'utilisateur connecté
     private java.util.List<String> selectedProduits = new java.util.ArrayList<>(); // Liste des produits ajoutés par le client
 
     @FXML
@@ -61,7 +61,7 @@ public class TraitementController {
     // Charger les produits depuis la base de données dans le ComboBox
     private void loadProduits() {
         try {
-            Connection conn = DatabaseUtil.getConnection(); // Obtenir la connexion
+            Connection conn = DatabaseUtil.getInstance().getConnection(); // Obtenir la connexion
             Statement stmt = conn.createStatement(); // Créer un statement
             ResultSet rs = stmt.executeQuery("SELECT id_produit, nom FROM produit ORDER BY nom"); // Requête pour récupérer tous les produits
             javafx.collections.ObservableList<String> items = FXCollections.observableArrayList(); // Liste observable pour le ComboBox
@@ -227,7 +227,7 @@ public class TraitementController {
         // Insertion en base de données
         try {
             User currentUser = userService.getCurrentUser(); // Récupérer l'utilisateur connecté
-            Connection conn = DatabaseUtil.getConnection(); // Obtenir la connexion
+            Connection conn = DatabaseUtil.getInstance().getConnection(); // Obtenir la connexion
             int userId = currentUser != null ? currentUser.getId() : 0; // ID du patient
 
             // Créer l'ordonnance brouillon associée

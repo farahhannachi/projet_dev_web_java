@@ -36,7 +36,7 @@ public class OrdonnanceController {
     @FXML private Label traitProduitLabel; // Label affichant le nom du produit du traitement
     @FXML private Label traitStatusLabel; // Label affichant le statut du traitement
 
-    private UserService userService = new UserService(); // Service pour récupérer l'utilisateur connecté
+    private UserService userService = UserService.getInstance(); // Service pour récupérer l'utilisateur connecté
     private int traitementId = -1; // ID du traitement associé (-1 = aucun)
     private int ordonnanceId = -1; // ID de l'ordonnance en cours de modification (-1 = nouvelle)
     private String numeroOrdonnance; // Numéro d'ordonnance généré automatiquement
@@ -76,7 +76,7 @@ public class OrdonnanceController {
     private void loadTraitementInfo() {
         if (traitementId <= 0) return; // Pas de traitement associé, on sort
         try {
-            Connection conn = DatabaseUtil.getConnection(); // Obtenir la connexion à la base
+            Connection conn = DatabaseUtil.getInstance().getConnection(); // Obtenir la connexion à la base
             // Requête pour récupérer les infos du traitement avec jointure sur le produit
             PreparedStatement ps = conn.prepareStatement(
                     "SELECT t.dosage, t.frequence, t.duree_jours, t.status, t.repas, t.notes, " +
@@ -153,7 +153,7 @@ public class OrdonnanceController {
         }
 
         try {
-            Connection conn = DatabaseUtil.getConnection(); // Obtenir la connexion
+            Connection conn = DatabaseUtil.getInstance().getConnection(); // Obtenir la connexion
 
             // Vérification d'unicité : même patient + même date = doublon interdit
             if (ordonnanceId <= 0) { // Seulement pour les nouvelles ordonnances

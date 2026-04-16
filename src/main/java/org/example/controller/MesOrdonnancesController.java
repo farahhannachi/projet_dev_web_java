@@ -31,7 +31,7 @@ public class MesOrdonnancesController {
     @FXML private VBox statsContainer;
     @FXML private Button statsToggleBtn;
 
-    private UserService userService = new UserService();
+    private UserService userService = UserService.getInstance();
     private boolean triRecent = true;
     private String filtreStatut = null;
 
@@ -58,7 +58,7 @@ public class MesOrdonnancesController {
         }
 
         try {
-            Connection conn = DatabaseUtil.getConnection();
+            Connection conn = DatabaseUtil.getInstance().getConnection();
             String sql = "SELECT o.id_ordonnance, o.numero_ordonnance, o.date_ordonnance, o.date_expiration, o.statut AS ord_statut, o.note_medical, " +
                     "t.id_traitement, t.dosage, t.frequence, t.repas, t.duree_jours, t.status AS trait_statut, t.date_debut, t.notes, " +
                     "p.nom AS produit_nom " +
@@ -266,7 +266,7 @@ public class MesOrdonnancesController {
         User currentUser = userService.getCurrentUser();
         if (currentUser == null || statPieChart == null) return;
         try {
-            Connection conn = DatabaseUtil.getConnection();
+            Connection conn = DatabaseUtil.getInstance().getConnection();
             int attente = 0, validee = 0, brouillon = 0, expiree = 0;
             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) AS c FROM ordonnance WHERE id_utilisateur_id = ? AND statut = 'en_attente'");
             ps.setInt(1, currentUser.getId()); ResultSet rs = ps.executeQuery(); if (rs.next()) attente = rs.getInt("c"); rs.close(); ps.close();
@@ -301,7 +301,7 @@ public class MesOrdonnancesController {
             pw.println("Patient: " + (currentUser.getNom() != null ? currentUser.getNom() : "") + " - " + (currentUser.getEmail() != null ? currentUser.getEmail() : ""));
             pw.println("Date export: " + java.time.LocalDate.now());
             pw.println("=========================================\n");
-            Connection conn = DatabaseUtil.getConnection();
+            Connection conn = DatabaseUtil.getInstance().getConnection();
             PreparedStatement ps = conn.prepareStatement(
                     "SELECT o.numero_ordonnance, o.date_ordonnance, o.date_expiration, o.statut, o.note_medical, " +
                     "t.dosage, t.frequence, t.repas, t.duree_jours, t.status, p.nom AS produit_nom " +
@@ -380,7 +380,7 @@ public class MesOrdonnancesController {
             pw.println();
             pw.println("--- Traitements associés ---");
             pw.println();
-            Connection conn = DatabaseUtil.getConnection();
+            Connection conn = DatabaseUtil.getInstance().getConnection();
             PreparedStatement ps = conn.prepareStatement(
                     "SELECT t.dosage, t.frequence, t.repas, t.duree_jours, t.status, p.nom AS produit_nom " +
                     "FROM traitement t LEFT JOIN produit p ON t.id_produit_id = p.id_produit " +

@@ -75,7 +75,7 @@ public class BackTraitementController {
                       eb.setOnAction(e -> showForm(getTableView().getItems().get(getIndex()).get(0)));
                       db.setOnAction(e -> { String id = getTableView().getItems().get(getIndex()).get(0);
                           new Alert(Alert.AlertType.CONFIRMATION,"Supprimer #"+id+" ?",ButtonType.YES,ButtonType.NO).showAndWait().ifPresent(b -> {
-                              if(b==ButtonType.YES){try{PreparedStatement p2=DatabaseUtil.getConnection().prepareStatement("DELETE FROM traitement WHERE id_traitement=?");p2.setInt(1,Integer.parseInt(id));p2.executeUpdate();p2.close();showList();}catch(SQLException ex){}}});});}
+                              if(b==ButtonType.YES){try{PreparedStatement p2=DatabaseUtil.getInstance().getConnection().prepareStatement("DELETE FROM traitement WHERE id_traitement=?");p2.setInt(1,Integer.parseInt(id));p2.executeUpdate();p2.close();showList();}catch(SQLException ex){}}});});}
                     @Override protected void updateItem(String item, boolean empty) { super.updateItem(item, empty); setGraphic(empty ? null : bx); }
                 });
             }
@@ -115,7 +115,7 @@ public class BackTraitementController {
             if (st != null && !"Tous les statuts".equals(st)) { sql.append("AND t.status = ? "); params.add(st); }
             sql.append("GROUP BY t.id_ordonnance_id, o.numero_ordonnance, u.nom, t.status ");
             sql.append("ORDER BY MIN(t.id_traitement) ").append("Plus ancien".equals(tri) ? "ASC" : "DESC");
-            PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement(sql.toString());
+            PreparedStatement ps = DatabaseUtil.getInstance().getConnection().prepareStatement(sql.toString());
             for (int i = 0; i < params.size(); i++) {
                 Object p = params.get(i);
                 if (p instanceof Timestamp) ps.setTimestamp(i + 1, (Timestamp) p);
@@ -239,7 +239,7 @@ public class BackTraitementController {
         Label err = new Label(); err.setStyle("-fx-text-fill: #e74c3c;");
 
         try {
-            Connection conn = DatabaseUtil.getConnection();
+            Connection conn = DatabaseUtil.getInstance().getConnection();
             ResultSet rs = conn.createStatement().executeQuery("SELECT id_utilisateur, nom, prenom, email FROM utilisateur ORDER BY nom");
             while (rs.next()) userC.getItems().add(rs.getInt(1) + " - " + rs.getString(2) + " " + rs.getString(3) + " (" + rs.getString(4) + ")");
             rs.close();
@@ -264,7 +264,7 @@ public class BackTraitementController {
         if (isEdit) {
             try {
                 // Charger les infos communes depuis le premier traitement
-                PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement("SELECT * FROM traitement WHERE id_traitement=?");
+                PreparedStatement ps = DatabaseUtil.getInstance().getConnection().prepareStatement("SELECT * FROM traitement WHERE id_traitement=?");
                 ps.setInt(1, Integer.parseInt(editId)); ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
                     dureeF.setText(String.valueOf(rs.getInt("duree_jours")));
@@ -278,7 +278,7 @@ public class BackTraitementController {
                 } rs.close(); ps.close();
 
                 // Charger tous les produits liés à cette ordonnance avec leurs champs individuels
-                PreparedStatement psProd = DatabaseUtil.getConnection().prepareStatement(
+                PreparedStatement psProd = DatabaseUtil.getInstance().getConnection().prepareStatement(
                         "SELECT t.id_produit_id, t.dosage, t.frequence, t.repas FROM traitement t WHERE t.id_ordonnance_id = (SELECT id_ordonnance_id FROM traitement WHERE id_traitement = ?)");
                 psProd.setInt(1, Integer.parseInt(editId));
                 ResultSet rsProd = psProd.executeQuery();
@@ -323,7 +323,7 @@ public class BackTraitementController {
             if (!isEdit) {
                 try {
                     int ordIdCheck = Integer.parseInt(ordC.getValue().split(" - ")[0]);
-                    PreparedStatement psOrdCheck = DatabaseUtil.getConnection().prepareStatement(
+                    PreparedStatement psOrdCheck = DatabaseUtil.getInstance().getConnection().prepareStatement(
                             "SELECT statut FROM ordonnance WHERE id_ordonnance = ?");
                     psOrdCheck.setInt(1, ordIdCheck);
                     ResultSet rsOrdCheck = psOrdCheck.executeQuery();
@@ -338,7 +338,7 @@ public class BackTraitementController {
                     }
                     rsOrdCheck.close(); psOrdCheck.close();
 
-                    PreparedStatement psTraitCheck = DatabaseUtil.getConnection().prepareStatement(
+                    PreparedStatement psTraitCheck = DatabaseUtil.getInstance().getConnection().prepareStatement(
                             "SELECT COUNT(*) AS nb FROM traitement WHERE id_ordonnance_id = ?");
                     psTraitCheck.setInt(1, ordIdCheck);
                     ResultSet rsTraitCheck = psTraitCheck.executeQuery();
@@ -461,7 +461,7 @@ public class BackTraitementController {
                 // En mode edit, récupérer les produits déjà existants sur cette ordonnance
                 java.util.Set<Integer> existingProdIds = new java.util.HashSet<>();
                 if (isEdit) {
-                    PreparedStatement psExist = DatabaseUtil.getConnection().prepareStatement(
+                    PreparedStatement psExist = DatabaseUtil.getInstance().getConnection().prepareStatement(
                             "SELECT id_produit_id FROM traitement WHERE id_ordonnance_id = ?");
                     psExist.setInt(1, currentOrdId);
                     ResultSet rsExist = psExist.executeQuery();
@@ -472,7 +472,7 @@ public class BackTraitementController {
                     int checkProdId = Integer.parseInt(((String) entry.get("produit")).split(" - ")[0]);
                     // En mode edit, ignorer les produits déjà liés à cette ordonnance
                     if (isEdit && existingProdIds.contains(checkProdId)) continue;
-                    PreparedStatement psDup = DatabaseUtil.getConnection().prepareStatement(
+                    PreparedStatement psDup = DatabaseUtil.getInstance().getConnection().prepareStatement(
                             "SELECT COUNT(*) AS nb FROM traitement WHERE id_utilisateur_id = ? AND id_produit_id = ? AND status IN ('en_attente','actif')");
                     psDup.setInt(1, checkUserId); psDup.setInt(2, checkProdId);
                     ResultSet rsDup = psDup.executeQuery();
@@ -489,14 +489,14 @@ public class BackTraitementController {
                 int userId = Integer.parseInt(userC.getValue().split(" - ")[0]);
                 int ordId = Integer.parseInt(ordC.getValue().split(" - ")[0]);
                 if (isEdit) {
-                    PreparedStatement psDel = DatabaseUtil.getConnection().prepareStatement("DELETE FROM traitement WHERE id_ordonnance_id = ?");
+                    PreparedStatement psDel = DatabaseUtil.getInstance().getConnection().prepareStatement("DELETE FROM traitement WHERE id_ordonnance_id = ?");
                     psDel.setInt(1, ordId); psDel.executeUpdate(); psDel.close();
                     for (java.util.Map<String, Object> entry : produitEntries) {
                         int prodId = Integer.parseInt(((String) entry.get("produit")).split(" - ")[0]);
                         String dos = ((TextField) entry.get("dosage")).getText().trim();
                         String freq = ((TextField) entry.get("frequence")).getText().trim();
                         String repas = ((ComboBox<?>) entry.get("repas")).getValue() != null ? ((ComboBox<?>) entry.get("repas")).getValue().toString() : "";
-                        PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement("INSERT INTO traitement (id_utilisateur_id,dosage,frequence,duree_jours,date_debut,date_fin,status,notes,id_ordonnance_id,id_produit_id,repas) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+                        PreparedStatement ps = DatabaseUtil.getInstance().getConnection().prepareStatement("INSERT INTO traitement (id_utilisateur_id,dosage,frequence,duree_jours,date_debut,date_fin,status,notes,id_ordonnance_id,id_produit_id,repas) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
                         ps.setInt(1, userId); ps.setString(2, dos); ps.setString(3, freq); ps.setInt(4, duree);
                         ps.setTimestamp(5, ddP.getValue() != null ? Timestamp.valueOf(ddP.getValue().atStartOfDay()) : null);
                         ps.setTimestamp(6, dfP.getValue() != null ? Timestamp.valueOf(dfP.getValue().atStartOfDay()) : null);
@@ -505,7 +505,7 @@ public class BackTraitementController {
                     }
                 } else {
                     String traitStatus = "en_attente";
-                    PreparedStatement psCheck = DatabaseUtil.getConnection().prepareStatement("SELECT statut FROM ordonnance WHERE id_ordonnance=?");
+                    PreparedStatement psCheck = DatabaseUtil.getInstance().getConnection().prepareStatement("SELECT statut FROM ordonnance WHERE id_ordonnance=?");
                     psCheck.setInt(1, ordId); ResultSet rsCheck = psCheck.executeQuery();
                     if (rsCheck.next() && "valid\u00e9e".equals(rsCheck.getString("statut"))) { traitStatus = "actif"; }
                     rsCheck.close(); psCheck.close();
@@ -514,7 +514,7 @@ public class BackTraitementController {
                         String dos = ((TextField) entry.get("dosage")).getText().trim();
                         String freq = ((TextField) entry.get("frequence")).getText().trim();
                         String repas = ((ComboBox<?>) entry.get("repas")).getValue() != null ? ((ComboBox<?>) entry.get("repas")).getValue().toString() : "";
-                        PreparedStatement ps = DatabaseUtil.getConnection().prepareStatement("INSERT INTO traitement (id_utilisateur_id,dosage,frequence,duree_jours,date_debut,date_fin,status,notes,id_ordonnance_id,id_produit_id,repas) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+                        PreparedStatement ps = DatabaseUtil.getInstance().getConnection().prepareStatement("INSERT INTO traitement (id_utilisateur_id,dosage,frequence,duree_jours,date_debut,date_fin,status,notes,id_ordonnance_id,id_produit_id,repas) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
                         ps.setInt(1, userId); ps.setString(2, dos); ps.setString(3, freq); ps.setInt(4, duree);
                         ps.setTimestamp(5, ddP.getValue() != null ? Timestamp.valueOf(ddP.getValue().atStartOfDay()) : Timestamp.valueOf(java.time.LocalDateTime.now()));
                         ps.setTimestamp(6, dfP.getValue() != null ? Timestamp.valueOf(dfP.getValue().atStartOfDay()) : null);
@@ -565,7 +565,7 @@ public class BackTraitementController {
         int totalProduits = 0, totalPatients = 0;
 
         try {
-            Connection conn = DatabaseUtil.getConnection();
+            Connection conn = DatabaseUtil.getInstance().getConnection();
             ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) AS c FROM traitement"); if (rs.next()) totalTrait = rs.getInt("c"); rs.close();
             rs = conn.createStatement().executeQuery("SELECT COUNT(*) AS c FROM traitement WHERE status='en_attente'"); if (rs.next()) enAttente = rs.getInt("c"); rs.close();
             rs = conn.createStatement().executeQuery("SELECT COUNT(*) AS c FROM traitement WHERE status='actif'"); if (rs.next()) actifs = rs.getInt("c"); rs.close();
@@ -615,7 +615,7 @@ public class BackTraitementController {
         VBox topCard = new VBox(8); topCard.setPadding(new Insets(20));
         topCard.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0.3, 0, 2);");
         try {
-            ResultSet rs = DatabaseUtil.getConnection().createStatement().executeQuery(
+            ResultSet rs = DatabaseUtil.getInstance().getConnection().createStatement().executeQuery(
                 "SELECT p.nom, COUNT(*) AS nb FROM traitement t JOIN produit p ON t.id_produit_id=p.id_produit GROUP BY p.nom ORDER BY nb DESC LIMIT 5");
             int rank = 1;
             while (rs.next()) {
@@ -668,7 +668,7 @@ public class BackTraitementController {
         VBox recentCard = new VBox(8); recentCard.setPadding(new Insets(20));
         recentCard.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0.3, 0, 2);");
         try {
-            ResultSet rs = DatabaseUtil.getConnection().createStatement().executeQuery(
+            ResultSet rs = DatabaseUtil.getInstance().getConnection().createStatement().executeQuery(
                 "SELECT t.id_traitement, o.numero_ordonnance, u.nom, p.nom AS pnom, t.status, t.date_debut " +
                 "FROM traitement t LEFT JOIN utilisateur u ON t.id_utilisateur_id=u.id_utilisateur " +
                 "LEFT JOIN produit p ON t.id_produit_id=p.id_produit " +

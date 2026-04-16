@@ -20,7 +20,7 @@ public class AccueilController {
     @FXML private StackPane ordonnanceMenuContainer;
     @FXML private VBox ordonnanceDropdown;
 
-    private UserService userService = new UserService();
+    private UserService userService = UserService.getInstance();
 
     @FXML
     public void initialize() {
