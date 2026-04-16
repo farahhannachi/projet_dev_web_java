@@ -11,15 +11,26 @@ import java.util.List;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class UserService {
+    private static UserService instance;
     private static User currentUser = null;
     private static ClientService clientService = new ClientService();
+
+    private UserService() {
+    }
+
+    public static UserService getInstance() {
+        if (instance == null) {
+            instance = new UserService();
+        }
+        return instance;
+    }
 
     public User login(String email, String password) {
         String sql = "SELECT * FROM utilisateur WHERE email = ?";
         
         System.out.println("[DEBUG] Login attempt for: " + email);
         
-        try (Connection conn = DatabaseUtil.getConnection();
+        try (Connection conn = DatabaseUtil.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, email);
@@ -146,7 +157,7 @@ public class UserService {
         // Insert new user into database
         String sql = "INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, etat_compte, date_creation, roles, loyalty_points, loyalty_level, segment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
-        try (Connection conn = DatabaseUtil.getConnection();
+        try (Connection conn = DatabaseUtil.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             // Split name into first name and last name
@@ -192,7 +203,7 @@ public class UserService {
     private boolean emailExists(String email) {
         String sql = "SELECT COUNT(*) FROM utilisateur WHERE email = ?";
         
-        try (Connection conn = DatabaseUtil.getConnection();
+        try (Connection conn = DatabaseUtil.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, email);
@@ -233,7 +244,7 @@ public class UserService {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM utilisateur";
         
-        try (Connection conn = DatabaseUtil.getConnection();
+        try (Connection conn = DatabaseUtil.getInstance().getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
@@ -268,6 +279,6 @@ public class UserService {
      * Check if database is available
      */
     public static boolean isDatabaseConnected() {
-        return DatabaseUtil.isDatabaseAvailable();
+        return DatabaseUtil.getInstance().isDatabaseAvailable();
     }
 }
