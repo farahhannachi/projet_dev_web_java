@@ -9,6 +9,8 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.model.User;
@@ -25,14 +27,39 @@ public class LoginController {
     @FXML private TextField signupEmail;
     @FXML private PasswordField signupPassword;
     @FXML private Label signupError;
+    
+    // Validation Labels
+    @FXML private Label signupNameError;
+    @FXML private Label signupEmailError;
+    @FXML private Label signupPasswordError;
+    
+    // Password Strength Indicators
+    @FXML private Circle strengthCircle1;
+    @FXML private Circle strengthCircle2;
+    @FXML private Circle strengthCircle3;
+    @FXML private Label passwordStrengthLabel;
+    
+    // Password Requirements
+    @FXML private Label reqLength;
+    @FXML private Label reqUppercase;
+    @FXML private Label reqNumber;
+    @FXML private Label reqSpecial;
 
     @FXML private StackPane signInPanel;
     @FXML private StackPane signUpPanel;
     @FXML private StackPane backgroundPane;
+    @FXML private StackPane bannedOverlayPane;
+    @FXML private VBox bannedModal;
 
     private UserService userService = new UserService();
     private boolean isSignInMode = true;
     private boolean isAnimating = false;
+    
+    // Password strength tracking
+    private boolean hasMinLength = false;
+    private boolean hasUppercase = false;
+    private boolean hasNumber = false;
+    private boolean hasSpecial = false;
 
     @FXML
     private void initialize() {
@@ -137,6 +164,12 @@ public class LoginController {
 
         User user = userService.login(email, password);
         if (user != null) {
+            // Check if user is blocked
+            if (user.isBlocked()) {
+                showBannedModal();
+                return;
+            }
+            
             try {
                 goToNextPage(user);
             } catch (IOException e) {
@@ -148,41 +181,227 @@ public class LoginController {
         }
     }
 
+    private void showBannedModal() {
+        bannedOverlayPane.setVisible(true);
+        bannedOverlayPane.setManaged(true);
+        bannedModal.setVisible(true);
+        bannedModal.setManaged(true);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(300), bannedOverlayPane);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+        fade.play();
+    }
+
+    @FXML
+    private void closeBannedModal() {
+        FadeTransition fade = new FadeTransition(Duration.millis(300), bannedOverlayPane);
+        fade.setFromValue(1);
+        fade.setToValue(0);
+        fade.setOnFinished(e -> {
+            bannedOverlayPane.setVisible(false);
+            bannedOverlayPane.setManaged(false);
+            bannedModal.setVisible(false);
+            bannedModal.setManaged(false);
+        });
+        fade.play();
+    }
+
     @FXML
     private void handleSignup() {
         if (isAnimating) return;
-        
+
         String name = signupName.getText().trim();
         String email = signupEmail.getText().trim();
         String password = signupPassword.getText();
 
         signupError.setText("");
 
-        if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            signupError.setText("❌ All fields required");
+        // VALIDATION 1: Name
+        if (!isValidName(name)) {
+            signupError.setText("❌ Le nom ne doit pas contenir de chiffres");
             signupError.setStyle("-fx-text-fill: #E74C3C;");
             return;
         }
 
-        // Allow emails with text and numbers before @gmail.com (e.g., mundo36@gmail.com)
+        // VALIDATION 2: Email
+        if (email.isEmpty()) {
+            signupError.setText("❌ Email obligatoire");
+            signupError.setStyle("-fx-text-fill: #E74C3C;");
+            return;
+        }
+
         if (!email.matches("^[a-zA-Z0-9]+@gmail\\.com$")) {
-            signupError.setText("❌ Invalid email format (use: name@gmail.com or mundo36@gmail.com)");
+            signupError.setText("❌ Format email invalide (use: name@gmail.com)");
             signupError.setStyle("-fx-text-fill: #E74C3C;");
             return;
         }
 
+        // VALIDATION 3: Password Strength
+        if (!isPasswordValid(password)) {
+            // Show specific error
+            if (!hasMinLength) {
+                signupError.setText("❌ Mot de passe: minimum 6 caractères");
+            } else if (!hasUppercase) {
+                signupError.setText("❌ Mot de passe: doit contenir une majuscule (A-Z)");
+            } else if (!hasNumber) {
+                signupError.setText("❌ Mot de passe: doit contenir un chiffre (0-9)");
+            }
+            signupError.setStyle("-fx-text-fill: #E74C3C;");
+            return;
+        }
+
+        // All validations passed
         if (userService.signup(email, password, name)) {
             try {
                 User newUser = userService.getCurrentUser();
                 goToNextPage(newUser);
             } catch (IOException e) {
-                signupError.setText("❌ Error loading page");
+                signupError.setText("❌ Erreur chargement page");
                 signupError.setStyle("-fx-text-fill: #E74C3C;");
             }
         } else {
-            signupError.setText("❌ Email already exists or invalid format");
+            signupError.setText("❌ Email existe déjà ou format invalide");
             signupError.setStyle("-fx-text-fill: #E74C3C;");
         }
+    }
+    
+    // ===== VALIDATION METHODS =====
+    
+    @FXML
+    private void validateSignupName() {
+        String name = signupName.getText().trim();
+        
+        if (name.isEmpty()) {
+            signupNameError.setText("");
+            return;
+        }
+        
+        if (isValidName(name)) {
+            signupNameError.setText("✅ Nom valide");
+            signupNameError.setStyle("-fx-text-fill: #10b981;");
+        } else {
+            signupNameError.setText("❌ Le nom ne doit pas contenir de chiffres");
+            signupNameError.setStyle("-fx-text-fill: #dc2626;");
+        }
+    }
+    
+    @FXML
+    private void validateSignupEmail() {
+        String email = signupEmail.getText().trim();
+        
+        if (email.isEmpty()) {
+            signupEmailError.setText("");
+            return;
+        }
+        
+        if (email.matches("^[a-zA-Z0-9]+@gmail\\.com$")) {
+            signupEmailError.setText("✅ Email valide");
+            signupEmailError.setStyle("-fx-text-fill: #10b981;");
+        } else {
+            signupEmailError.setText("❌ Format: name@gmail.com");
+            signupEmailError.setStyle("-fx-text-fill: #dc2626;");
+        }
+    }
+    
+    @FXML
+    private void validatePasswordStrength() {
+        String password = signupPassword.getText();
+        
+        if (password.isEmpty()) {
+            resetPasswordStrength();
+            return;
+        }
+        
+        // Check each requirement
+        hasMinLength = password.length() >= 6;
+        hasUppercase = password.matches(".*[A-Z].*");
+        hasNumber = password.matches(".*[0-9].*");
+        hasSpecial = password.matches(".*[*\\-+@#].*");
+        
+        // Update requirement labels
+        updateRequirementLabel(reqLength, hasMinLength, "✓ Au moins 6 caractères", "✗ Au moins 6 caractères");
+        updateRequirementLabel(reqUppercase, hasUppercase, "✓ Contient une majuscule (A-Z)", "✗ Contient une majuscule (A-Z)");
+        updateRequirementLabel(reqNumber, hasNumber, "✓ Contient un chiffre (0-9)", "✗ Contient un chiffre (0-9)");
+        updateRequirementLabel(reqSpecial, hasSpecial, "✓ Contient caractère spécial (* - + @ #)", "○ Contient caractère spécial (* - + @ #)");
+        
+        // Calculate password strength
+        int strength = (hasMinLength ? 1 : 0) + (hasUppercase ? 1 : 0) + (hasNumber ? 1 : 0) + (hasSpecial ? 1 : 0);
+        
+        updatePasswordStrengthIndicator(strength);
+    }
+    
+    private void updatePasswordStrengthIndicator(int strength) {
+        // Reset all circles
+        strengthCircle1.setStyle("-fx-fill: #e5e7eb;");
+        strengthCircle2.setStyle("-fx-fill: #e5e7eb;");
+        strengthCircle3.setStyle("-fx-fill: #e5e7eb;");
+        
+        if (strength == 0) {
+            passwordStrengthLabel.setText("");
+        } else if (strength <= 2) {
+            // WEAK - Red
+            strengthCircle1.setStyle("-fx-fill: #dc2626;");
+            passwordStrengthLabel.setText("Faible");
+            passwordStrengthLabel.setStyle("-fx-text-fill: #dc2626; -fx-font-size: 11; -fx-font-weight: bold;");
+        } else if (strength == 3) {
+            // MEDIUM - Orange
+            strengthCircle1.setStyle("-fx-fill: #f97316;");
+            strengthCircle2.setStyle("-fx-fill: #f97316;");
+            passwordStrengthLabel.setText("Moyen");
+            passwordStrengthLabel.setStyle("-fx-text-fill: #f97316; -fx-font-size: 11; -fx-font-weight: bold;");
+        } else {
+            // STRONG - Green
+            strengthCircle1.setStyle("-fx-fill: #10b981;");
+            strengthCircle2.setStyle("-fx-fill: #10b981;");
+            strengthCircle3.setStyle("-fx-fill: #10b981;");
+            passwordStrengthLabel.setText("Fort");
+            passwordStrengthLabel.setStyle("-fx-text-fill: #10b981; -fx-font-size: 11; -fx-font-weight: bold;");
+        }
+    }
+    
+    private void resetPasswordStrength() {
+        strengthCircle1.setStyle("-fx-fill: #e5e7eb;");
+        strengthCircle2.setStyle("-fx-fill: #e5e7eb;");
+        strengthCircle3.setStyle("-fx-fill: #e5e7eb;");
+        passwordStrengthLabel.setText("");
+        
+        reqLength.setText("✗ Au moins 6 caractères");
+        reqLength.setStyle("-fx-text-fill: #999;");
+        reqUppercase.setText("✗ Contient une majuscule (A-Z)");
+        reqUppercase.setStyle("-fx-text-fill: #999;");
+        reqNumber.setText("✗ Contient un chiffre (0-9)");
+        reqNumber.setStyle("-fx-text-fill: #999;");
+        reqSpecial.setText("○ Contient un caractère spécial (* - + @ #)");
+        reqSpecial.setStyle("-fx-text-fill: #999;");
+    }
+    
+    private void updateRequirementLabel(Label label, boolean met, String checkedText, String uncheckedText) {
+        if (met) {
+            label.setText(checkedText);
+            label.setStyle("-fx-text-fill: #10b981; -fx-font-weight: bold;");
+        } else {
+            label.setText(uncheckedText);
+            label.setStyle("-fx-text-fill: #dc2626;");
+        }
+    }
+    
+    private boolean isValidName(String name) {
+        // Name must not contain numbers
+        if (name.matches(".*\\d.*")) {
+            return false;
+        }
+        return !name.isEmpty() && name.matches("^[a-zA-Z\\s]+$");
+    }
+    
+    private boolean isPasswordValid(String password) {
+        // Requires: Min 6 chars, 1 uppercase, 1 number
+        // Optional: special character
+        boolean hasMin = password.length() >= 6;
+        boolean hasUpper = password.matches(".*[A-Z].*");
+        boolean hasNum = password.matches(".*[0-9].*");
+        
+        return hasMin && hasUpper && hasNum;
     }
 
     @FXML

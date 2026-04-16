@@ -359,6 +359,7 @@ CREATE TABLE `utilisateur` (
   `telephone` varchar(20) DEFAULT NULL,
   `avatar_url` longtext DEFAULT NULL,
   `avatar_seed` varchar(100) DEFAULT NULL,
+  `avatar_config` longtext DEFAULT NULL,
   `has_seen_introduction` tinyint(1) NOT NULL DEFAULT 0,
   `reset_token` varchar(255) DEFAULT NULL,
   `reset_token_expires_at` datetime DEFAULT NULL COMMENT '(DC2Type:datetime_immutable)',
@@ -373,7 +374,7 @@ CREATE TABLE `utilisateur` (
 -- Dumping data for table `utilisateur`
 --
 
-INSERT INTO `utilisateur` (`id_utilisateur`, `nom`, `prenom`, `email`, `mot_de_passe`, `etat_compte`, `date_creation`, `roles`, `loyalty_points`, `loyalty_level`, `segment`, `last_activity_at`, `date_naissance`, `telephone`, `avatar_url`, `avatar_seed`, `has_seen_introduction`, `reset_token`, `reset_token_expires_at`, `totp_secret`, `totp_enabled`, `backup_codes`, `student_id`, `id_card_image`) VALUES
+INSERT INTO `utilisateur` (`id_utilisateur`, `nom`, `prenom`, `email`, `mot_de_passe`, `etat_compte`, `date_creation`, `roles`, `loyalty_points`, `loyalty_level`, `segment`, `last_activity_at`, `date_naissance`, `telephone`, `avatar_url`, `avatar_seed`, `avatar_config`, `has_seen_introduction`, `reset_token`, `reset_token_expires_at`, `totp_secret`, `totp_enabled`, `backup_codes`, `student_id`, `id_card_image`) VALUES
 (1, 'iheb', 'ben jbir', 'ihebjbir10@gmail.com', '$2y$13$di7nD.wZFCN91cCALH7Q4.4.NT7Iocfd.mUKsDCkRY9irlR71aUv.', 'actif', '2026-02-28 21:55:59', '[\"ROLE_ADMIN\"]', 0, 'BRONZE', 'NEW_CUSTOMER', NULL, NULL, NULL, 'https://api.dicebear.com/7.x/bottts/svg?seed=avatar_69a35810f1734&scale=80', 'bottts|avatar_69a35810f1734', 0, NULL, NULL, 'EFWYROFE7I3KD6THK6AU6TRIAY5MGQ5YK7G4PCSR362QFDGRP5JIBZ6BKY26XM2JD56CVFPGCJBDLEP4RKJLNGYAPZWS23JKHINO3AI', 1, NULL, '231JMTO0405', 'uploads/id_cards/9c4ef0a4-dfba-41d9-aab9-72d522e3721b-69b455a53122c.jpg');
 
 --

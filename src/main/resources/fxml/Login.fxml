@@ -4,9 +4,10 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
+<?import javafx.scene.shape.Circle?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.LoginController" styleClass="lol-root">
-    
+<AnchorPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.LoginController" styleClass="lol-root">
+
     <!-- Floating Background Shapes -->
     <StackPane fx:id="backgroundPane" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" 
                AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" styleClass="floating-bg">
@@ -55,9 +56,48 @@
                         <Text text="Join us today" styleClass="lol-subtitle"/>
                         
                         <VBox spacing="15" prefWidth="300">
-                            <TextField fx:id="signupName" promptText="Full Name" styleClass="lol-input"/>
-                            <TextField fx:id="signupEmail" promptText="Email" styleClass="lol-input"/>
-                            <PasswordField fx:id="signupPassword" promptText="Password" styleClass="lol-input"/>
+                            <!-- Name Field -->
+                            <VBox spacing="5">
+                                <TextField fx:id="signupName" promptText="Full Name" styleClass="lol-input" onKeyReleased="#validateSignupName"/>
+                                <Label fx:id="signupNameError" text="" styleClass="validation-error-small"/>
+                            </VBox>
+
+                            <!-- Email Field -->
+                            <VBox spacing="5">
+                                <TextField fx:id="signupEmail" promptText="Email" styleClass="lol-input" onKeyReleased="#validateSignupEmail"/>
+                                <Label fx:id="signupEmailError" text="" styleClass="validation-error-small"/>
+                            </VBox>
+
+                            <!-- Password Field with Strength Indicator -->
+                            <VBox spacing="8" prefWidth="300">
+                                <PasswordField fx:id="signupPassword" promptText="Password" styleClass="lol-input" onKeyReleased="#validatePasswordStrength"/>
+
+                                <!-- Password Strength Progress Indicator -->
+                                <VBox spacing="5">
+                                    <!-- Strength Label -->
+                                    <HBox spacing="10" alignment="CENTER_LEFT">
+                                        <Label text="Strength:" style="-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #333;"/>
+                                        <Label fx:id="passwordStrengthLabel" text="" style="-fx-font-size: 12; -fx-font-weight: bold;"/>
+                                    </HBox>
+
+                                    <!-- 3 Circles Progress Indicator -->
+                                    <HBox spacing="8" alignment="CENTER_LEFT" prefWidth="280">
+                                        <Circle fx:id="strengthCircle1" radius="8" styleClass="strength-circle-empty"/>
+                                        <Circle fx:id="strengthCircle2" radius="8" styleClass="strength-circle-empty"/>
+                                        <Circle fx:id="strengthCircle3" radius="8" styleClass="strength-circle-empty"/>
+                                    </HBox>
+                                </VBox>
+
+                                <!-- Password Requirements -->
+                                <VBox spacing="4" styleClass="password-requirements">
+                                    <Label fx:id="reqLength" text="✗ Au moins 6 caractères" styleClass="req-unchecked"/>
+                                    <Label fx:id="reqUppercase" text="✗ Majuscule (A-Z)" styleClass="req-unchecked"/>
+                                    <Label fx:id="reqNumber" text="✗ Chiffre (0-9)" styleClass="req-unchecked"/>
+                                    <Label fx:id="reqSpecial" text="○ Spécial (* - + @ #)" styleClass="req-optional"/>
+                                </VBox>
+
+                                <Label fx:id="signupPasswordError" text="" styleClass="validation-error-small"/>
+                            </VBox>
                         </VBox>
                         
                         <Label fx:id="signupError" text="" styleClass="lol-error"/>
@@ -76,4 +116,16 @@
         </StackPane>
     </StackPane>
     
+    <!-- Banned Modal Overlay -->
+    <StackPane fx:id="bannedOverlayPane" visible="false" managed="false" style="-fx-background-color: rgba(0,0,0,0.4);" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+        <VBox fx:id="bannedModal" visible="false" managed="false" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 50; -fx-spacing: 30; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0, 0, 10); -fx-min-width: 500; -fx-alignment: CENTER;" StackPane.alignment="CENTER">
+            <children>
+                <Label text="🔒 Accès Refusé" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #dc2626; -fx-alignment: CENTER; -fx-text-alignment: CENTER;"/>
+                <Label text="Votre compte est bloqué" style="-fx-font-size: 20; -fx-text-fill: #666; -fx-wrap-text: true; -fx-alignment: CENTER; -fx-text-alignment: CENTER;"/>
+                <Label text="Vous ne pouvez pas vous connecter." style="-fx-font-size: 16; -fx-text-fill: #999; -fx-alignment: CENTER; -fx-text-alignment: CENTER;"/>
+                <Button text="OK" onAction="#closeBannedModal" style="-fx-padding: 15 60; -fx-font-size: 14; -fx-background-color: #1f6f54; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 8;"/>
+            </children>
+        </VBox>
+    </StackPane>
+
 </AnchorPane>

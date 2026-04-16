@@ -4,6 +4,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.event.ActionEvent;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -107,43 +109,53 @@ public class DashboardController {
     }
 
     @FXML
-    private void showClients() {
-        // Switch to clients view
-        System.out.println("Show Clients");
+    public void showClients(ActionEvent event) throws IOException {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/UserManagement.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (Exception e) {
+            System.err.println("Error loading Clients page: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @FXML
-    private void showProduits() {
+    void showProduits() {
         // Switch to products view
         System.out.println("Show Produits");
     }
 
     @FXML
-    private void showCommandes() {
+    void showCommandes() {
         // Switch to orders view
         System.out.println("Show Commandes");
     }
 
     @FXML
-    private void showPromotions() {
+    void showPromotions() {
         // Switch to promotions view
         System.out.println("Show Promotions");
     }
 
     @FXML
-    private void showCoupons() {
+    void showCoupons() {
         // Switch to coupons view
         System.out.println("Show Coupons");
     }
 
     @FXML
-    private void showDepots() {
+    void showDepots() {
         // Switch to depots view
         System.out.println("Show Depots");
     }
 
     @FXML
-    private void showStocks() {
+    void showStocks() {
         // Switch to stocks view
         System.out.println("Show Stocks");
     }
@@ -151,6 +163,17 @@ public class DashboardController {
     @FXML
     private void logout() throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+        Stage stage = (Stage) mainPane.getScene().getWindow();
+        stage.setScene(scene);
+        stage.setFullScreen(true);
+    }
+
+    @FXML
+    void showUserManagement() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/UserManagement.fxml"));
         Parent root = loader.load();
         Scene scene = new Scene(root);
         scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());

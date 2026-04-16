@@ -4,18 +4,18 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.DashboardController" styleClass="root">
+<BorderPane fx:id="mainPane" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.DashboardController" styleClass="root">
     <left>
-        <VBox fx:id="sidebar" styleClass="sidebar" spacing="15">
+        <VBox fx:id="sidebar" styleClass="sidebar" spacing="15" style="-fx-background-color: #144733;">
             <Label text="CuraVita" styleClass="sidebar-logo"/>
-            <VBox spacing="10">
+            <VBox spacing="10" style="-fx-background-color: #144733;">
                 <Button text="Clients" onAction="#showClients" styleClass="sidebar-item"/>
-                <Button text="Produits" onAction="#showProduits" styleClass="sidebar-item"/>
-                <Button text="Commandes" onAction="#showCommandes" styleClass="sidebar-item"/>
-                <Button text="Promotions" onAction="#showPromotions" styleClass="sidebar-item"/>
-                <Button text="Coupons" onAction="#showCoupons" styleClass="sidebar-item"/>
-                <Button text="Dépôts" onAction="#showDepots" styleClass="sidebar-item"/>
-                <Button text="Stocks" onAction="#showStocks" styleClass="sidebar-item"/>
+                <Button text="Produits" styleClass="sidebar-item" disable="true"/>
+                <Button text="Commandes" styleClass="sidebar-item" disable="true"/>
+                <Button text="Promotions" styleClass="sidebar-item" disable="true"/>
+                <Button text="Coupons" styleClass="sidebar-item" disable="true"/>
+                <Button text="Dépôts" styleClass="sidebar-item" disable="true"/>
+                <Button text="Stocks" styleClass="sidebar-item" disable="true"/>
             </VBox>
             <Region VBox.vgrow="ALWAYS"/>
             <Button fx:id="frontOfficeBtn" text="← Back" onAction="#goToFrontOffice" styleClass="sidebar-button-bottom"/>

@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.*?>
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
@@ -37,23 +38,38 @@
         <!-- Spacer -->
         <Region HBox.hgrow="SOMETIMES"/>
         
-        <!-- RIGHT: Icons -->
-        <StackPane>
-            <HBox styleClass="icon-container" alignment="CENTER">
-                <Button text="&#128269;" styleClass="icon-button" onAction="#handleSearch"/>
-                <Button fx:id="profileButton" text="&#128100;" styleClass="icon-button" onAction="#toggleProfileDropdown"/>
-            </HBox>
+        <!-- RIGHT: Search + Profile Section -->
+        <HBox styleClass="navbar-right-section" alignment="CENTER" spacing="15">
+            <!-- Search Button -->
+            <Button text="&#128269;" styleClass="navbar-search-btn" onAction="#handleSearch"/>
             
-            <!-- Profile Dropdown -->
-            <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false">
-                <VBox.margin>
-                    <Insets top="45" right="0" bottom="0" left="0"/>
-                </VBox.margin>
-                <Button text="Profil" styleClass="dropdown-item" onAction="#showProfile"/>
-                <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
-                <Button text="Logout" styleClass="dropdown-item" onAction="#logout"/>
-            </VBox>
-        </StackPane>
+            <!-- Profile Container -->
+            <StackPane>
+                <HBox fx:id="profileContainer" styleClass="navbar-profile-container" alignment="CENTER" spacing="10" onMouseClicked="#toggleProfileDropdown">
+                    <!-- Circular Avatar -->
+                    <StackPane styleClass="navbar-avatar-container">
+                        <Circle fx:id="navbarAvatarCircle" radius="18" styleClass="navbar-avatar-circle"/>
+                        <Label fx:id="navbarAvatarLabel" text="&#128100;" styleClass="navbar-avatar-emoji" alignment="CENTER"/>
+                    </StackPane>
+                    
+                    <!-- Username -->
+                    <Label fx:id="navbarUsername" text="Utilisateur" styleClass="navbar-username"/>
+                    
+                    <!-- Dropdown Arrow -->
+                    <Label text="&#9660;" styleClass="navbar-dropdown-arrow"/>
+                </HBox>
+                
+                <!-- Profile Dropdown Menu -->
+                <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false" StackPane.alignment="TOP_RIGHT">
+                    <VBox.margin>
+                        <Insets top="50" right="0" bottom="0" left="0"/>
+                    </VBox.margin>
+                    <Button text="Mon Profil" styleClass="dropdown-item" onAction="#showProfile"/>
+                    <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                    <Button text="D&#233;connexion" styleClass="dropdown-item" onAction="#logout"/>
+                </VBox>
+            </StackPane>
+        </HBox>
     </HBox>
     
     <!-- ============================================
