@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.example.controller.ContactPageController" styleClass="support-page-root">
+
+    <!-- Navbar (kept consistent with the rest of CuraVita) -->
+    <HBox styleClass="navbar-pill" alignment="CENTER">
+        <VBox.margin>
+            <Insets top="20" left="40" right="40" bottom="0"/>
+        </VBox.margin>
+
+        <Label text="CuraVita" styleClass="logo-text"/>
+        <Region HBox.hgrow="SOMETIMES"/>
+
+        <HBox styleClass="menu-container" alignment="CENTER">
+            <Button text="Accueil" styleClass="menu-item" onAction="#goHome"/>
+            <Button text="Produits" styleClass="menu-item"/>
+            <Button text="Commandes" styleClass="menu-item"/>
+            <Button text="Ordonnance" styleClass="menu-item"/>
+            <Button text="Traitement" styleClass="menu-item"/>
+            <Button text="Guide Santé" styleClass="menu-item"/>
+            <Button text="Contact" styleClass="menu-item"/>
+            <Button text="À propos" styleClass="menu-item"/>
+        </HBox>
+
+        <Region HBox.hgrow="SOMETIMES"/>
+
+        <StackPane>
+            <HBox styleClass="icon-container" alignment="CENTER">
+                <Button text="&#128269;" styleClass="icon-button" onAction="#handleSearch"/>
+                <Button fx:id="profileButton" text="&#128100;" styleClass="icon-button" onAction="#toggleProfileDropdown"/>
+            </HBox>
+
+            <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false">
+                <VBox.margin>
+                    <Insets top="45" right="0" bottom="0" left="0"/>
+                </VBox.margin>
+                <Button text="Profil" styleClass="dropdown-item" onAction="#showProfile"/>
+                <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                <Button text="Logout" styleClass="dropdown-item" onAction="#logout"/>
+            </VBox>
+        </StackPane>
+    </HBox>
+
+    <!-- Page content (scrollable like the screenshots) -->
+    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="support-scroll" VBox.vgrow="ALWAYS">
+        <content>
+            <VBox styleClass="support-content" spacing="30">
+                <VBox.margin>
+                    <Insets top="25" left="70" right="70" bottom="60"/>
+                </VBox.margin>
+
+                <!-- Two-column support layout: New ticket + My tickets -->
+                <HBox spacing="30" alignment="TOP_CENTER" styleClass="support-grid">
+                    <fx:include source="ContactQuestion.fxml" />
+
+                    <VBox styleClass="support-card" prefWidth="520" maxWidth="520">
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <StackPane styleClass="support-icon-bubble">
+                                <Label text="&#x1F4C4;" styleClass="support-icon" />
+                            </StackPane>
+                            <Label text="Mes Tickets" styleClass="support-card-title" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label fx:id="myTicketsCountLabel" text="0" styleClass="support-count-badge" />
+                        </HBox>
+
+                        <Separator styleClass="support-divider" />
+
+                        <VBox fx:id="myTicketsList" spacing="12" />
+
+                        <VBox fx:id="myTicketsEmptyState" alignment="CENTER" spacing="10" styleClass="support-empty-state">
+                            <StackPane styleClass="support-empty-icon">
+                                <Label text="&#x2709;" styleClass="support-empty-icon-text" />
+                            </StackPane>
+                            <Label text="Aucun ticket" styleClass="support-empty-title" />
+                            <Label text="Créez votre premier ticket de support." styleClass="support-empty-subtitle" wrapText="true" />
+                        </VBox>
+                    </VBox>
+                </HBox>
+
+                <!-- FAQ / Health question examples section -->
+                <VBox alignment="CENTER" spacing="12" styleClass="faq-section">
+                    <StackPane styleClass="faq-hero-icon">
+                        <Label text="?" styleClass="faq-hero-icon-text" />
+                    </StackPane>
+
+                    <Label text="FAQ" styleClass="faq-pill" />
+                    <Label text="Questions Fréquentes" styleClass="faq-title" />
+                    <Label text="Trouvez rapidement des réponses à vos questions santé" styleClass="faq-subtitle" />
+
+                    <VBox spacing="10" maxWidth="920.0" fillWidth="true">
+                        <VBox styleClass="support-card" spacing="6">
+                            <Label text="Quels sont les effets secondaires possibles ?" styleClass="faq-question" wrapText="true" />
+                            <Label text="Cela dépend du médicament. Consultez la notice et, en cas de symptôme inhabituel, contactez votre pharmacien ou votre médecin." styleClass="faq-answer" wrapText="true" />
+                        </VBox>
+                        <VBox styleClass="support-card" spacing="6">
+                            <Label text="Quand et comment prendre mon traitement ?" styleClass="faq-question" wrapText="true" />
+                            <Label text="Respectez la posologie (dose + horaires). Si vous avez oublié une prise, évitez le double dosage et demandez conseil." styleClass="faq-answer" wrapText="true" />
+                        </VBox>
+                        <VBox styleClass="support-card" spacing="6">
+                            <Label text="Puis-je associer deux médicaments ?" styleClass="faq-question" wrapText="true" />
+                            <Label text="Certaines associations peuvent être déconseillées. Indiquez-nous les médicaments (nom + dosage) via un ticket pour vérification." styleClass="faq-answer" wrapText="true" />
+                        </VBox>
+                        <VBox styleClass="support-card" spacing="6">
+                            <Label text="Grossesse / allaitement : puis-je le prendre ?" styleClass="faq-question" wrapText="true" />
+                            <Label text="Avant toute prise pendant la grossesse/allaitement, demandez un avis médical. Envoyez la photo de l'ordonnance si besoin." styleClass="faq-answer" wrapText="true" />
+                        </VBox>
+                        <VBox styleClass="support-card" spacing="6">
+                            <Label text="Comment envoyer mon ordonnance ou un document ?" styleClass="faq-question" wrapText="true" />
+                            <Label text="Utilisez la zone 'Pièce jointe' du ticket. Formats conseillés : PDF, JPG, PNG. Évitez les documents flous." styleClass="faq-answer" wrapText="true" />
+                        </VBox>
+                        <VBox styleClass="support-card" spacing="6">
+                            <Label text="Quel est le délai de réponse du support ?" styleClass="faq-question" wrapText="true" />
+                            <Label text="La plupart des demandes reçoivent une réponse sous 24-48h ouvrées. Les urgences santé doivent être traitées par un professionnel de santé." styleClass="faq-answer" wrapText="true" />
+                        </VBox>
+                    </VBox>
+                </VBox>
+
+            </VBox>
+        </content>
+    </ScrollPane>
+</VBox>
+

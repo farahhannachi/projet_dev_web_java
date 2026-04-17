@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.controller.ResponseQuestionAdminController"
+            styleClass="admin-dashboard-root">
+
+    <!-- Top header (simple & pro) -->
+    <top>
+        <VBox spacing="12">
+            <HBox alignment="CENTER_LEFT" spacing="16">
+                <VBox spacing="2">
+                    <Label text="Support - Questions &amp; Réponses" styleClass="admin-title" />
+                    <Label text="Gérez les tickets clients : recherchez, filtrez et répondez." styleClass="admin-subtitle" />
+                </VBox>
+                <Region HBox.hgrow="ALWAYS" />
+                <Button text="Exporter PDF" onAction="#handleExportPdf" styleClass="btn-admin-primary" />
+            </HBox>
+
+            <!-- Search / filter bar -->
+            <HBox styleClass="admin-filter-bar" alignment="CENTER_LEFT" spacing="12">
+                <HBox alignment="CENTER_LEFT" spacing="8" styleClass="admin-search-box" HBox.hgrow="ALWAYS">
+                    <Label text="🔍" styleClass="admin-search-icon" />
+                    <TextField fx:id="questionSearchField" promptText="Rechercher... (objet, description, client)" styleClass="admin-search-field" HBox.hgrow="ALWAYS" />
+                </HBox>
+
+                <ComboBox fx:id="questionStatutFilterCombo" promptText="Statut" styleClass="admin-filter-combo" prefWidth="160" />
+                <ComboBox fx:id="questionPrioriteFilterCombo" promptText="Priorité" styleClass="admin-filter-combo" prefWidth="160" />
+
+                <Button text="Filtrer" onAction="#handleQuestionFilter" styleClass="btn-admin-primary" />
+                <Button text="Reset" onAction="#handleClearQuestionFilters" styleClass="btn-admin-secondary" />
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- Center: split between list and reply panel -->
+    <center>
+        <SplitPane dividerPositions="0.70" styleClass="admin-split">
+
+            <!-- LEFT: Questions table -->
+            <VBox spacing="12">
+
+                <VBox styleClass="admin-card" VBox.vgrow="ALWAYS">
+                    <HBox alignment="CENTER_LEFT" spacing="10" styleClass="admin-card-header">
+                        <Label text="Questions clients" styleClass="admin-card-title" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label fx:id="questionsCountLabel" text="" styleClass="badge-gray" />
+                    </HBox>
+
+                    <TableView fx:id="questionTable" styleClass="table-modern" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="clientColumn" text="CLIENT" prefWidth="180" />
+                            <TableColumn fx:id="objetColumn" text="OBJET" prefWidth="240" />
+                            <TableColumn fx:id="typeTicketColumn" text="TYPE" prefWidth="120" />
+                            <TableColumn fx:id="dateColumn" text="DATE" prefWidth="160" />
+                            <TableColumn fx:id="prioriteColumn" text="PRIORITÉ" prefWidth="110" />
+                            <TableColumn fx:id="statutColumn" text="STATUT" prefWidth="120" />
+                            <TableColumn fx:id="questionActionsColumn" text="ACTIONS" prefWidth="160" sortable="false" />
+                        </columns>
+                        <columnResizePolicy>
+                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                        </columnResizePolicy>
+                    </TableView>
+                </VBox>
+
+            </VBox>
+
+            <!-- RIGHT: Reply panel (embedded, no new window) -->
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="admin-form-scroll">
+                <VBox fx:id="replyPanel" styleClass="admin-form-card" spacing="12">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="Répondre" styleClass="admin-section-title" />
+                        <Label fx:id="replyModeLabel" text="" styleClass="badge-gray" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button text="✕" onAction="#handleCloseReplyPanel" styleClass="btn-icon-minimal" />
+                    </HBox>
+
+                    <!-- Question details -->
+                    <VBox spacing="8" styleClass="admin-details-card">
+                        <Label text="Détails de la question" styleClass="admin-card-title" />
+
+                        <HBox spacing="10">
+                            <Label text="Client:" styleClass="form-label" />
+                            <Label fx:id="detailClientLabel" text="-" styleClass="text-secondary" />
+                        </HBox>
+                        <HBox spacing="10">
+                            <Label text="Objet:" styleClass="form-label" />
+                            <Label fx:id="detailObjetLabel" text="-" styleClass="text-secondary" wrapText="true" />
+                        </HBox>
+                        <HBox spacing="10">
+                            <Label text="Type:" styleClass="form-label" />
+                            <Label fx:id="detailTypeLabel" text="-" styleClass="text-secondary" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label text="Priorité:" styleClass="form-label" />
+                            <Label fx:id="detailPrioriteLabel" text="-" styleClass="text-secondary" />
+                        </HBox>
+
+                        <Label text="Description" styleClass="form-label" />
+                        <TextArea fx:id="detailDescriptionArea" editable="false" wrapText="true" prefRowCount="5" styleClass="form-input" />
+
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Pièce jointe:" styleClass="form-label" />
+                            <Label fx:id="detailFileLabel" text="Aucun" styleClass="text-secondary" />
+                        </HBox>
+                    </VBox>
+
+                    <Separator />
+
+                    <!-- Response form -->
+                    <Label text="Auteur Type" styleClass="form-label" />
+                    <ComboBox fx:id="auteurTypeCombo" styleClass="form-combo" />
+
+                    <Label text="Rôle" styleClass="form-label" />
+                    <ComboBox fx:id="reponseRoleCombo" styleClass="form-combo" />
+
+                    <Label text="Action" styleClass="form-label" />
+                    <ComboBox fx:id="actionTypeCombo" styleClass="form-combo" />
+
+                    <Label text="Impact" styleClass="form-label" />
+                    <ComboBox fx:id="impactStatutCombo" styleClass="form-combo" />
+
+                    <Label text="Réponse" styleClass="form-label" />
+                    <TextArea fx:id="reponseTextArea" prefRowCount="6" styleClass="form-input" promptText="Tapez votre réponse..." />
+
+                    <Label text="Fichier (optionnel)" styleClass="form-label" />
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label fx:id="fileInfoLabel" text="Aucun fichier" styleClass="text-secondary" />
+                        <Button fx:id="chooseFileButton" text="Choisir" onAction="#handleChooseFile" styleClass="btn-admin-secondary" />
+                    </HBox>
+
+                    <Label fx:id="formErrorLabel" text="" styleClass="error-label" />
+
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button fx:id="saveButton" text="Envoyer" onAction="#handleSave" styleClass="btn-admin-primary" />
+                        <Button text="Reset" onAction="#handleResetForm" styleClass="btn-admin-secondary" />
+                    </HBox>
+                </VBox>
+            </ScrollPane>
+
+        </SplitPane>
+    </center>
+</BorderPane>
+

@@ -1,19 +1,29 @@
 package org.example.controller;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.example.model.ResponseQuestion;
+import org.example.model.User;
+import org.example.service.ResponseQuestionService;
 import org.example.service.UserService;
 
 import java.io.IOException;
 import java.net.URL;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
-public class AccueilController {
+public class MessagesPageController {
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @FXML private Button profileButton;
     @FXML private VBox profileDropdown;
@@ -21,24 +31,48 @@ public class AccueilController {
     @FXML private Button messagesButton;
     @FXML private Label messagesBadge;
 
-    private UserService userService = new UserService();
-    private final org.example.service.ResponseQuestionService responseService = new org.example.service.ResponseQuestionService();
+    @FXML private TableView<ResponseQuestion> messagesTable;
+    @FXML private TableColumn<ResponseQuestion, String> questionColumn;
+    @FXML private TableColumn<ResponseQuestion, String> responseColumn;
+    @FXML private TableColumn<ResponseQuestion, String> roleColumn;
+    @FXML private TableColumn<ResponseQuestion, String> createdAtColumn;
+
+    private final UserService userService = new UserService();
+    private final ResponseQuestionService responseService = new ResponseQuestionService();
 
     @FXML
     public void initialize() {
-        // Show/hide Dashboard option based on user type
         if (dashboardMenuItem != null) {
             dashboardMenuItem.setVisible(userService.isAdmin());
             dashboardMenuItem.setManaged(userService.isAdmin());
         }
+        setupTable();
+        loadMessages();
         updateMessagesBadge();
+    }
+
+    private void setupTable() {
+        questionColumn.setCellValueFactory(data -> new SimpleStringProperty(safe(data.getValue().getQuestionObjet())));
+        responseColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getShortReponseText()));
+        roleColumn.setCellValueFactory(data -> new SimpleStringProperty(label(data.getValue())));
+        createdAtColumn.setCellValueFactory(data -> new SimpleStringProperty(formatDate(data.getValue())));
+    }
+
+    private void loadMessages() {
+        User currentUser = userService.getCurrentUser();
+        if (currentUser == null) {
+            messagesTable.setItems(FXCollections.observableArrayList());
+            return;
+        }
+        List<ResponseQuestion> responses = responseService.getResponsesForClient(currentUser.getId());
+        messagesTable.setItems(FXCollections.observableArrayList(responses));
     }
 
     private void updateMessagesBadge() {
         if (messagesBadge == null) {
             return;
         }
-        org.example.model.User currentUser = userService.getCurrentUser();
+        User currentUser = userService.getCurrentUser();
         if (currentUser == null) {
             messagesBadge.setVisible(false);
             messagesBadge.setManaged(false);
@@ -56,6 +90,11 @@ public class AccueilController {
     }
 
     @FXML
+    private void handleMessages() {
+        loadMessages();
+    }
+
+    @FXML
     private void toggleProfileDropdown() {
         boolean isVisible = profileDropdown.isVisible();
         profileDropdown.setVisible(!isVisible);
@@ -64,8 +103,6 @@ public class AccueilController {
 
     @FXML
     private void showProfile() {
-        System.out.println("Profile clicked");
-        // Hide dropdown
         profileDropdown.setVisible(false);
         profileDropdown.setManaged(false);
     }
@@ -93,7 +130,18 @@ public class AccueilController {
     }
 
     @FXML
-    private void handleContact() {
+    private void goHome() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+        Stage stage = (Stage) profileButton.getScene().getWindow();
+        stage.setScene(scene);
+        stage.setFullScreen(true);
+    }
+
+    @FXML
+    private void goContact() {
         try {
             URL fxmlUrl = getClass().getResource("/fxml/ContactPage.fxml");
             if (fxmlUrl == null) {
@@ -117,18 +165,16 @@ public class AccueilController {
         }
     }
 
-    @FXML
-    private void handleMessages() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MessagesPage.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) profileButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private String label(ResponseQuestion response) {
+        return response.getReponseRole() != null ? response.getReponseRole().getLabel() : "";
+    }
+
+    private String formatDate(ResponseQuestion response) {
+        return response.getCreatedAt() != null ? response.getCreatedAt().format(DATE_FORMAT) : "";
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
     }
 }
+

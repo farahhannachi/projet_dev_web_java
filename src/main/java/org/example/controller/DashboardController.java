@@ -40,9 +40,11 @@ public class DashboardController {
     private ProduitService produitService = new ProduitService();
     private CommandeService commandeService = new CommandeService();
     private StockService stockService = new StockService();
+    private javafx.scene.Node dashboardCenter;
 
     @FXML
     public void initialize() {
+        dashboardCenter = mainPane.getCenter();
         addSampleData();
         loadStats();
     }
@@ -146,6 +148,27 @@ public class DashboardController {
     private void showStocks() {
         // Switch to stocks view
         System.out.println("Show Stocks");
+    }
+
+    @FXML
+    private void showResponseQuestions() {
+        loadCenterContent("/fxml/ResponseQuestionAdmin.fxml");
+    }
+
+    @FXML
+    private void showDashboardHome() {
+        if (dashboardCenter != null) {
+            mainPane.setCenter(dashboardCenter);
+        }
+    }
+
+    private void loadCenterContent(String fxmlPath) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+            mainPane.setCenter(loader.load());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML

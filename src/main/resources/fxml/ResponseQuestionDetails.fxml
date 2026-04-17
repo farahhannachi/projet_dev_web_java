@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.example.controller.ResponseQuestionDetailsController" spacing="10" styleClass="admin-form-card">
+    <Label text="Details Reponse" styleClass="admin-section-title" />
+
+    <GridPane hgap="10" vgap="8">
+        <Label text="ID:" styleClass="form-label" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+        <Label fx:id="idLabel" GridPane.rowIndex="0" GridPane.columnIndex="1" />
+
+        <Label text="Question:" styleClass="form-label" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+        <Label fx:id="questionLabel" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+
+        <Label text="Utilisateur:" styleClass="form-label" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+        <Label fx:id="utilisateurLabel" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+
+        <Label text="Auteur Type:" styleClass="form-label" GridPane.rowIndex="3" GridPane.columnIndex="0" />
+        <Label fx:id="auteurTypeLabel" GridPane.rowIndex="3" GridPane.columnIndex="1" />
+
+        <Label text="Reponse Role:" styleClass="form-label" GridPane.rowIndex="4" GridPane.columnIndex="0" />
+        <Label fx:id="reponseRoleLabel" GridPane.rowIndex="4" GridPane.columnIndex="1" />
+
+        <Label text="Action Type:" styleClass="form-label" GridPane.rowIndex="5" GridPane.columnIndex="0" />
+        <Label fx:id="actionTypeLabel" GridPane.rowIndex="5" GridPane.columnIndex="1" />
+
+        <Label text="Impact Statut:" styleClass="form-label" GridPane.rowIndex="6" GridPane.columnIndex="0" />
+        <Label fx:id="impactStatutLabel" GridPane.rowIndex="6" GridPane.columnIndex="1" />
+
+        <Label text="Cree le:" styleClass="form-label" GridPane.rowIndex="7" GridPane.columnIndex="0" />
+        <Label fx:id="createdAtLabel" GridPane.rowIndex="7" GridPane.columnIndex="1" />
+
+        <Label text="Lu par client:" styleClass="form-label" GridPane.rowIndex="8" GridPane.columnIndex="0" />
+        <Label fx:id="luParClientLabel" GridPane.rowIndex="8" GridPane.columnIndex="1" />
+
+        <Label text="Fichier:" styleClass="form-label" GridPane.rowIndex="9" GridPane.columnIndex="0" />
+        <Label fx:id="fileLabel" GridPane.rowIndex="9" GridPane.columnIndex="1" />
+    </GridPane>
+
+    <Label text="Reponse Text" styleClass="form-label" />
+    <TextArea fx:id="reponseTextArea" prefRowCount="6" editable="false" wrapText="true" styleClass="form-input" />
+
+    <HBox spacing="10">
+        <Button text="Ouvrir Fichier" onAction="#handleOpenFile" styleClass="button-secondary" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Button text="Fermer" onAction="#handleClose" styleClass="button-primary" />
+    </HBox>
+</VBox>
+

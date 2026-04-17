@@ -4,11 +4,12 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.DashboardController" styleClass="root">
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.DashboardController" styleClass="root" fx:id="mainPane">
     <left>
         <VBox fx:id="sidebar" styleClass="sidebar" spacing="15">
             <Label text="CuraVita" styleClass="sidebar-logo"/>
             <VBox spacing="10">
+                <Button text="Dashboard" onAction="#showDashboardHome" styleClass="sidebar-item"/>
                 <Button text="Clients" onAction="#showClients" styleClass="sidebar-item"/>
                 <Button text="Produits" onAction="#showProduits" styleClass="sidebar-item"/>
                 <Button text="Commandes" onAction="#showCommandes" styleClass="sidebar-item"/>
@@ -16,6 +17,7 @@
                 <Button text="Coupons" onAction="#showCoupons" styleClass="sidebar-item"/>
                 <Button text="Dépôts" onAction="#showDepots" styleClass="sidebar-item"/>
                 <Button text="Stocks" onAction="#showStocks" styleClass="sidebar-item"/>
+                <Button text="Réponses" onAction="#showResponseQuestions" styleClass="sidebar-item"/>
             </VBox>
             <Region VBox.vgrow="ALWAYS"/>
             <Button fx:id="frontOfficeBtn" text="← Back" onAction="#goToFrontOffice" styleClass="sidebar-button-bottom"/>

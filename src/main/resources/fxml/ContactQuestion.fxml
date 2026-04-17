@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.example.controller.ContactQuestionController"
+      styleClass="support-card" prefWidth="520" maxWidth="520" spacing="16">
+
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <StackPane styleClass="support-icon-bubble">
+            <Label text="&#x1F4E9;" styleClass="support-icon" />
+        </StackPane>
+        <VBox spacing="2">
+            <Label text="Nouveau Ticket" styleClass="support-card-title" />
+            <Label text="Décrivez votre problème en détail" styleClass="support-card-subtitle" />
+        </VBox>
+    </HBox>
+
+    <Separator styleClass="support-divider" />
+
+    <VBox spacing="8">
+        <Label text="Objet de la demande" styleClass="support-field-label" />
+        <StackPane styleClass="support-input-wrap">
+            <TextField fx:id="objetField" styleClass="support-input" promptText="Ex: Question sur ma commande" />
+            <Label text="&#x1F3A4;" styleClass="support-field-icon" StackPane.alignment="CENTER_RIGHT" />
+        </StackPane>
+    </VBox>
+
+    <VBox spacing="8">
+        <Label text="Description détaillée" styleClass="support-field-label" />
+        <StackPane styleClass="support-input-wrap">
+            <TextArea fx:id="descriptionArea" styleClass="support-textarea" prefRowCount="5" wrapText="true"
+                      promptText="Expliquez votre problème ou question en détail..." />
+            <Label text="&#x1F3A4;" styleClass="support-field-icon" StackPane.alignment="TOP_RIGHT" />
+        </StackPane>
+    </VBox>
+
+    <VBox spacing="8" styleClass="support-upload-zone">
+        <Label text="Pièce jointe (optionnel)" styleClass="support-field-label" />
+        <VBox spacing="6" alignment="CENTER" styleClass="support-upload-drop">
+            <StackPane styleClass="support-upload-icon">
+                <Label text="&#x1F4C1;" />
+            </StackPane>
+            <Button text="Cliquez pour ajouter un fichier" onAction="#handleChooseFile" styleClass="support-upload-button" />
+            <Label text="PDF, JPG, PNG • Maximum 5 Mo" styleClass="support-upload-hint" />
+            <Label fx:id="fileInfoLabel" text="Aucun fichier" styleClass="support-upload-file" />
+        </VBox>
+    </VBox>
+
+    <VBox spacing="8">
+        <Label text="Type de ticket" styleClass="support-field-label" />
+        <ComboBox fx:id="typeTicketCombo" styleClass="support-combo" maxWidth="Infinity" />
+    </VBox>
+
+    <VBox spacing="8">
+        <Label text="Priorité" styleClass="support-field-label" />
+        <ComboBox fx:id="prioriteCombo" styleClass="support-combo" maxWidth="Infinity" />
+    </VBox>
+
+    <Label fx:id="formErrorLabel" text="" styleClass="support-error" />
+    <Label fx:id="formSuccessLabel" text="" styleClass="support-success" />
+
+    <Button text="Envoyer le ticket" onAction="#handleSubmit" styleClass="support-submit-button" maxWidth="Infinity" />
+
+</VBox>

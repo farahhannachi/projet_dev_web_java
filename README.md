@@ -28,3 +28,12 @@ mvn javafx:run
 - `src/main/java/org/example/controller/` - UI controllers
 - `src/main/resources/fxml/` - FXML views
 - `src/main/resources/css/` - Stylesheets
+
+## ResponseQuestion Admin Module
+
+Access the admin module from the dashboard sidebar using "Reponses".
+
+A standalone launcher is also available for quick testing:
+- `org.example.ResponseQuestionAdminLauncher`
+
+The module supports CRUD, filters, pagination, file upload, and PDF export.

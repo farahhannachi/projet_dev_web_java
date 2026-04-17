@@ -30,7 +30,7 @@
             <Button text="Ordonnance" styleClass="menu-item"/>
             <Button text="Traitement" styleClass="menu-item"/>
             <Button text="Guide Sant&#233;" styleClass="menu-item"/>
-            <Button text="Contact" styleClass="menu-item"/>
+            <Button text="Contact" styleClass="menu-item" onAction="#handleContact"/>
             <Button text="&#192; propos" styleClass="menu-item"/>
         </HBox>
         
@@ -42,6 +42,10 @@
             <HBox styleClass="icon-container" alignment="CENTER">
                 <Button text="&#128269;" styleClass="icon-button" onAction="#handleSearch"/>
                 <Button fx:id="profileButton" text="&#128100;" styleClass="icon-button" onAction="#toggleProfileDropdown"/>
+                <StackPane>
+                    <Button fx:id="messagesButton" text="&#9993;" styleClass="icon-button" onAction="#handleMessages" />
+                    <Label fx:id="messagesBadge" text="0" styleClass="message-badge" />
+                </StackPane>
             </HBox>
             
             <!-- Profile Dropdown -->
