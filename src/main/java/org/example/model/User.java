@@ -14,6 +14,7 @@ public class User {
     private LocalDateTime createdAt; // Creation date
     private String totpSecret;
     private boolean totpEnabled;
+    private String telephone;
 
     public User() {}
 
@@ -51,6 +52,8 @@ public class User {
     public void setAvatarConfig(String avatarConfig) { this.avatarConfig = avatarConfig; }
     public String getTotpSecret() { return totpSecret; }
     public boolean isTotpEnabled() { return totpEnabled; }
+    public String getTelephone() { return telephone; }
+    public void setTelephone(String telephone) { this.telephone = telephone; }
 
     // Setters
     public void setId(int id) { this.id = id; }

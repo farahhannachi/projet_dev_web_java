@@ -37,3 +37,6 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+# Local environment file (contains secrets - DO NOT COMMIT)
+# .env.local (removed) - credentials moved to pom.xml properties

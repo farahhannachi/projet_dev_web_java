@@ -32,24 +32,35 @@
                         <Text text="Welcome Back" styleClass="lol-title"/>
                         <Text text="Sign in to continue" styleClass="lol-subtitle"/>
                         
-                        <VBox spacing="15" prefWidth="300">
-                            <TextField fx:id="loginEmail" promptText="Email" styleClass="lol-input"/>
-                            <PasswordField fx:id="loginPassword" promptText="Password" styleClass="lol-input"/>
-                        </VBox>
-                        
-                        <Label fx:id="loginError" text="" styleClass="lol-error"/>
-                        
+                         <VBox spacing="15" prefWidth="300">
+                             <TextField fx:id="loginEmail" promptText="Email" styleClass="lol-input"/>
+                             <PasswordField fx:id="loginPassword" promptText="Password" styleClass="lol-input"/>
+                             
+                             <!-- CAPTCHA Section -->
+                             <VBox spacing="10" styleClass="captcha-container">
+                                 <Label text="Security Verification" styleClass="captcha-title"/>
+                                 <HBox spacing="10" alignment="CENTER_LEFT">
+                                     <Label fx:id="captchaLabel" styleClass="captcha-display"/>
+                                     <Button text="↻" onAction="#refreshCaptcha" styleClass="captcha-refresh-btn"/>
+                                 </HBox>
+                                 <TextField fx:id="captchaInput" promptText="Enter the code above" styleClass="lol-input captcha-input"/>
+                                 <Label fx:id="captchaError" text="" styleClass="captcha-error"/>
+                             </VBox>
+                         </VBox>
+                         
+                         <Label fx:id="loginError" text="" styleClass="lol-error"/>
+
                         <Button text="SIGN IN" onAction="#handleLogin" styleClass="lol-button-primary" 
                                 maxWidth="280" prefHeight="45"/>
-                        
-                        <HBox spacing="5" alignment="CENTER">
+                        </VBox>
+
+                        <HBox spacing="8" alignment="CENTER">
                             <Text text="Don't have an account?" styleClass="lol-text-small"/>
                             <Button text="Sign Up" onAction="#showSignUp" styleClass="lol-link-button"/>
                         </HBox>
-                    </VBox>
-                </StackPane>
-                
-                <!-- Sign Up Form Panel (RIGHT) -->
+                    </StackPane>
+
+                    <!-- Sign Up Form Panel (RIGHT) -->
                 <StackPane fx:id="signUpPanel" styleClass="form-panel-right">
                     <VBox spacing="20" alignment="CENTER" prefWidth="380">
                         <Text text="Create Account" styleClass="lol-title"/>
@@ -66,6 +77,12 @@
                             <VBox spacing="5">
                                 <TextField fx:id="signupEmail" promptText="Email" styleClass="lol-input" onKeyReleased="#validateSignupEmail"/>
                                 <Label fx:id="signupEmailError" text="" styleClass="validation-error-small"/>
+                            </VBox>
+
+                            <!-- Phone Field -->
+                            <VBox spacing="5">
+                                <TextField fx:id="signupPhone" promptText="+33 6 12 34 56 78" styleClass="lol-input" onKeyReleased="#validateSignupPhone"/>
+                                <Label fx:id="signupPhoneError" text="" styleClass="validation-error-small"/>
                             </VBox>
 
                             <!-- Password Field with Strength Indicator -->

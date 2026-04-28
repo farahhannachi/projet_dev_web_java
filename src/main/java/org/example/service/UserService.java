@@ -156,7 +156,7 @@ public class UserService {
         return null;
     }
 
-    public boolean signup(String email, String password, String name) {
+    public boolean signup(String email, String password, String name, String telephone) {
         // Check if email already exists in database
         if (emailExists(email)) {
             return false; // Email exists
@@ -171,7 +171,7 @@ public class UserService {
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
         
         // Insert new user into database
-        String sql = "INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, etat_compte, date_creation, roles, loyalty_points, loyalty_level, segment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, telephone, etat_compte, date_creation, roles, loyalty_points, loyalty_level, segment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -185,12 +185,13 @@ public class UserService {
             stmt.setString(2, prenom);                 // prenom (first name)
             stmt.setString(3, email);                  // email
             stmt.setString(4, hashedPassword);         // mot_de_passe
-            stmt.setString(5, "actif");                // etat_compte
-            stmt.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now())); // date_creation
-            stmt.setString(7, "[\"ROLE_CLIENT\"]");    // roles
-            stmt.setInt(8, 0);                         // loyalty_points
-            stmt.setString(9, "BRONZE");               // loyalty_level
-            stmt.setString(10, "NEW_CUSTOMER");        // segment
+            stmt.setString(5, telephone);              // telephone
+            stmt.setString(6, "actif");              // etat_compte
+            stmt.setTimestamp(7, Timestamp.valueOf(LocalDateTime.now())); // date_creation
+            stmt.setString(8, "[\"ROLE_CLIENT\"]");    // roles
+            stmt.setInt(9, 0);                         // loyalty_points
+            stmt.setString(10, "BRONZE");               // loyalty_level
+            stmt.setString(11, "NEW_CUSTOMER");        // segment
             
             int rowsAffected = stmt.executeUpdate();
             
@@ -203,9 +204,10 @@ public class UserService {
                 }
                 
                 currentUser = new User(userId, email, hashedPassword, "client", name);
+                currentUser.setTelephone(telephone);
                 
                 // Also create a Client entry in ClientService for full client details
-                clientService.add(new Client(0, name, "", email, "", LocalDate.now(), ""));
+                clientService.add(new Client(0, name, "", email, telephone, LocalDate.now(), ""));
                 
                 return true;
             }
