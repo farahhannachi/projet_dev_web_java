@@ -8,17 +8,18 @@
         fitToWidth="true" fitToHeight="true" pannable="true"
         hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
     <content>
-    <BorderPane styleClass="admin-root">
+    <BorderPane styleClass="admin-root front-module-page">
     <top>
         <VBox spacing="12" styleClass="admin-header-wrap">
-            <HBox styleClass="navbar-pill" alignment="CENTER">
+            <HBox styleClass="navbar-symfony" alignment="CENTER">
                 <Label text="CuraVita" styleClass="logo-text"/>
                 <Region HBox.hgrow="SOMETIMES"/>
                 <HBox styleClass="menu-container" alignment="CENTER">
                     <Button text="Accueil" styleClass="menu-item" onAction="#goHome"/>
                     <Button text="Produits" styleClass="menu-item" onAction="#showFrontProduits"/>
                     <Button text="Panier" styleClass="menu-item" onAction="#showFrontPanier"/>
-                    <Button text="Commandes" styleClass="menu-item" onAction="#showFrontTracking"/>
+                    <Button text="Adresses" styleClass="menu-item" onAction="#showFrontAddresses"/>
+                    <Button text="Commandes" styleClass="menu-item menu-item-active" onAction="#showFrontTracking"/>
                     <Button text="Ordonnance" styleClass="menu-item"/>
                     <Button text="Traitement" styleClass="menu-item"/>
                     <Button text="Guide Sant&#233;" styleClass="menu-item"/>
@@ -44,9 +45,9 @@
                 </StackPane>
             </HBox>
 
-            <HBox spacing="12" styleClass="stats-row">
+            <HBox spacing="12" styleClass="stats-row commandes-stats-row">
                 <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                    <Label text="Total" styleClass="stat-label"/>
+                    <Label text="Commandes" styleClass="stat-label"/>
                     <Label fx:id="totalCommandesLabel" text="0" styleClass="stat-value"/>
                 </VBox>
                 <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
@@ -54,27 +55,73 @@
                     <Label fx:id="enAttenteLabel" text="0" styleClass="stat-value warning"/>
                 </VBox>
                 <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                    <Label text="Confirmees" styleClass="stat-label"/>
+                    <Label fx:id="confirmeesLabel" text="0" styleClass="stat-value success"/>
+                </VBox>
+                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
                     <Label text="Livrees" styleClass="stat-label"/>
                     <Label fx:id="livreesLabel" text="0" styleClass="stat-value success"/>
+                </VBox>
+                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                    <Label text="Montant total" styleClass="stat-label"/>
+                    <Label fx:id="montantTotalLabel" text="0.00 DT" styleClass="stat-value"/>
                 </VBox>
             </HBox>
         </VBox>
     </top>
 
     <center>
-        <VBox styleClass="table-card" BorderPane.alignment="CENTER">
-            <TableView fx:id="commandesTable" styleClass="admin-table" VBox.vgrow="ALWAYS">
-                <columns>
-                    <TableColumn fx:id="idCol" text="ID" prefWidth="80"/>
-                    <TableColumn fx:id="dateCol" text="Date" prefWidth="140"/>
-                    <TableColumn fx:id="statutCol" text="Statut" prefWidth="120"/>
-                    <TableColumn fx:id="totalCol" text="Total" prefWidth="120"/>
-                    <TableColumn fx:id="paiementCol" text="Paiement" prefWidth="120"/>
-                    <TableColumn fx:id="adresseCol" text="Adresse" prefWidth="380"/>
-                </columns>
-            </TableView>
+        <VBox styleClass="commandes-wrap" BorderPane.alignment="CENTER">
+            <HBox spacing="10" styleClass="filters-row commandes-filters-row">
+                <TextField fx:id="searchField" promptText="Recherche par nom, email, adresse..." HBox.hgrow="ALWAYS" styleClass="filter-field"/>
+                <ComboBox fx:id="statusFilter" promptText="Tous statuts" styleClass="filter-field"/>
+                <ComboBox fx:id="sortFilter" promptText="Date recente" styleClass="filter-field"/>
+            </HBox>
+            <ScrollPane fitToWidth="true" pannable="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="inner-scroll" VBox.vgrow="ALWAYS">
+                <content>
+                    <VBox fx:id="ordersContainer" spacing="10"/>
+                </content>
+            </ScrollPane>
         </VBox>
     </center>
+    <bottom>
+        <VBox styleClass="front-footer">
+            <HBox spacing="30" styleClass="front-footer-top">
+                <VBox spacing="10" HBox.hgrow="ALWAYS">
+                    <Label text="Votre sante, notre priorite. Pharmacie en ligne agreee et securisee." styleClass="front-footer-text" wrapText="true"/>
+                    <Label text="123 Avenue de la Sante, 75001 Paris" styleClass="front-footer-text"/>
+                    <Label text="01 23 45 67 89" styleClass="front-footer-text"/>
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label text="Navigation" styleClass="front-footer-title"/>
+                    <Label text="Accueil" styleClass="front-footer-link"/>
+                    <Label text="Nos Produits" styleClass="front-footer-link"/>
+                    <Label text="Conseils Sante" styleClass="front-footer-link"/>
+                    <Label text="Contact" styleClass="front-footer-link"/>
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label text="Services" styleClass="front-footer-title"/>
+                    <Label text="Envoi d'ordonnance" styleClass="front-footer-link"/>
+                    <Label text="Click &amp; Collect" styleClass="front-footer-link"/>
+                    <Label text="Livraison Express" styleClass="front-footer-link"/>
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label text="Aide" styleClass="front-footer-title"/>
+                    <Label text="FAQ" styleClass="front-footer-link"/>
+                    <Label text="Mon Compte" styleClass="front-footer-link"/>
+                    <Label text="Suivi de commande" styleClass="front-footer-link"/>
+                </VBox>
+            </HBox>
+            <HBox styleClass="front-footer-bottom" alignment="CENTER_LEFT">
+                <Label text="2026 CuraVita. Tous droits reserves." styleClass="front-footer-copy"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Espace Admin" styleClass="front-footer-link"/>
+                <Label text="Mentions Legales" styleClass="front-footer-link"/>
+                <Label text="CGV" styleClass="front-footer-link"/>
+                <Label text="Confidentialite" styleClass="front-footer-link"/>
+            </HBox>
+        </VBox>
+    </bottom>
         </BorderPane>
     </content>
 </ScrollPane>

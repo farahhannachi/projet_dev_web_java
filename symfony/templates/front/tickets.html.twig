@@ -1,0 +1,175 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Mes tickets de support - CURAVITA{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .tickets-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+    .ticket-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+    .ticket-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: transform 0.2s;
+    }
+    .ticket-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 600;
+    }
+    .badge-support { background: #E3F2FD; color: #1976D2; }
+    .badge-reclamation { background: #FFF3E0; color: #F57C00; }
+    .badge-retour { background: #F3E5F5; color: #7B1FA2; }
+    .badge-ouvert { background: #E8F5E9; color: #388E3C; }
+    .badge-en_cours { background: #FFF9C4; color: #F57F17; }
+    .badge-resolu { background: #C8E6C9; color: #2E7D32; }
+    .badge-ferme { background: #E0E0E0; color: #616161; }
+    .priority-haute { color: #D32F2F; }
+    .priority-normale { color: #F57C00; }
+    .priority-basse { color: #616161; }
+    .btn-new-ticket {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: transform 0.2s;
+    }
+    .btn-new-ticket:hover {
+        transform: translateY(-2px);
+        color: white;
+    }
+    .btn-view {
+        background: #667eea;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.9em;
+    }
+    .btn-view:hover {
+        background: #5568d3;
+        color: white;
+    }
+    .btn-pdf-small {
+        background: #e74c3c;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.9em;
+        margin-left: 8px;
+    }
+    .btn-pdf-small:hover {
+        background: #c0392b;
+        color: white;
+    }
+    
+    /* Styles pour les tickets avec nouvelles réponses */
+    .ticket-card.has-unread {
+        border-left: 4px solid #667eea;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, rgba(118, 75, 162, 0.02) 100%);
+        position: relative;
+    }
+    
+    .ticket-card.has-unread::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .ticket-card.has-unread:hover {
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="tickets-container">
+    <div class="ticket-header">
+        <h1>Mes tickets de support</h1>
+        <a href="{{ path('app_question_new') }}" class="btn-new-ticket">✉️ Nouveau ticket</a>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+
+    {% if questions is empty %}
+        <div class="ticket-card" style="text-align: center; padding: 60px 20px;">
+            <h3>Aucun ticket pour le moment</h3>
+            <p style="color: #666; margin: 20px 0;">Vous n'avez pas encore créé de ticket de support.</p>
+            <a href="{{ path('app_question_new') }}" class="btn-new-ticket">Créer mon premier ticket</a>
+        </div>
+    {% else %}
+        {% for question in questions %}
+            <div class="ticket-card{% if unreadByTicket[question.id] is defined and unreadByTicket[question.id] > 0 %} has-unread{% endif %}">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <h3 style="margin: 0; color: #333;">
+                                #{{ question.id }} - {{ question.objet }}
+                            </h3>
+                            {% if unreadByTicket[question.id] is defined and unreadByTicket[question.id] > 0 %}
+                                <span class="new-response-indicator">
+                                    {{ unreadByTicket[question.id] }} nouvelle{{ unreadByTicket[question.id] > 1 ? 's' : '' }} réponse{{ unreadByTicket[question.id] > 1 ? 's' : '' }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <span class="badge badge-{{ question.typeTicket }}">{{ question.typeTicket|capitalize }}</span>
+                            <span class="badge badge-{{ question.statut }}">
+                                {% if question.statut == 'ouvert' %}Ouvert
+                                {% elseif question.statut == 'en_cours' %}En cours
+                                {% elseif question.statut == 'resolu' %}Résolu
+                                {% else %}Fermé{% endif %}
+                            </span>
+                            <span class="priority-{{ question.priorite }}">
+                                ⚡ Priorité: {{ question.priorite|capitalize }}
+                            </span>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <small style="color: #999; display: block; margin-bottom: 10px;">
+                            {{ question.createdAt|date('d/m/Y à H:i') }}
+                        </small>
+                        <a href="{{ path('app_question_show', {id: question.id}) }}" class="btn-view">
+                            {% if unreadByTicket[question.id] is defined and unreadByTicket[question.id] > 0 %}
+                                🔔 Voir la réponse
+                            {% else %}
+                                Voir
+                            {% endif %}
+                        </a>
+                        <a href="{{ path('app_question_export_pdf', {id: question.id}) }}" class="btn-pdf-small" title="Exporter en PDF">📄 PDF</a>
+                    </div>
+                </div>
+                <p style="color: #666; margin: 0; line-height: 1.6;">
+                    {{ question.description|length > 150 ? question.description|slice(0, 150) ~ '...' : question.description }}
+                </p>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

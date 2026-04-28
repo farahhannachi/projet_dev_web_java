@@ -13,6 +13,7 @@ import org.example.model.Coupon;
 import org.example.model.Produit;
 import org.example.service.CommandeService;
 import org.example.service.CouponService;
+import org.example.service.MailerService;
 import org.example.service.ProduitService;
 import org.example.service.PromotionService;
 
@@ -50,6 +51,7 @@ public class CommandesController {
     private final CouponService couponService = new CouponService();
     private final ProduitService produitService = new ProduitService();
     private final PromotionService promotionService = new PromotionService();
+    private final MailerService mailerService = new MailerService();
     private ObservableList<Commande> commandesList;
 
     @FXML private VBox modalOverlay;
@@ -242,8 +244,25 @@ public class CommandesController {
             return;
         }
 
-        selected.setStatut("confirmee");
-        commandeService.update(selected);
+        boolean updated = commandeService.updateStatusWithBusinessRules(selected.getId(), "confirmee");
+        if (!updated) {
+            showError("Echec de mise a jour du statut commande.");
+            return;
+        }
+
+        if (mailerService.canSend()) {
+            try {
+                mailerService.clearLastError();
+                mailerService.sendCommandeStatusUpdateEmail(selected, statut, "confirmee");
+                if (mailerService.getLastError() != null && !mailerService.getLastError().isBlank()) {
+                    showWarning("Statut mis a jour, mais email non envoye: " + mailerService.getLastError());
+                }
+            } catch (Exception ignored) {
+                // Ignore email failures to keep back-office flow non-blocking.
+            }
+        } else {
+            showWarning("Statut mis a jour, mais email non configure: " + mailerService.getConfigurationStatus());
+        }
         loadCommandes();
         commandesTable.refresh();
         showInfo("Commande confirmée avec succès.");
@@ -315,6 +334,8 @@ public class CommandesController {
                 return;
             }
 
+            String oldStatus = commandeEnCours.getStatut();
+
             double subtotalFromProducts = computeSubtotalFromProducts(produitsIds);
             if (subtotalFromProducts <= 0) {
                 subtotalFromProducts = totalHtField.getText().trim().isEmpty() ? 0 : Double.parseDouble(totalHtField.getText().trim());
@@ -364,6 +385,26 @@ public class CommandesController {
             commandeEnCours.setBaseShippingCost(baseShippingCost);
             commandeEnCours.setEstimatedDeliveryDate(estimatedDelivery);
             commandeService.update(commandeEnCours);
+
+            if (mailerService.canSend()
+                    && oldStatus != null
+                    && commandeEnCours.getStatut() != null
+                    && !oldStatus.equalsIgnoreCase(commandeEnCours.getStatut())) {
+                try {
+                    mailerService.clearLastError();
+                    mailerService.sendCommandeStatusUpdateEmail(commandeEnCours, oldStatus, commandeEnCours.getStatut());
+                    if (mailerService.getLastError() != null && !mailerService.getLastError().isBlank()) {
+                        showWarning("Commande modifiee, mais email de statut non envoye: " + mailerService.getLastError());
+                    }
+                } catch (Exception ignored) {
+                    // Keep edit flow non-blocking if email fails.
+                }
+            } else if (oldStatus != null
+                    && commandeEnCours.getStatut() != null
+                    && !oldStatus.equalsIgnoreCase(commandeEnCours.getStatut())) {
+                showWarning("Commande modifiee, mais email non configure: " + mailerService.getConfigurationStatus());
+            }
+
             showInfo("Commande modifiée avec succès.");
             loadCommandes();
             commandesTable.refresh();

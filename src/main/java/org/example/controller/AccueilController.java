@@ -61,6 +61,17 @@ public class AccueilController {
     }
 
     @FXML
+    private void showFrontAddresses() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/FrontMesAdresses.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+        Stage stage = (Stage) profileButton.getScene().getWindow();
+        stage.setScene(scene);
+        stage.setFullScreen(true);
+    }
+
+    @FXML
     private void showFrontTracking() throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/FrontMesCommandes.fxml"));
         Parent root = loader.load();

@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -90,6 +91,18 @@ public class ProduitService {
             produit.setStatut("indisponible");
             update(produit);
         }
+    }
+
+    public boolean toggleDisponibilite(int id) {
+        Produit produit = getById(id);
+        if (produit == null) {
+            return false;
+        }
+
+        String current = produit.getStatut() == null ? "" : produit.getStatut();
+        produit.setStatut("disponible".equalsIgnoreCase(current) ? "indisponible" : "disponible");
+        update(produit);
+        return true;
     }
 
     public List<Produit> getAll() {
@@ -187,6 +200,105 @@ public class ProduitService {
                 .map(Produit::getCategorie)
                 .distinct()
                 .collect(Collectors.toList());
+    }
+
+    public List<Produit> getFilteredProduits(
+            String search,
+            String categorie,
+            String statut,
+            Double prixMin,
+            Double prixMax,
+            Integer stockMin,
+            Integer stockMax,
+            String sort
+    ) {
+        Comparator<Produit> comparator = resolveSort(sort);
+
+        String safeSearch = search == null ? "" : search.trim().toLowerCase();
+
+        return getAll().stream()
+                .filter(p -> {
+                    if (!safeSearch.isEmpty()) {
+                        String nom = p.getNom() == null ? "" : p.getNom().toLowerCase();
+                        String desc = p.getDescription() == null ? "" : p.getDescription().toLowerCase();
+                        if (!nom.contains(safeSearch) && !desc.contains(safeSearch)) {
+                            return false;
+                        }
+                    }
+
+                    if (categorie != null && !categorie.isBlank() && !"all".equalsIgnoreCase(categorie)) {
+                        if (p.getCategorie() == null || !p.getCategorie().equalsIgnoreCase(categorie)) {
+                            return false;
+                        }
+                    }
+
+                    if (statut != null && !statut.isBlank() && !"all".equalsIgnoreCase(statut)) {
+                        if (p.getStatut() == null || !p.getStatut().equalsIgnoreCase(statut)) {
+                            return false;
+                        }
+                    }
+
+                    if (prixMin != null && p.getPrix() < prixMin) {
+                        return false;
+                    }
+                    if (prixMax != null && p.getPrix() > prixMax) {
+                        return false;
+                    }
+                    if (stockMin != null && p.getQuantiteStock() < stockMin) {
+                        return false;
+                    }
+                    if (stockMax != null && p.getQuantiteStock() > stockMax) {
+                        return false;
+                    }
+                    return true;
+                })
+                .sorted(comparator)
+                .collect(Collectors.toList());
+    }
+
+    public String exportProduitsCsv(List<Produit> produits) {
+        List<String> rows = new ArrayList<>();
+        rows.add("ID;Nom;Categorie;Prix;Stock;Statut;Expiration");
+
+        for (Produit p : produits) {
+            rows.add(String.join(";",
+                    String.valueOf(p.getId()),
+                    safeCsv(p.getNom()),
+                    safeCsv(p.getCategorie()),
+                    String.format("%.2f", p.getPrix()),
+                    String.valueOf(p.getQuantiteStock()),
+                    safeCsv(p.getStatut()),
+                    p.getDateExpiration() != null ? p.getDateExpiration().toString() : ""
+            ));
+        }
+
+        return String.join("\n", rows);
+    }
+
+    private Comparator<Produit> resolveSort(String sort) {
+        if ("price_asc".equalsIgnoreCase(sort)) {
+            return Comparator.comparingDouble(Produit::getPrix);
+        }
+        if ("price_desc".equalsIgnoreCase(sort)) {
+            return Comparator.comparingDouble(Produit::getPrix).reversed();
+        }
+        if ("stock_desc".equalsIgnoreCase(sort)) {
+            return Comparator.comparingInt(Produit::getQuantiteStock).reversed();
+        }
+        if ("stock_asc".equalsIgnoreCase(sort)) {
+            return Comparator.comparingInt(Produit::getQuantiteStock);
+        }
+        if ("date_desc".equalsIgnoreCase(sort)) {
+            return Comparator.comparingInt(Produit::getId).reversed();
+        }
+        if ("date_asc".equalsIgnoreCase(sort)) {
+            return Comparator.comparingInt(Produit::getId);
+        }
+        return Comparator.comparing(p -> p.getNom() == null ? "" : p.getNom().toLowerCase());
+    }
+
+    private String safeCsv(String value) {
+        return value == null ? "" : value.replace(';', ',');
     }
 
     private Produit mapRow(ResultSet resultSet) throws SQLException {

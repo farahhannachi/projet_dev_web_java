@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -200,6 +201,45 @@ public class CouponService {
         } catch (SQLException e) {
             throw new RuntimeException("Erreur lors de l'incrementation du coupon", e);
         }
+    }
+
+    public List<Coupon> getFilteredCoupons(String search, String active, String sort) {
+        String safeSearch = search == null ? "" : search.trim().toUpperCase();
+        String safeActive = active == null ? "all" : active;
+        Comparator<Coupon> comparator = resolveSort(sort);
+
+        return getAll().stream()
+                .filter(c -> safeSearch.isEmpty() || (c.getCode() != null && c.getCode().toUpperCase().contains(safeSearch)))
+                .filter(c -> {
+                    if ("all".equalsIgnoreCase(safeActive)) {
+                        return true;
+                    }
+                    if ("1".equals(safeActive)) {
+                        return c.isActif();
+                    }
+                    if ("0".equals(safeActive)) {
+                        return !c.isActif();
+                    }
+                    return true;
+                })
+                .sorted(comparator)
+                .collect(Collectors.toList());
+    }
+
+    private Comparator<Coupon> resolveSort(String sort) {
+        if ("code_asc".equalsIgnoreCase(sort)) {
+            return Comparator.comparing(c -> c.getCode() == null ? "" : c.getCode());
+        }
+        if ("usage_desc".equalsIgnoreCase(sort)) {
+            return Comparator.comparingInt(Coupon::getUsageCount).reversed();
+        }
+        if ("value_desc".equalsIgnoreCase(sort)) {
+            return Comparator.comparingDouble(Coupon::getValeur).reversed();
+        }
+        if ("date_asc".equalsIgnoreCase(sort)) {
+            return Comparator.comparing(Coupon::getDateExpiration, Comparator.nullsLast(Comparator.naturalOrder()));
+        }
+        return Comparator.comparing(Coupon::getDateExpiration, Comparator.nullsLast(Comparator.reverseOrder()));
     }
 
     private Coupon mapRow(ResultSet rs) throws SQLException {

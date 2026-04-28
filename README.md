@@ -1,79 +1,30 @@
-# Curavita – Online Pharmacy Platform
+# CuraVita - Pharmacy Management System
 
-## Academic Context
-This project was developed as part of the PIDEV – 3rd Year Engineering Program at Esprit School of Engineering (Academic Year 2025–2026).
+JavaFX desktop application for pharmacy management.
 
-Developed at Esprit School of Engineering – Tunisia.
-
----
-
-## Overview
-Curavita is a full-stack web application developed by Team One Health as an online pharmacy platform. It allows users to browse medications, place orders, and manage prescriptions in a secure and user-friendly environment.
-
-The project aims to simplify access to healthcare products and digitalize pharmacy services while ensuring reliability and efficiency.
-
----
+- **Java**: 17
+- **JavaFX**: 21.0.1
+- **Architecture**: MVC
 
 ## Features
-- 🛒 Online purchase of medications  
-- 🔍 Search and filter pharmaceutical products  
-- 👤 User account management (signup/login)  
-- 📦 Order management and tracking  
-- 💊 Prescription submission and validation  
-- 🧾 Complaint and feedback system  
-- 🔐 Secure data handling  
 
----
+- Front Office: Homepage with product search and display
+- Back Office: Dashboard with stats, clients, products, orders management
+- Modern UI with CSS styling
 
-## Tech Stack
+## Running the Application
 
-### Frontend
-- HTML5  
-- CSS3  
-- JavaScript  
-- Bootstrap  
+Ensure Java 17+ is installed and JAVA_HOME is set.
 
-### Backend
-- PHP  
-- Symfony Framework  
-- MySQL  
+```bash
+mvn clean compile
+mvn javafx:run
+```
 
----
+## Project Structure
 
-## Architecture (MVC)
-
-Curavita follows the MVC (Model-View-Controller) architecture:
-
-- **Model**: Manages data and business logic (Symfony Entities & MySQL database)  
-- **View**: Handles the user interface (Twig, HTML, CSS, Bootstrap)  
-- **Controller**: Handles requests and connects Models with Views (Symfony Controllers)  
-
-This architecture ensures scalability, maintainability, and a clear separation of concerns.
-
----
-
-## Contributors
-Project developed by **Team One Health – Class 3A53**
-
-- Emna Ben Aissa  
-- Iheb Ben Jbir  
-- Farah Hannachi  
-- Emna Ben Bader  
-- Mohamed Yassin Essaleh  
-
----
-
-## Getting Started
-
-### Prerequisites
-- PHP (>= 8.x)  
-- Composer  
-- Symfony CLI  
-- MySQL  
-- Web browser  
-
----
-
-## Acknowledgments
-- Thanks to our professors at Esprit School of Engineering for their guidance  
-- Inspired by modern e-health and online pharmacy platforms  
+- `src/main/java/org/example/model/` - Data models
+- `src/main/java/org/example/service/` - Business logic services
+- `src/main/java/org/example/controller/` - UI controllers
+- `src/main/resources/fxml/` - FXML views
+- `src/main/resources/css/` - Stylesheets

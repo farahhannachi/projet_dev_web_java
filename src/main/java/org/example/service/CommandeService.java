@@ -8,9 +8,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,10 +23,16 @@ import java.util.stream.Collectors;
  */
 public class CommandeService {
     private final StockService stockService = new StockService();
+    private final FraudDetectionService fraudDetectionService = new FraudDetectionService();
+    private final LoyaltyService loyaltyService = new LoyaltyService();
     private String resolvedUserIdColumn;
 
-    public void add(Commande commande) {
+    public int add(Commande commande) {
         calculerTotal(commande);
+
+        // Symfony parity: calculate fraud score and apply decision before persist.
+        int fraudScore = fraudDetectionService.calculateFraudScore(commande, 0);
+        fraudDetectionService.applyFraudDecision(commande, fraudScore);
 
         String userIdColumn = resolveUserIdColumn();
         String sql = "INSERT INTO commande (" + userIdColumn + ", date_commande, statut, total, mode_paiement, adresse_livraison, " +
@@ -32,7 +40,7 @@ public class CommandeService {
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             if (commande.getUtilisateurId() != null) {
                 statement.setInt(1, commande.getUtilisateurId());
             } else {
@@ -54,6 +62,15 @@ public class CommandeService {
             statement.setInt(15, commande.getFraudScore());
             statement.setDouble(16, commande.getBaseShippingCost());
             statement.executeUpdate();
+
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                if (keys.next()) {
+                    int generatedId = keys.getInt(1);
+                    commande.setId(generatedId);
+                    return generatedId;
+                }
+            }
+            return 0;
         } catch (SQLException e) {
             throw new RuntimeException("Erreur lors de l'ajout de la commande", e);
         }
@@ -91,6 +108,62 @@ public class CommandeService {
         } catch (SQLException e) {
             throw new RuntimeException("Erreur lors de la mise a jour de la commande", e);
         }
+    }
+
+    public boolean updateStatusWithBusinessRules(int commandeId, String newStatus) {
+        Commande commande = getById(commandeId);
+        if (commande == null) {
+            return false;
+        }
+
+        String[] allowed = {"en_attente", "confirmee", "annulee", "livree", "review", "bloquee"};
+        boolean isAllowed = false;
+        for (String s : allowed) {
+            if (s.equalsIgnoreCase(newStatus)) {
+                isAllowed = true;
+                break;
+            }
+        }
+        if (!isAllowed) {
+            return false;
+        }
+
+        String oldStatus = commande.getStatut();
+        commande.setStatut(newStatus);
+        update(commande);
+        maybeGrantLoyaltyPoints(commande, oldStatus);
+        return true;
+    }
+
+    public String exportCommandesCsv() {
+        List<Commande> commandes = getAll();
+        List<String> rows = new ArrayList<>();
+        rows.add("ID;Date;Nom;Email;Telephone;Adresse;ModePaiement;Statut;Coupon;Remise;FraudScore;LivraisonEstimee;Total");
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        for (Commande commande : commandes) {
+            String dateCommande = commande.getDateCommandeDateTime() != null ? commande.getDateCommandeDateTime().format(formatter) : "";
+            String estimatedDelivery = commande.getEstimatedDeliveryDate() != null ? commande.getEstimatedDeliveryDate().format(formatter) : "";
+            String adresse = commande.getAdresseLivraison() == null ? "" : commande.getAdresseLivraison().replace(';', ',');
+
+            rows.add(String.join(";",
+                    String.valueOf(commande.getId()),
+                    dateCommande,
+                    safeText(commande.getNom()),
+                    safeText(commande.getEmail()),
+                    safeText(commande.getTelephone()),
+                    adresse,
+                    safeText(commande.getModePaiement()),
+                    safeText(commande.getStatut()),
+                    commande.getCouponCode() == null ? "" : commande.getCouponCode(),
+                    String.format("%.2f", commande.getCouponDiscount()),
+                    String.valueOf(commande.getFraudScore()),
+                    estimatedDelivery,
+                    String.format("%.2f", commande.getTotal())
+            ));
+        }
+
+        return String.join("\n", rows);
     }
 
     public void delete(int id) {
@@ -327,6 +400,27 @@ public class CommandeService {
 
     private String safeText(String value) {
         return value == null ? "" : value;
+    }
+
+    private void maybeGrantLoyaltyPoints(Commande commande, String oldStatus) {
+        if (commande == null || commande.getUtilisateurId() == null) {
+            return;
+        }
+
+        String statut = commande.getStatut() == null ? "" : commande.getStatut().toLowerCase();
+        boolean eligibleNow = "confirmee".equals(statut) || "livree".equals(statut);
+        if (!eligibleNow) {
+            return;
+        }
+
+        if (oldStatus != null) {
+            String old = oldStatus.toLowerCase();
+            if ("confirmee".equals(old) || "livree".equals(old)) {
+                return;
+            }
+        }
+
+        loyaltyService.addPoints(commande.getUtilisateurId(), commande);
     }
 
     private String resolveUserIdColumn() {

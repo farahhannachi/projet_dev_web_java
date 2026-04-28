@@ -10,10 +10,14 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class PromotionService {
     private String resolvedProduitFkColumn;
+    private final ProduitService produitService = new ProduitService();
 
     public void add(Promotion promotion) {
         ensureNoDuplicateActivePromotion(promotion.getProduitId(), promotion.getId());
@@ -135,6 +139,82 @@ public class PromotionService {
             throw new RuntimeException("Erreur lors de la recuperation des promotions", e);
         }
         return promotions;
+    }
+
+    public boolean toggleStatus(int idPromotion) {
+        Promotion promotion = getById(idPromotion);
+        if (promotion == null) {
+            return false;
+        }
+
+        String status = promotion.getStatut() == null ? "inactive" : promotion.getStatut();
+        promotion.setStatut("active".equalsIgnoreCase(status) ? "inactive" : "active");
+        update(promotion);
+        return true;
+    }
+
+    public List<Promotion> getFilteredPromotions(
+            String search,
+            String category,
+            String promotionStatus,
+            Double priceMin,
+            Double priceMax,
+            String sort
+    ) {
+        Map<Integer, org.example.model.Produit> productsById = produitService.getAll().stream()
+                .collect(Collectors.toMap(org.example.model.Produit::getId, p -> p, (a, b) -> a));
+
+        String safeSearch = search == null ? "" : search.trim().toLowerCase();
+
+        return getAllPromotions().stream()
+                .filter(p -> {
+                    org.example.model.Produit product = p.getProduitId() == null ? null : productsById.get(p.getProduitId());
+
+                    if (!safeSearch.isEmpty()) {
+                        String title = p.getTitre() == null ? "" : p.getTitre().toLowerCase();
+                        String desc = p.getDescription() == null ? "" : p.getDescription().toLowerCase();
+                        String productName = product == null || product.getNom() == null ? "" : product.getNom().toLowerCase();
+                        if (!title.contains(safeSearch) && !desc.contains(safeSearch) && !productName.contains(safeSearch)) {
+                            return false;
+                        }
+                    }
+
+                    if (category != null && !category.isBlank()) {
+                        if (product == null || product.getCategorie() == null || !product.getCategorie().equalsIgnoreCase(category)) {
+                            return false;
+                        }
+                    }
+
+                    if (priceMin != null && product != null && product.getPrix() < priceMin) {
+                        return false;
+                    }
+                    if (priceMax != null && product != null && product.getPrix() > priceMax) {
+                        return false;
+                    }
+
+                    if (promotionStatus != null && !promotionStatus.isBlank()) {
+                        if ("with_promo".equalsIgnoreCase(promotionStatus) && !p.isActive()) {
+                            return false;
+                        }
+                        if ("without_promo".equalsIgnoreCase(promotionStatus) && p.isActive()) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                })
+                .sorted(resolveSort(sort))
+                .collect(Collectors.toList());
+    }
+
+    private Comparator<Promotion> resolveSort(String sort) {
+        if ("price".equalsIgnoreCase(sort) || "Reduction +".equalsIgnoreCase(sort)) {
+            return Comparator.comparingDouble(Promotion::getValeurReduction);
+        }
+        if ("Reduction -".equalsIgnoreCase(sort)) {
+            return Comparator.comparingDouble(Promotion::getValeurReduction).reversed();
+        }
+        return Comparator.comparing(Promotion::getDateDebut, Comparator.nullsLast(Comparator.reverseOrder()));
     }
 
     private Promotion mapRow(ResultSet rs) throws SQLException {

@@ -2,6 +2,7 @@ package org.example.controller;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -17,15 +18,20 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.example.model.Produit;
+import org.example.service.ChatbotService;
 import org.example.service.FrontPanierService;
+import org.example.service.MailerService;
 import org.example.service.ProduitService;
 import org.example.service.PromotionService;
 import org.example.service.UserService;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.Normalizer;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public class FrontProduitsController {
     @FXML private FlowPane productsFlow;
@@ -38,6 +44,10 @@ public class FrontProduitsController {
 
     @FXML private Label cartCountLabel;
     @FXML private Label cartTotalLabel;
+    @FXML private ListView<String> chatMessagesList;
+    @FXML private TextField chatInputField;
+    @FXML private VBox medBotPanel;
+    @FXML private Button medBotLauncher;
     @FXML private Button profileButton;
     @FXML private VBox profileDropdown;
     @FXML private Button dashboardMenuItem;
@@ -46,8 +56,42 @@ public class FrontProduitsController {
     private final PromotionService promotionService = new PromotionService();
     private final FrontPanierService panierService = new FrontPanierService();
     private final UserService userService = new UserService();
+    private final ChatbotService chatbotService = new ChatbotService();
+    private final MailerService mailerService = new MailerService();
 
     private ObservableList<Produit> produits;
+        private final List<Map<String, List<String>>> symptomRules = List.of(
+            Map.of(
+                "keys", List.of("tete", "migraine", "mal de tete"),
+                "meds", List.of("doliprane", "paracetamol", "efferalgan"),
+                "generic", List.of("Paracetamol", "Ibuprofene (si pas de contre-indication)", "Hydratation + repos")
+            ),
+            Map.of(
+                "keys", List.of("fievre", "temperature"),
+                "meds", List.of("doliprane", "paracetamol", "efferalgan"),
+                "generic", List.of("Paracetamol", "Hydratation", "Surveillance de la temperature")
+            ),
+            Map.of(
+                "keys", List.of("gorge", "angine", "toux"),
+                "meds", List.of("sirop", "pastille", "hexaspray"),
+                "generic", List.of("Pastilles antiseptiques", "Sirop selon type de toux", "Lavages de nez au serum physiologique")
+            ),
+            Map.of(
+                "keys", List.of("ventre", "estomac", "nausee", "diarrhee"),
+                "meds", List.of("smecta", "gaviscon", "spasfon"),
+                "generic", List.of("Solution de rehydratation", "Antispasmodique", "Pansement gastrique")
+            ),
+            Map.of(
+                "keys", List.of("allergie", "rhume", "nez", "eternuement"),
+                "meds", List.of("cetirizine", "loratadine", "spray"),
+                "generic", List.of("Antihistaminique", "Spray nasal saline", "Eviter l allergene si connu")
+            ),
+            Map.of(
+                "keys", List.of("douleur", "muscle", "dos"),
+                "meds", List.of("ibuprofene", "diclofenac", "doliprane"),
+                "generic", List.of("Paracetamol", "Anti-inflammatoire local", "Repos + glace/chaleur selon douleur")
+            )
+        );
 
     @FXML
     public void initialize() {
@@ -68,6 +112,117 @@ public class FrontProduitsController {
 
         loadProduits();
         refreshCartSummary();
+        initializeChatbot();
+
+        if (medBotPanel != null) {
+            medBotPanel.setVisible(false);
+            medBotPanel.setManaged(false);
+            medBotPanel.setMouseTransparent(true);
+        }
+    }
+
+    private void initializeChatbot() {
+        if (chatMessagesList == null) {
+            return;
+        }
+
+        chatMessagesList.setItems(FXCollections.observableArrayList());
+        chatMessagesList.getItems().add("Assistant: Bonjour, decrivez votre symptome (ex: j'ai mal a la tete).");
+    }
+
+    @FXML
+    private void handleSendChatMessage() {
+        String message = chatInputField.getText() == null ? "" : chatInputField.getText().trim();
+        if (message.isBlank()) {
+            return;
+        }
+
+        chatMessagesList.getItems().add("Vous: " + message);
+        chatInputField.clear();
+
+        ChatbotService.ProfanityResult profanityResult = chatbotService.checkProfanity(message);
+        String safeMessage = profanityResult.success() ? profanityResult.censored() : message;
+        if (profanityResult.success() && profanityResult.hasProfanity()) {
+            chatMessagesList.getItems().add("System: Message filtre pour langage inapproprie.");
+        }
+
+        String deterministicReply = buildSymptomReply(safeMessage);
+        if (deterministicReply != null) {
+            chatMessagesList.getItems().add("Assistant: " + deterministicReply);
+            chatMessagesList.scrollTo(chatMessagesList.getItems().size() - 1);
+            return;
+        }
+
+        Thread thread = new Thread(() -> {
+            ChatbotService.ChatbotResult result = chatbotService.ask(safeMessage);
+            Platform.runLater(() -> {
+                if (result.success()) {
+                    chatMessagesList.getItems().add("Assistant: " + result.reply());
+                } else {
+                    chatMessagesList.getItems().add("Assistant: Service indisponible. " + result.error());
+                }
+                chatMessagesList.scrollTo(chatMessagesList.getItems().size() - 1);
+            });
+        });
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    @FXML
+    private void toggleMedBotPanel() {
+        if (medBotPanel == null) {
+            return;
+        }
+
+        boolean open = !medBotPanel.isVisible();
+        medBotPanel.setVisible(open);
+        medBotPanel.setManaged(open);
+        medBotPanel.setMouseTransparent(!open);
+
+        if (open && chatMessagesList != null && chatMessagesList.getItems().isEmpty()) {
+            chatMessagesList.getItems().add("Assistant: Bonjour, decrivez votre symptome (ex: j'ai mal a la tete).");
+        }
+        if (open && chatInputField != null) {
+            chatInputField.requestFocus();
+        }
+    }
+
+    @FXML
+    private void closeMedBotPanel() {
+        if (medBotPanel == null) {
+            return;
+        }
+        medBotPanel.setVisible(false);
+        medBotPanel.setManaged(false);
+        medBotPanel.setMouseTransparent(true);
+    }
+
+    @FXML
+    private void handleSendChatTranscript() {
+        if (chatMessagesList == null || chatMessagesList.getItems().isEmpty()) {
+            new Alert(Alert.AlertType.WARNING, "Aucune conversation a envoyer.").showAndWait();
+            return;
+        }
+
+        if (!mailerService.canSend()) {
+            new Alert(Alert.AlertType.WARNING, "Mailing non configure (SMTP). Configurez SMTP_USER et SMTP_PASS.").showAndWait();
+            return;
+        }
+
+        String toEmail = userService.getCurrentUser() != null ? userService.getCurrentUser().getEmail() : null;
+        String userName = userService.getCurrentUser() != null ? userService.getCurrentUser().getNom() : "Client";
+
+        if (toEmail == null || toEmail.isBlank()) {
+            new Alert(Alert.AlertType.WARNING, "Email utilisateur introuvable.").showAndWait();
+            return;
+        }
+
+        try {
+            mailerService.sendChatbotTranscriptEmail(toEmail, userName, List.copyOf(chatMessagesList.getItems()));
+            new Alert(Alert.AlertType.INFORMATION, "Conversation envoyee par mail.").showAndWait();
+        } catch (Exception e) {
+            new Alert(Alert.AlertType.ERROR, "Erreur envoi mail: " + e.getMessage()).showAndWait();
+        }
     }
 
     private void loadProduits() {
@@ -245,6 +400,17 @@ public class FrontProduitsController {
     }
 
     @FXML
+    private void showFrontAddresses() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/FrontMesAdresses.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+        Stage stage = (Stage) productsFlow.getScene().getWindow();
+        stage.setScene(scene);
+        stage.setFullScreen(true);
+    }
+
+    @FXML
     private void showFrontTracking() throws IOException {
         goToTracking();
     }
@@ -377,5 +543,63 @@ public class FrontProduitsController {
             return fallback.toURI().toString();
         }
         return "https://via.placeholder.com/248x150?text=Produit";
+    }
+
+    private String buildSymptomReply(String question) {
+        String q = normalizeText(question);
+        if (q.isBlank()) {
+            return null;
+        }
+
+        for (Map<String, List<String>> rule : symptomRules) {
+            List<String> keys = rule.getOrDefault("keys", List.of());
+            boolean matches = keys.stream().anyMatch(k -> q.contains(normalizeText(k)));
+            if (!matches) {
+                continue;
+            }
+
+            List<String> medsKeys = rule.getOrDefault("meds", List.of());
+            List<String> availableProducts = findMatchingAvailableProducts(medsKeys);
+            String productPart = availableProducts.isEmpty()
+                    ? "Aucun produit correspondant n est disponible actuellement dans le catalogue. "
+                    : "Produits disponibles chez nous: " + String.join(", ", availableProducts.subList(0, Math.min(3, availableProducts.size()))) + ". ";
+
+            List<String> generic = rule.getOrDefault("generic", List.of());
+            String genericPart = generic.isEmpty()
+                    ? ""
+                    : "Suggestions generales: " + String.join(", ", generic) + ". ";
+
+            String safety = "Si symptomes forts, persistants, grossesse, enfant, ou maladie chronique: demandez avis medical.";
+            return productPart + genericPart + safety;
+        }
+
+        return "Je peux proposer des conseils generaux pour: tete, fievre, gorge/toux, ventre, allergie/rhume, douleur musculaire.";
+    }
+
+    private List<String> findMatchingAvailableProducts(List<String> medsKeys) {
+        List<String> found = new ArrayList<>();
+        if (produits == null || medsKeys == null || medsKeys.isEmpty()) {
+            return found;
+        }
+
+        for (Produit p : produits) {
+            if (p == null || p.getQuantiteStock() <= 0) {
+                continue;
+            }
+            String normalizedName = normalizeText(p.getNom());
+            boolean matches = medsKeys.stream().map(this::normalizeText).anyMatch(normalizedName::contains);
+            if (matches) {
+                found.add(p.getNom());
+            }
+        }
+        return found;
+    }
+
+    private String normalizeText(String text) {
+        if (text == null) {
+            return "";
+        }
+        String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);
+        return normalized.replaceAll("\\p{M}+", "").toLowerCase().trim();
     }
 }

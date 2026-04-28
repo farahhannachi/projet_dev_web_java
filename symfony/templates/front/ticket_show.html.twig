@@ -1,0 +1,285 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Ticket #{{ question.id }} - {{ question.objet }} - CURAVITA{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .ticket-detail-container {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+    .ticket-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        padding: 30px;
+        margin-bottom: 20px;
+    }
+    .badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 600;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    .badge-ouvert { background: #E8F5E9; color: #388E3C; }
+    .badge-en_cours { background: #FFF9C4; color: #F57F17; }
+    .badge-resolu { background: #C8E6C9; color: #2E7D32; }
+    .badge-ferme { background: #E0E0E0; color: #616161; }
+    .badge-haute { background: #FFCDD2; color: #C62828; }
+    .badge-normale { background: #FFE0B2; color: #E65100; }
+    .badge-basse { background: #F5F5F5; color: #616161; }
+    .response-card {
+        background: #f9f9f9;
+        border-left: 4px solid #e0e0e0;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+    }
+    .response-card.agent {
+        background: #E3F2FD;
+        border-left-color: #1976D2;
+    }
+    .response-form {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        padding: 30px;
+    }
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 28px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .btn-back {
+        background: #e0e0e0;
+        color: #333;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .btn-back:hover {
+        background: #d0d0d0;
+    }
+    .btn-edit {
+        background: #16563f;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-block;
+        margin-left: 10px;
+    }
+    .btn-edit:hover {
+        background: #0f3d2a;
+        color: white;
+    }
+    .btn-delete {
+        background: #e74c3c;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-block;
+        text-decoration: none;
+    }
+    .btn-delete:hover {
+        background: #c0392b;
+    }
+    .btn-pdf {
+        background: #16563f;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-block;
+        margin-left: 10px;
+        transition: all 0.3s ease;
+    }
+    .btn-pdf:hover {
+        background: #0f3d2a;
+        color: white;
+        transform: translateY(-1px);
+    }
+    .file-attachment {
+        display: inline-block;
+        background: #f5f5f5;
+        padding: 8px 15px;
+        border-radius: 6px;
+        margin-top: 10px;
+    }
+    .file-attachment a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="ticket-detail-container">
+    <div style="margin-bottom: 20px;">
+        <a href="{{ path('app_contact') }}" class="btn-back">← Retour à la liste</a>
+        <a href="{{ path('app_question_edit', {id: question.id}) }}" class="btn-edit">✏️ Modifier</a>
+        <form method="post" action="{{ path('app_question_delete', {'id': question.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce ticket ?');" style="display: inline-block; margin-left: 10px;">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ question.id) }}">
+            <button class="btn-delete">🗑️ Supprimer</button>
+        </form>
+        <a href="{{ path('app_question_export_pdf', {id: question.id}) }}" class="btn-pdf" title="Exporter en PDF">📄 Exporter PDF</a>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+    
+    {% for message in app.flashes('error') %}
+        <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #dc3545;">
+            ⚠️ {{ message }}
+        </div>
+    {% endfor %}
+    
+    {% for message in app.flashes('warning') %}
+        <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+            ⚠️ {{ message }}
+        </div>
+    {% endfor %}
+
+    {# Détails du ticket #}
+    <div class="ticket-card">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+            <div>
+                <h1 style="margin: 0 0 10px 0;">Ticket #{{ question.id }}</h1>
+                <h2 style="margin: 0; color: #666; font-size: 1.3em;">{{ question.objet }}</h2>
+            </div>
+            <div style="text-align: right;">
+                {% if question.statut == 'ouvert' %}
+                    <span class="badge badge-ouvert">Ouvert</span>
+                {% elseif question.statut == 'en_cours' %}
+                    <span class="badge badge-en_cours">En cours</span>
+                {% elseif question.statut == 'resolu' %}
+                    <span class="badge badge-resolu">Résolu</span>
+                {% else %}
+                    <span class="badge badge-ferme">Fermé</span>
+                {% endif %}
+                <span class="badge badge-{{ question.priorite }}">
+                    Priorité {{ question.priorite|capitalize }}
+                </span>
+            </div>
+        </div>
+
+        <div style="color: #999; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #e0e0e0;">
+            <strong>Type:</strong> {{ question.typeTicket|capitalize }} | 
+            <strong>Créé le:</strong> {{ question.createdAt|date('d/m/Y à H:i') }}
+        </div>
+
+        <div style="color: #333; line-height: 1.7;">
+            {{ question.description|nl2br }}
+        </div>
+
+        {% if question.fileName %}
+            <div class="file-attachment">
+                📎 <a href="{{ question.filePath }}" target="_blank">{{ question.fileName }}</a>
+            </div>
+        {% endif %}
+    </div>
+
+    {# Réponses #}
+    <h3 style="margin: 30px 0 15px 0;">Réponses ({{ reponses|length }})</h3>
+    
+    {% if reponses is empty %}
+        <div class="ticket-card" style="text-align: center; padding: 40px;">
+            <p style="color: #999;">Aucune réponse pour le moment. Notre équipe va vous répondre bientôt.</p>
+        </div>
+    {% else %}
+        {% for reponse in reponses %}
+            <div class="response-card {% if reponse.auteurType == 'agent' %}agent{% endif %}">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <div>
+                        <strong style="font-size: 1.05em;">
+                            {% if reponse.utilisateur %}
+                                {% if reponse.auteurType == 'agent' %}
+                                    👨‍💼 {{ reponse.utilisateur.nom }} {{ reponse.utilisateur.prenom }} (Support)
+                                {% else %}
+                                    👤 Vous
+                                {% endif %}
+                            {% else %}
+                                🤖 Système automatique
+                            {% endif %}
+                        </strong>
+                    </div>
+                    <small style="color: #999;">{{ reponse.createdAt|date('d/m/Y à H:i') }}</small>
+                </div>
+
+                <div style="color: #333; line-height: 1.6;">
+                    {{ reponse.reponseText|nl2br }}
+                </div>
+
+                {% if reponse.actionType != 'aucune' %}
+                    <div style="background: #FFF9C4; padding: 10px 15px; border-radius: 6px; margin-top: 15px;">
+                        <strong>Action prise:</strong> {{ reponse.actionType|replace({'_': ' '})|capitalize }}
+                    </div>
+                {% endif %}
+
+                {% if reponse.fileName %}
+                    <div class="file-attachment">
+                        📎 <a href="{{ reponse.filePath }}" target="_blank">{{ reponse.fileName }}</a>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {# Formulaire de réponse #}
+    {% if question.statut != 'ferme' %}
+        <h3 style="margin: 30px 0 15px 0;">Ajouter une réponse</h3>
+        <div class="response-form">
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                {{ form_errors(form) }}
+                <div style="margin-bottom: 20px;">
+                    {{ form_label(form.reponseText, 'Votre message') }}
+                    {{ form_widget(form.reponseText, {'attr': {'class': 'form-control', 'placeholder': 'Tapez votre réponse...'}}) }}
+                    {{ form_errors(form.reponseText) }}
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    {{ form_label(form.fichier, 'Pièce jointe (optionnelle)') }}
+                    {{ form_widget(form.fichier, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.fichier) }}
+                </div>
+
+                <button type="submit" class="btn-submit">📤 Envoyer la réponse</button>
+            {{ form_end(form) }}
+        </div>
+    {% else %}
+        <div style="background: #FFF3E0; padding: 20px; border-radius: 8px; text-align: center;">
+            ⚠️ Ce ticket est fermé. Vous ne pouvez plus ajouter de réponses.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

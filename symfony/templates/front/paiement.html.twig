@@ -1,0 +1,57 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Paiement en ligne - CURAVITA{% endblock %}
+
+{% block stylesheets %}
+<style>
+.pay-wrap{max-width:980px;margin:2rem auto;padding:0 1rem;display:grid;grid-template-columns:1fr .9fr;gap:1rem}
+@media(max-width:920px){.pay-wrap{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #d5e9df;border-radius:18px;box-shadow:0 16px 42px rgba(16,56,44,.09)}
+.head{padding:1rem;background:linear-gradient(135deg,#0f5f45,#1ca26f);color:#fff;border-radius:18px 18px 0 0}
+.body{padding:1rem}
+.field{margin:.7rem 0}.field label{display:block;font-weight:700;color:#194738;margin-bottom:.3rem}
+.input{width:100%;padding:.8rem .9rem;border:1px solid #c5ddd2;border-radius:11px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.btn{width:100%;padding:.85rem;border-radius:11px;border:0;background:linear-gradient(135deg,#0f5f45,#1ca26f);color:#fff;font-weight:800;cursor:pointer}
+.line{display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px dashed #ddebe4}
+.total{font-weight:800;color:#104634}
+.logo-row{display:flex;gap:.45rem;opacity:.8;font-size:.9rem}
+.badge{display:inline-block;padding:.2rem .45rem;background:#e7fbf1;color:#0c7b4c;border-radius:999px;font-size:.75rem;font-weight:700}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="pay-wrap">
+    <section class="card">
+        <div class="head">
+            <div class="badge">Paiement securise</div>
+            <h2 style="margin:.4rem 0 0">Interface de paiement</h2>
+            <div class="logo-row"><span>VISA</span><span>Mastercard</span><span>Apple Pay</span></div>
+        </div>
+        <form method="post" class="body">
+            <div class="field"><label>Titulaire de la carte</label><input class="input" name="card_holder" required placeholder="Nom prenom"></div>
+            <div class="field"><label>Numero de carte</label><input class="input" name="card_number" required placeholder="4242 4242 4242 4242"></div>
+            <div class="grid2">
+                <div class="field"><label>Expiration</label><input class="input" name="exp_date" required placeholder="MM/AA"></div>
+                <div class="field"><label>CVV</label><input class="input" name="cvv" required placeholder="123"></div>
+            </div>
+            <button class="btn" type="submit">Payer et confirmer la commande</button>
+        </form>
+    </section>
+
+    <aside class="card body">
+        <h3 style="margin-top:0;color:#184837">Resume de commande</h3>
+        {% for item in panier.items %}
+            <div class="line"><span>{{ item.name }} x{{ item.quantity }}</span><strong>{{ item.lineTotal|number_format(2, ',', ' ') }} DT</strong></div>
+        {% endfor %}
+        <div class="line"><span>Sous-total</span><strong>{{ pricing.subTotal|default(panier.total)|number_format(2, ',', ' ') }} DT</strong></div>
+        {% if pricing.loyaltyDiscount|default(0) > 0 %}
+            <div class="line"><span>Remise fidelite</span><strong>-{{ pricing.loyaltyDiscount|number_format(2, ',', ' ') }} DT</strong></div>
+        {% endif %}
+        {% if pricing.couponDiscount|default(0) > 0 %}
+            <div class="line"><span>Coupon {{ pricing.couponCode }}</span><strong>-{{ pricing.couponDiscount|number_format(2, ',', ' ') }} DT</strong></div>
+        {% endif %}
+        <div class="line total"><span>Total</span><span>{{ pricing.grandTotal|default(panier.total)|number_format(2, ',', ' ') }} DT</span></div>
+    </aside>
+</div>
+{% endblock %}

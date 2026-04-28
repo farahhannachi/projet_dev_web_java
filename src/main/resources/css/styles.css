@@ -978,6 +978,202 @@
     -fx-padding: 0;
 }
 
+.map-card {
+    -fx-background-color: linear-gradient(to bottom, #f7fbff, #f1f7ff);
+    -fx-border-color: #d3e1f3;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 10;
+}
+
+.map-results {
+    -fx-background-color: white;
+    -fx-border-color: #cfe2d9;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+.map-preview-image {
+    -fx-background-color: #edf5f2;
+    -fx-border-color: #cfe2d9;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+}
+
+.chat-card {
+    -fx-background-color: linear-gradient(to bottom, #f7fcf9, #f2f8ff);
+    -fx-border-color: #d6e8db;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 10;
+}
+
+.chat-card .list-view {
+    -fx-background-color: white;
+    -fx-border-color: #dce7f2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.med-bot-launcher {
+    -fx-background-color: linear-gradient(to bottom right, #0f5fc7, #2488f8);
+    -fx-text-fill: white;
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+    -fx-min-width: 52;
+    -fx-min-height: 52;
+    -fx-max-width: 52;
+    -fx-max-height: 52;
+    -fx-background-radius: 26;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(10,44,94,0.38), 18, 0.4, 0, 4);
+}
+
+.med-bot-panel {
+    -fx-background-color: #f3f8fb;
+    -fx-border-color: #d8e6ee;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 0;
+    -fx-pref-width: 300;
+    -fx-pref-height: 370;
+    -fx-effect: dropshadow(gaussian, rgba(11,40,82,0.30), 24, 0.25, 0, 6);
+}
+
+.med-bot-head {
+    -fx-padding: 10 10;
+    -fx-background-color: linear-gradient(to bottom right, #216fcb, #2e8ae6);
+    -fx-background-radius: 12 12 0 0;
+}
+
+.med-bot-head-label {
+    -fx-text-fill: white;
+    -fx-font-size: 15;
+    -fx-font-weight: bold;
+}
+
+.med-bot-close {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 16;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.med-bot-log {
+    -fx-background-color: #ecf2f7;
+    -fx-border-color: transparent;
+}
+
+.med-bot-foot {
+    -fx-padding: 8 8 10 8;
+    -fx-background-color: #f3f8fb;
+    -fx-border-color: #d9e6f2 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.med-bot-input {
+    -fx-background-color: white;
+    -fx-border-color: #b9c8d8;
+    -fx-border-radius: 9;
+    -fx-background-radius: 9;
+    -fx-padding: 7 10;
+}
+
+.med-bot-send {
+    -fx-background-color: #2b7fdd;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 9;
+    -fx-padding: 8 11;
+    -fx-cursor: hand;
+}
+
+.med-bot-floating-wrap {
+    -fx-padding: 0 14 14 0;
+    -fx-translate-y: 42;
+}
+
+.addresses-wrap {
+    -fx-padding: 22 24;
+    -fx-spacing: 12;
+}
+
+.addresses-head {
+    -fx-background-color: transparent;
+}
+
+.addresses-title {
+    -fx-font-size: 40;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0f4e3b;
+}
+
+.addresses-subtitle {
+    -fx-font-size: 14;
+    -fx-text-fill: #5f7a6f;
+}
+
+.address-card {
+    -fx-background-color: linear-gradient(to bottom right, #ffffff, #f8fcfa);
+    -fx-border-color: #dbece4;
+    -fx-border-radius: 16;
+    -fx-background-radius: 16;
+    -fx-effect: dropshadow(gaussian, rgba(12,52,40,0.08), 14, 0.25, 0, 3);
+}
+
+.address-dot {
+    -fx-text-fill: #1ca16f;
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+}
+
+.address-name {
+    -fx-font-size: 16;
+    -fx-font-weight: bold;
+    -fx-text-fill: #123f32;
+}
+
+.address-details {
+    -fx-text-fill: #45685b;
+    -fx-font-size: 13;
+}
+
+.address-tag {
+    -fx-background-color: #eaf8f1;
+    -fx-text-fill: #0f6c4b;
+    -fx-background-radius: 999;
+    -fx-padding: 4 10;
+    -fx-font-size: 11;
+    -fx-font-weight: bold;
+}
+
+.address-empty {
+    -fx-padding: 18;
+    -fx-border-color: #cfe2d9;
+    -fx-border-style: segments(8, 8);
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-alignment: center;
+}
+
+.address-form-wrap {
+    -fx-padding: 22 24;
+}
+
+.address-form-card {
+    -fx-background-color: linear-gradient(to bottom right, #ffffff, #f8fcfa);
+    -fx-border-color: #dbece4;
+    -fx-border-radius: 16;
+    -fx-background-radius: 16;
+    -fx-padding: 18;
+    -fx-effect: dropshadow(gaussian, rgba(12,52,40,0.08), 14, 0.25, 0, 3);
+}
+
+.address-grid {
+    -fx-padding: 6 0;
+}
+
 /* ============================================
    MODERN ACCUEIL - CARDS SECTION
    ============================================ */
@@ -1195,4 +1391,261 @@
 
 .main-scroll {
     -fx-background-color: #f5f5f5;
+}
+
+/* ============================================
+   Front Modules - Symfony Capture Alignment
+   ============================================ */
+
+.front-module-page {
+    -fx-background-color: #f3f5f4;
+}
+
+.navbar-symfony {
+    -fx-background-color: white;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent transparent #e7ece9 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 14 26;
+    -fx-spacing: 16;
+}
+
+.navbar-symfony .logo-text {
+    -fx-font-size: 18;
+    -fx-font-weight: 800;
+    -fx-text-fill: #2b3f37;
+}
+
+.menu-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: #3c4b46;
+    -fx-font-size: 14;
+    -fx-font-weight: 600;
+    -fx-padding: 9 8;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+}
+
+.menu-item:hover {
+    -fx-text-fill: #179e64;
+    -fx-background-color: transparent;
+}
+
+.menu-item-active {
+    -fx-text-fill: #16a065;
+    -fx-border-color: transparent transparent #16a065 transparent;
+}
+
+.module-content-wrap {
+    -fx-padding: 16 20;
+}
+
+.front-product-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12;
+    -fx-border-color: #dce8e2;
+    -fx-border-radius: 12;
+    -fx-padding: 12;
+}
+
+.front-product-image {
+    -fx-background-color: #eef2ef;
+    -fx-border-color: #e3ece6;
+    -fx-border-radius: 10;
+}
+
+.front-product-name {
+    -fx-font-size: 30;
+    -fx-font-weight: 800;
+    -fx-text-fill: #0f3127;
+}
+
+.front-product-desc {
+    -fx-font-size: 14;
+    -fx-text-fill: #6a7e77;
+}
+
+.front-product-price {
+    -fx-font-size: 32;
+    -fx-font-weight: 800;
+    -fx-text-fill: #0c5f44;
+}
+
+.checkout-wrap {
+    -fx-padding: 20;
+    -fx-spacing: 14;
+    -fx-alignment: TOP_LEFT;
+}
+
+.checkout-left-symfony {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dce8e2;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 14;
+}
+
+.checkout-right-symfony {
+    -fx-background-color: transparent;
+}
+
+.checkout-summary-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dce8e2;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 14;
+}
+
+.checkout-coupon-card,
+.checkout-payment-card {
+    -fx-background-color: #f4fbf7;
+    -fx-border-color: #dce8e2;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 10;
+}
+
+.checkout-payment-card .radio-button {
+    -fx-font-size: 13;
+    -fx-text-fill: #243c35;
+}
+
+.checkout-payment-card .radio-button .radio {
+    -fx-border-color: #9db2aa;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-background-color: white;
+}
+
+.checkout-payment-card .radio-button:selected .dot {
+    -fx-background-color: #c72222;
+    -fx-background-insets: 0;
+}
+
+.checkout-payment-card .checkout-confirm {
+    -fx-max-width: Infinity;
+}
+
+.checkout-table .column-header-background,
+.checkout-table .column-header,
+.checkout-table .filler {
+    -fx-background-color: #f7f9f8;
+}
+
+.checkout-table .table-row-cell {
+    -fx-cell-size: 40;
+}
+
+.commandes-wrap {
+    -fx-padding: 10 18 18 18;
+    -fx-spacing: 10;
+}
+
+.commandes-filters-row {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dce8e2;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 10;
+}
+
+.commandes-stats-row .stat-card {
+    -fx-padding: 12 14;
+}
+
+.commande-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dce8e2;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 14;
+}
+
+.commande-title {
+    -fx-font-size: 18;
+    -fx-font-weight: 800;
+    -fx-text-fill: #0f3127;
+}
+
+.commande-meta {
+    -fx-font-size: 13;
+    -fx-text-fill: #62766f;
+}
+
+.commande-line {
+    -fx-font-size: 14;
+    -fx-text-fill: #2d4039;
+}
+
+.commande-total {
+    -fx-font-size: 24;
+    -fx-font-weight: 800;
+    -fx-text-fill: #0c5f44;
+}
+
+.commande-badge {
+    -fx-background-radius: 999;
+    -fx-padding: 4 10;
+    -fx-font-size: 12;
+    -fx-font-weight: 700;
+}
+
+.commande-badge-warn {
+    -fx-background-color: #f8e6be;
+    -fx-text-fill: #9a5b00;
+}
+
+.commande-badge-ok {
+    -fx-background-color: #d9f3e6;
+    -fx-text-fill: #0a7a49;
+}
+
+.commande-badge-danger {
+    -fx-background-color: #f7d9d9;
+    -fx-text-fill: #a22525;
+}
+
+.commande-badge-neutral {
+    -fx-background-color: #e8ece9;
+    -fx-text-fill: #41544d;
+}
+
+.front-footer {
+    -fx-background-color: #065929;
+    -fx-padding: 30 36 20 36;
+    -fx-spacing: 16;
+}
+
+.front-footer-top {
+    -fx-padding: 0 0 14 0;
+}
+
+.front-footer-title {
+    -fx-text-fill: #d9efe3;
+    -fx-font-size: 24;
+    -fx-font-weight: 800;
+}
+
+.front-footer-text {
+    -fx-text-fill: #c3e4d2;
+    -fx-font-size: 16;
+}
+
+.front-footer-link {
+    -fx-text-fill: #b5ddc9;
+    -fx-font-size: 16;
+}
+
+.front-footer-copy {
+    -fx-text-fill: #c3e4d2;
+    -fx-font-size: 15;
+}
+
+.front-footer-bottom {
+    -fx-border-color: #1f774d transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 12 0 0 0;
+    -fx-spacing: 14;
 }
