@@ -23,7 +23,11 @@ public class BackOrdonnanceController {
     @FXML private VBox pageContainer; // Conteneur principal de la page (remplacé dynamiquement selon la vue)
 
     @FXML
-    public void initialize() { showList(); } // Initialisation : afficher la liste des ordonnances
+    public void initialize() {
+        org.example.util.AuditService.getInstance().initTable();
+        org.example.util.ElectronicSignatureService.getInstance().initColonnes();
+        showList();
+    }
 
     public void openNewForm() { showForm(null); } // Ouvrir le formulaire d'ajout (appelé depuis le Dashboard)
 
@@ -59,21 +63,76 @@ public class BackOrdonnanceController {
         filterCard.getChildren().addAll(new Label("\uD83D\uDD0D Filtrer par :"), filters);
 
         TableView<ObservableList<String>> table = new TableView<>();
-        table.getStyleClass().add("modern-table"); table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY); table.setMinHeight(400);
-        String[] hdrs = {"ID","Num\u00e9ro","Patient","Date Ordonnance","Date Expiration","Statut","Traitements","Actions"};
+        table.getStyleClass().add("modern-table");
+        table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        table.setMinHeight(400);
+        String[] hdrs = {"ID","Num\u00e9ro","Patient","Date Ordonnance","Date Expiration","Statut","Traitements","Signature","Actions"};
         for (int i = 0; i < hdrs.length; i++) {
             final int col = i;
             TableColumn<ObservableList<String>, String> c = new TableColumn<>(hdrs[i]);
             c.setCellValueFactory(p -> new javafx.beans.property.SimpleStringProperty(col < p.getValue().size() ? p.getValue().get(col) : ""));
-            if (i == hdrs.length - 1) {
+
+            // Rendu visuel de la colonne Signature
+            if (i == hdrs.length - 2) { // colonne "Signature"
+                c.setMinWidth(160); c.setPrefWidth(180);
                 c.setCellFactory(tc -> new TableCell<>() {
-                    final Button eb = new Button("Modifier"); final Button db2 = new Button("Supprimer"); final HBox bx = new HBox(5, eb, db2);
-                    { eb.setStyle("-fx-background-color:#f39c12;-fx-text-fill:white;-fx-font-size:11;-fx-background-radius:5;-fx-cursor:hand;-fx-padding:3 8;");
+                    @Override protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || item == null || item.isBlank()) {
+                            setGraphic(null);
+                            setText(null);
+                        } else if (item.equals("NON_SIGNE")) {
+                            Label lbl = new Label("⬜ Non signé");
+                            lbl.setStyle("-fx-font-size:11; -fx-text-fill:#aaa;");
+                            setGraphic(lbl); setText(null);
+                        } else {
+                            VBox box = new VBox(2);
+                            Label check = new Label("✅ Signé");
+                            check.setStyle("-fx-font-size:11; -fx-font-weight:bold; -fx-text-fill:#27ae60;");
+                            Label nom = new Label("Dr. " + item);
+                            nom.setStyle("-fx-font-size:10; -fx-text-fill:#555;");
+                            box.getChildren().addAll(check, nom);
+                            setGraphic(box); setText(null);
+                        }
+                    }
+                });
+            }
+
+            // Largeur fixe pour la colonne Actions
+            if (i == hdrs.length - 1) {
+                c.setMinWidth(280);
+                c.setPrefWidth(300);
+                c.setResizable(false);
+                c.setCellFactory(tc -> new TableCell<>() {
+                    final Button eb = new Button("Modifier");
+                    final Button db2 = new Button("Supprimer");
+                    final Button signBtn = new Button("✍ Signer");
+                    final Button histBtn = new Button("📋 Historique");
+                    final HBox bx = new HBox(5, eb, histBtn, signBtn, db2);
+                    {
+                      eb.setStyle("-fx-background-color:#f39c12;-fx-text-fill:white;-fx-font-size:11;-fx-background-radius:5;-fx-cursor:hand;-fx-padding:3 8;");
                       db2.setStyle("-fx-background-color:#e74c3c;-fx-text-fill:white;-fx-font-size:11;-fx-background-radius:5;-fx-cursor:hand;-fx-padding:3 8;");
+                      signBtn.setStyle("-fx-background-color:#1f6f5c;-fx-text-fill:white;-fx-font-size:11;-fx-background-radius:5;-fx-cursor:hand;-fx-padding:3 8;");
+                      histBtn.setStyle("-fx-background-color:#2980b9;-fx-text-fill:white;-fx-font-size:11;-fx-background-radius:5;-fx-cursor:hand;-fx-padding:3 8;");
                       eb.setOnAction(e -> showForm(getTableView().getItems().get(getIndex()).get(0)));
+                      histBtn.setOnAction(e -> {
+                          ObservableList<String> row = getTableView().getItems().get(getIndex());
+                          showHistoriqueDialog("ordonnance", row.get(0), row.get(1));
+                      });
+                      signBtn.setOnAction(e -> {
+                          ObservableList<String> row = getTableView().getItems().get(getIndex());
+                          showSignatureMedecinDialog(row.get(0), row.get(1));
+                      });
                       db2.setOnAction(e -> { String id = getTableView().getItems().get(getIndex()).get(0);
-                          new Alert(Alert.AlertType.CONFIRMATION,"Supprimer ordonnance #"+id+" ?",ButtonType.YES,ButtonType.NO).showAndWait().ifPresent(b -> {
-                              if(b==ButtonType.YES){try{PreparedStatement p2=DatabaseUtil.getInstance().getConnection().prepareStatement("DELETE FROM ordonnance WHERE id_ordonnance=?");p2.setInt(1,Integer.parseInt(id));p2.executeUpdate();p2.close();showList();}catch(SQLException ex){}}});});}
+                          ObservableList<String> rowDel = getTableView().getItems().get(getIndex());
+                          String numDel = rowDel.size() > 1 ? rowDel.get(1) : "#" + id;
+                          if (org.example.util.DialogService.showDeleteConfirmation("l'ordonnance " + numDel)) {
+                              try {
+                                  org.example.util.AuditService.getInstance().logSuppression("ordonnance", id, "Ordonnance #"+id+" supprimée", "Admin");
+                                  PreparedStatement p2=DatabaseUtil.getInstance().getConnection().prepareStatement("DELETE FROM ordonnance WHERE id_ordonnance=?");
+                                  p2.setInt(1,Integer.parseInt(id));p2.executeUpdate();p2.close();showList();
+                              } catch(SQLException ex){ org.example.util.DialogService.showError("Erreur", ex.getMessage()); }
+                          }});}
                     @Override protected void updateItem(String item, boolean empty) { super.updateItem(item, empty); setGraphic(empty ? null : bx); }
                 });
             }
@@ -92,7 +151,7 @@ public class BackOrdonnanceController {
     private void loadData(TableView<ObservableList<String>> table, LocalDate dO, LocalDate dE, String cl, String st, String tri) {
         ObservableList<ObservableList<String>> data = FXCollections.observableArrayList();
         try {
-            StringBuilder sql = new StringBuilder("SELECT o.id_ordonnance, o.numero_ordonnance, u.nom AS unom, o.date_ordonnance, o.date_expiration, o.statut, (SELECT COUNT(*) FROM traitement t WHERE t.id_ordonnance_id=o.id_ordonnance) AS nb_trait FROM ordonnance o LEFT JOIN utilisateur u ON o.id_utilisateur_id=u.id_utilisateur WHERE 1=1 ");
+            StringBuilder sql = new StringBuilder("SELECT o.id_ordonnance, o.numero_ordonnance, u.nom AS unom, o.date_ordonnance, o.date_expiration, o.statut, (SELECT COUNT(*) FROM traitement t WHERE t.id_ordonnance_id=o.id_ordonnance) AS nb_trait, o.signature_medecin FROM ordonnance o LEFT JOIN utilisateur u ON o.id_utilisateur_id=u.id_utilisateur WHERE 1=1 ");
             java.util.List<Object> params = new java.util.ArrayList<>();
             if (dO != null) { sql.append("AND o.date_ordonnance >= ? "); params.add(Timestamp.valueOf(dO.atStartOfDay())); }
             if (dE != null) { sql.append("AND o.date_expiration <= ? "); params.add(Timestamp.valueOf(dE.atTime(23,59,59))); }
@@ -115,6 +174,10 @@ public class BackOrdonnanceController {
                 row.add(rs.getTimestamp("date_expiration") != null ? rs.getTimestamp("date_expiration").toLocalDateTime().toLocalDate().toString() : "");
                 row.add(rs.getString("statut") != null ? rs.getString("statut") : "");
                 row.add(String.valueOf(rs.getInt("nb_trait")));
+                // Colonne Signature : extraire le nom du médecin depuis "Nom|date|hash"
+                String sigVal = rs.getString("signature_medecin");
+                String sigNom = org.example.util.ElectronicSignatureService.getInstance().extraireNomSignataire(sigVal);
+                row.add(sigNom != null ? sigNom : "NON_SIGNE");
                 row.add(""); data.add(row);
             } rs.close(); ps.close();
         } catch (SQLException e) { System.out.println(e.getMessage()); }
@@ -331,22 +394,87 @@ public class BackOrdonnanceController {
 
             try {
                 if (isEdit) {
+                    // Lire les anciennes valeurs pour l'audit
+                    String oldNumero = "", oldStatut = "", oldNote = "";
+                    String oldDateOrd = "", oldDateExp = "";
+                    try {
+                        PreparedStatement psOld = DatabaseUtil.getInstance().getConnection().prepareStatement(
+                            "SELECT numero_ordonnance, statut, note_medical, date_ordonnance, date_expiration FROM ordonnance WHERE id_ordonnance=?");
+                        psOld.setInt(1, Integer.parseInt(editId));
+                        ResultSet rsOld = psOld.executeQuery();
+                        if (rsOld.next()) {
+                            oldNumero  = rsOld.getString("numero_ordonnance") != null ? rsOld.getString("numero_ordonnance") : "";
+                            oldStatut  = rsOld.getString("statut") != null ? rsOld.getString("statut") : "";
+                            oldNote    = rsOld.getString("note_medical") != null ? rsOld.getString("note_medical") : "";
+                            oldDateOrd = rsOld.getTimestamp("date_ordonnance") != null
+                                ? rsOld.getTimestamp("date_ordonnance").toLocalDateTime().toLocalDate().toString() : "";
+                            oldDateExp = rsOld.getTimestamp("date_expiration") != null
+                                ? rsOld.getTimestamp("date_expiration").toLocalDateTime().toLocalDate().toString() : "";
+                        }
+                        rsOld.close(); psOld.close();
+                    } catch (Exception ignored) {}
+
                     PreparedStatement ps = DatabaseUtil.getInstance().getConnection().prepareStatement("UPDATE ordonnance SET numero_ordonnance=?,date_ordonnance=?,date_expiration=?,statut=?,note_medical=?,id_utilisateur_id=? WHERE id_ordonnance=?");
                     ps.setString(1, numero); ps.setTimestamp(2, Timestamp.valueOf(doP.getValue().atStartOfDay()));
                     ps.setTimestamp(3, Timestamp.valueOf(deP.getValue().atStartOfDay())); ps.setString(4, statC.getValue());
                     ps.setString(5, noteText); ps.setInt(6, patientId);
                     ps.setInt(7, Integer.parseInt(editId)); ps.executeUpdate(); ps.close();
+
+                    // Audit : loguer uniquement les champs réellement modifiés
+                    org.example.util.AuditService audit = org.example.util.AuditService.getInstance();
+                    audit.logSiModifie("ordonnance", editId, "Numéro", oldNumero, numero, "Admin");
+                    audit.logSiModifie("ordonnance", editId, "Statut", oldStatut, statC.getValue(), "Admin");
+                    audit.logSiModifie("ordonnance", editId, "Note médicale", oldNote, noteText, "Admin");
+                    audit.logSiModifie("ordonnance", editId, "Date ordonnance",
+                        oldDateOrd, doP.getValue().toString(), "Admin");
+                    audit.logSiModifie("ordonnance", editId, "Date expiration",
+                        oldDateExp, deP.getValue().toString(), "Admin");
+
                     // Propagation automatique du statut ordonnance vers les traitements liés
                     String newStatut = statC.getValue();
                     if ("validée".equals(newStatut)) {
                         PreparedStatement ps2 = DatabaseUtil.getInstance().getConnection().prepareStatement("UPDATE traitement SET status='actif' WHERE id_ordonnance_id=? AND status='en_attente'");
                         ps2.setInt(1, Integer.parseInt(editId)); ps2.executeUpdate(); ps2.close();
+                        // Audit propagation statut traitements
+                        if (!oldStatut.equals("validée")) {
+                            audit.log("ordonnance", editId, "MODIFICATION",
+                                "Propagation statut traitements",
+                                "en_attente", "actif (suite validation ordonnance)", "Admin");
+                        }
+                        // Envoi SMS au patient
+                        try {
+                            PreparedStatement psTel = DatabaseUtil.getInstance().getConnection().prepareStatement(
+                                "SELECT telephone, nom FROM utilisateur WHERE id_utilisateur = ?");
+                            psTel.setInt(1, patientId);
+                            ResultSet rsTel = psTel.executeQuery();
+                            String telephone = null;
+                            String nomPatient = "Patient";
+                            if (rsTel.next()) {
+                                telephone = rsTel.getString("telephone");
+                                nomPatient = rsTel.getString("nom") != null ? rsTel.getString("nom") : "Patient";
+                            }
+                            rsTel.close(); psTel.close();
+                            String smsMsg = "Bonjour " + nomPatient + ", votre ordonnance " + numero + " a été validée. Vos traitements sont maintenant actifs. - CuraVita";
+                            org.example.util.SmsService.getInstance().send(telephone, smsMsg);
+                        } catch (Exception smsEx) {
+                            System.err.println("[SMS] Erreur récupération téléphone : " + smsEx.getMessage());
+                        }
                     } else if ("expirée".equals(newStatut)) {
                         PreparedStatement ps2 = DatabaseUtil.getInstance().getConnection().prepareStatement("UPDATE traitement SET status='terminé' WHERE id_ordonnance_id=? AND status IN ('en_attente','actif')");
                         ps2.setInt(1, Integer.parseInt(editId)); ps2.executeUpdate(); ps2.close();
+                        if (!oldStatut.equals("expirée")) {
+                            audit.log("ordonnance", editId, "MODIFICATION",
+                                "Propagation statut traitements",
+                                "en_attente/actif", "terminé (suite expiration ordonnance)", "Admin");
+                        }
                     } else if ("brouillon".equals(newStatut)) {
                         PreparedStatement ps2 = DatabaseUtil.getInstance().getConnection().prepareStatement("UPDATE traitement SET status='en_attente' WHERE id_ordonnance_id=?");
                         ps2.setInt(1, Integer.parseInt(editId)); ps2.executeUpdate(); ps2.close();
+                        if (!oldStatut.equals("brouillon")) {
+                            audit.log("ordonnance", editId, "MODIFICATION",
+                                "Propagation statut traitements",
+                                "actif", "en_attente (remise en brouillon)", "Admin");
+                        }
                     }
                 } else {
                     // Insérer la nouvelle ordonnance et récupérer son ID
@@ -362,6 +490,12 @@ public class BackOrdonnanceController {
                     int newOrdId = 0;
                     if (genKeys.next()) newOrdId = genKeys.getInt(1);
                     genKeys.close(); ps.close();
+                    // Audit création
+                    if (newOrdId > 0) {
+                        org.example.util.AuditService.getInstance().logCreation(
+                            "ordonnance", String.valueOf(newOrdId),
+                            "Ordonnance " + numero + " créée (statut: en_attente)", "Admin");
+                    }
 
                     // Créer automatiquement un traitement vide lié à cette ordonnance (pour qu'elle apparaisse dans la liste traitements)
                     if (newOrdId > 0) {
@@ -395,6 +529,317 @@ public class BackOrdonnanceController {
         VBox wrap = new VBox(card); wrap.setAlignment(Pos.TOP_CENTER); wrap.setPadding(new Insets(30)); wrap.setStyle("-fx-background-color: #f5f5f5;");
         ScrollPane sc = new ScrollPane(wrap); sc.setFitToWidth(true); sc.setStyle("-fx-background-color: #f5f5f5;");
         pageContainer.getChildren().add(sc); VBox.setVgrow(sc, Priority.ALWAYS);
+    }
+
+    // Fenêtre d'historique des modifications
+    private void showHistoriqueDialog(String entite, String entiteId, String entiteLabel) {
+        java.util.List<org.example.util.AuditService.AuditEntry> entries =
+                org.example.util.AuditService.getInstance().getHistorique(entite, entiteId);
+
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.setTitle("Historique — " + entiteLabel);
+        dialog.setResizable(true);
+
+        VBox root = new VBox(0);
+        root.setStyle("-fx-background-color: #f5f5f5;");
+        root.setMinWidth(620); root.setPrefWidth(680);
+
+        // En-tête
+        VBox header = new VBox(5);
+        header.setPadding(new Insets(20, 24, 16, 24));
+        header.setStyle("-fx-background-color: #2980b9;");
+        Label titleLbl = new Label("📋 Historique des modifications");
+        titleLbl.setStyle("-fx-font-size: 17; -fx-font-weight: bold; -fx-text-fill: white;");
+        Label subLbl = new Label(entite.substring(0,1).toUpperCase() + entite.substring(1) + " #" + entiteId + " — " + entiteLabel);
+        subLbl.setStyle("-fx-font-size: 12; -fx-text-fill: rgba(255,255,255,0.85);");
+        header.getChildren().addAll(titleLbl, subLbl);
+
+        // Corps
+        VBox body = new VBox(8);
+        body.setPadding(new Insets(16, 20, 16, 20));
+
+        if (entries.isEmpty()) {
+            Label empty = new Label("Aucune modification enregistrée pour cet élément.");
+            empty.setStyle("-fx-font-size: 13; -fx-text-fill: #888; -fx-padding: 20;");
+            body.getChildren().add(empty);
+        } else {
+            for (org.example.util.AuditService.AuditEntry e : entries) {
+                VBox card = new VBox(5);
+                card.setPadding(new Insets(10, 14, 10, 14));
+
+                // Couleur selon action
+                String bg, border, actionColor;
+                switch (e.action) {
+                    case "CRÉATION":   bg = "#eafaf1"; border = "#27ae60"; actionColor = "#27ae60"; break;
+                    case "SUPPRESSION": bg = "#fdecea"; border = "#e74c3c"; actionColor = "#e74c3c"; break;
+                    default:           bg = "#eaf4fb"; border = "#2980b9"; actionColor = "#2980b9"; break;
+                }
+                card.setStyle("-fx-background-color:" + bg + "; -fx-background-radius:8; " +
+                        "-fx-border-color:" + border + "; -fx-border-width:0 0 0 4; -fx-border-radius:0 8 8 0;");
+
+                // Ligne 1 : action + horodatage + admin
+                HBox topRow = new HBox(10);
+                topRow.setAlignment(Pos.CENTER_LEFT);
+                Label actionLbl = new Label(e.action);
+                actionLbl.setStyle("-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:" + actionColor +
+                        "; -fx-background-color:white; -fx-padding:2 8; -fx-background-radius:10;");
+                Label dateLbl = new Label("🕐 " + e.modifieAt);
+                dateLbl.setStyle("-fx-font-size:11; -fx-text-fill:#666;");
+                Label adminLbl = new Label("👤 " + e.modifiePar);
+                adminLbl.setStyle("-fx-font-size:11; -fx-text-fill:#666;");
+                topRow.getChildren().addAll(actionLbl, dateLbl, adminLbl);
+
+                card.getChildren().add(topRow);
+
+                // Ligne 2 : champ modifié
+                if (e.champ != null && !e.champ.isBlank()) {
+                    Label champLbl = new Label("Champ : " + e.champ);
+                    champLbl.setStyle("-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:#2c3e50;");
+                    card.getChildren().add(champLbl);
+                }
+
+                // Ligne 3 : avant → après
+                if (e.ancienneValeur != null || e.nouvelleValeur != null) {
+                    HBox diffRow = new HBox(8);
+                    diffRow.setAlignment(Pos.CENTER_LEFT);
+                    if (e.ancienneValeur != null && !e.ancienneValeur.isBlank()) {
+                        Label avantLbl = new Label("Avant : " + truncate(e.ancienneValeur, 60));
+                        avantLbl.setStyle("-fx-font-size:11; -fx-text-fill:#e74c3c; -fx-wrap-text:true;");
+                        avantLbl.setWrapText(true);
+                        diffRow.getChildren().add(avantLbl);
+                    }
+                    if (e.ancienneValeur != null && !e.ancienneValeur.isBlank()
+                            && e.nouvelleValeur != null && !e.nouvelleValeur.isBlank()) {
+                        Label arrow = new Label("→");
+                        arrow.setStyle("-fx-font-size:13; -fx-text-fill:#888;");
+                        diffRow.getChildren().add(arrow);
+                    }
+                    if (e.nouvelleValeur != null && !e.nouvelleValeur.isBlank()) {
+                        Label apresLbl = new Label("Après : " + truncate(e.nouvelleValeur, 60));
+                        apresLbl.setStyle("-fx-font-size:11; -fx-text-fill:#27ae60; -fx-wrap-text:true;");
+                        apresLbl.setWrapText(true);
+                        diffRow.getChildren().add(apresLbl);
+                    }
+                    card.getChildren().add(diffRow);
+                }
+                body.getChildren().add(card);
+            }
+        }
+
+        // Footer
+        HBox footer = new HBox();
+        footer.setAlignment(Pos.CENTER);
+        footer.setPadding(new Insets(12, 20, 18, 20));
+        Button closeBtn = new Button("Fermer");
+        closeBtn.setStyle("-fx-background-color:#2980b9; -fx-text-fill:white; -fx-font-weight:bold; " +
+                "-fx-background-radius:20; -fx-padding:10 40; -fx-cursor:hand;");
+        closeBtn.setOnAction(e -> dialog.close());
+        footer.getChildren().add(closeBtn);
+
+        ScrollPane scroll = new ScrollPane(body);
+        scroll.setFitToWidth(true);
+        scroll.setPrefHeight(420);
+        scroll.setStyle("-fx-background:transparent; -fx-background-color:transparent;");
+
+        root.getChildren().addAll(header, scroll, footer);
+        dialog.setScene(new javafx.scene.Scene(root));
+        dialog.showAndWait();
+    }
+
+    private String truncate(String s, int max) {
+        if (s == null) return "";
+        return s.length() > max ? s.substring(0, max) + "..." : s;
+    }
+
+    // Fenêtre de signature électronique médecin
+    private void showSignatureMedecinDialog(String ordonnanceId, String numeroOrdonnance) {
+        // Vérifier si déjà signé
+        boolean[] sigs = org.example.util.ElectronicSignatureService.getInstance()
+                .verifierSignatures(Integer.parseInt(ordonnanceId));
+
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.setTitle("Signature Électronique Médecin — " + numeroOrdonnance);
+        dialog.setResizable(false);
+
+        VBox root = new VBox(0);
+        root.setStyle("-fx-background-color: #f8f9fa;");
+        root.setMinWidth(500);
+
+        // En-tête
+        VBox header = new VBox(6);
+        header.setAlignment(Pos.CENTER);
+        header.setPadding(new Insets(22, 20, 16, 20));
+        header.setStyle("-fx-background-color: #1f6f5c;");
+        Label titleLbl = new Label("✍  Signature Électronique Médecin");
+        titleLbl.setStyle("-fx-font-size: 17; -fx-font-weight: bold; -fx-text-fill: white;");
+        Label subLbl = new Label("Ordonnance : " + numeroOrdonnance);
+        subLbl.setStyle("-fx-font-size: 12; -fx-text-fill: rgba(255,255,255,0.8);");
+        header.getChildren().addAll(titleLbl, subLbl);
+
+        VBox body = new VBox(14);
+        body.setPadding(new Insets(20, 24, 10, 24));
+
+        // Statut signature existante
+        if (sigs[0]) {
+            HBox alreadySigned = new HBox(8);
+            alreadySigned.setAlignment(Pos.CENTER_LEFT);
+            alreadySigned.setPadding(new Insets(10, 14, 10, 14));
+            alreadySigned.setStyle("-fx-background-color: #d4edda; -fx-background-radius: 8;");
+            Label ok = new Label("✅  Cette ordonnance est déjà signée par le médecin.");
+            ok.setStyle("-fx-font-size: 13; -fx-text-fill: #155724; -fx-font-weight: bold;");
+            alreadySigned.getChildren().add(ok);
+            body.getChildren().add(alreadySigned);
+        }
+
+        // Champ nom du médecin
+        Label nomLbl = new Label("Nom du médecin signataire :");
+        nomLbl.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #333;");
+        TextField nomField = new TextField();
+        nomField.setPromptText("Dr. Nom Prénom");
+        nomField.setStyle("-fx-font-size: 13; -fx-padding: 8; -fx-background-radius: 8;");
+
+        // Canvas de signature manuscrite
+        Label canvasLbl = new Label("Tracez votre signature ci-dessous :");
+        canvasLbl.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #333;");
+
+        javafx.scene.canvas.Canvas canvas = new javafx.scene.canvas.Canvas(450, 140);
+        javafx.scene.canvas.GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.setFill(javafx.scene.paint.Color.WHITE);
+        gc.fillRect(0, 0, 450, 140);
+        gc.setStroke(javafx.scene.paint.Color.web("#1f6f5c"));
+        gc.setLineWidth(2.5);
+
+        // Ligne de base
+        gc.setStroke(javafx.scene.paint.Color.LIGHTGRAY);
+        gc.setLineWidth(1);
+        gc.strokeLine(20, 110, 430, 110);
+        gc.setStroke(javafx.scene.paint.Color.web("#1f6f5c"));
+        gc.setLineWidth(2.5);
+
+        final double[] lastPos = {-1, -1};
+        canvas.setOnMousePressed(e -> { lastPos[0] = e.getX(); lastPos[1] = e.getY(); });
+        canvas.setOnMouseDragged(e -> {
+            gc.strokeLine(lastPos[0], lastPos[1], e.getX(), e.getY());
+            lastPos[0] = e.getX(); lastPos[1] = e.getY();
+        });
+        canvas.setStyle("-fx-border-color: #ccc; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
+
+        // Bouton effacer
+        Button clearBtn = new Button("🗑 Effacer");
+        clearBtn.setStyle("-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 11; " +
+                "-fx-background-radius: 6; -fx-padding: 5 14; -fx-cursor: hand;");
+        clearBtn.setOnAction(e -> {
+            gc.setFill(javafx.scene.paint.Color.WHITE);
+            gc.fillRect(0, 0, 450, 140);
+            gc.setStroke(javafx.scene.paint.Color.LIGHTGRAY);
+            gc.setLineWidth(1);
+            gc.strokeLine(20, 110, 430, 110);
+            gc.setStroke(javafx.scene.paint.Color.web("#1f6f5c"));
+            gc.setLineWidth(2.5);
+        });
+
+        Label errLbl = new Label();
+        errLbl.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 12;");
+
+        body.getChildren().addAll(nomLbl, nomField, canvasLbl, canvas, clearBtn, errLbl);
+
+        // Footer boutons
+        HBox footer = new HBox(12);
+        footer.setAlignment(Pos.CENTER);
+        footer.setPadding(new Insets(14, 24, 20, 24));
+
+        Button cancelBtn = new Button("Annuler");
+        cancelBtn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; " +
+                "-fx-background-radius: 20; -fx-padding: 10 30; -fx-cursor: hand;");
+        cancelBtn.setOnAction(e -> dialog.close());
+
+        Button signBtn = new Button("✍  Signer l'ordonnance");
+        signBtn.setStyle("-fx-background-color: #1f6f5c; -fx-text-fill: white; -fx-font-weight: bold; " +
+                "-fx-background-radius: 20; -fx-padding: 10 30; -fx-cursor: hand; -fx-font-size: 13;");
+        signBtn.setOnAction(e -> {
+            String nom = nomField.getText() != null ? nomField.getText().trim() : "";
+            if (nom.isEmpty()) { errLbl.setText("Veuillez saisir le nom du médecin."); return; }
+
+            // Capturer le canvas en base64 comme données de signature
+            javafx.scene.image.WritableImage snapshot = canvas.snapshot(null, null);
+            String signatureData = nom + "|" + System.currentTimeMillis();
+
+            org.example.util.ElectronicSignatureService.SignatureResult result =
+                    org.example.util.ElectronicSignatureService.getInstance()
+                            .signer(numeroOrdonnance, nom, "medecin", signatureData);
+
+            if (!result.success) { errLbl.setText(result.message); return; }
+
+            boolean saved = org.example.util.ElectronicSignatureService.getInstance()
+                    .sauvegarderSignatureMedecin(Integer.parseInt(ordonnanceId), result);
+
+            if (saved) {
+                dialog.close();
+                showList(); // Rafraîchir la table pour afficher la signature dans la colonne
+                showSignatureSuccessDialog("médecin", nom, result.signedAt, result.signatureHash);
+            } else {
+                errLbl.setText("Erreur lors de la sauvegarde de la signature.");
+            }
+        });
+
+        footer.getChildren().addAll(cancelBtn, signBtn);
+        root.getChildren().addAll(header, body, footer);
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(root);
+        dialog.setScene(scene);
+        dialog.showAndWait();
+    }
+
+    // Fenêtre de confirmation après signature réussie
+    private void showSignatureSuccessDialog(String role, String nom, String signedAt, String hash) {
+        javafx.stage.Stage d = new javafx.stage.Stage();
+        d.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        d.setTitle("Signature enregistrée");
+        d.setResizable(false);
+
+        VBox root = new VBox(16);
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(30, 40, 30, 40));
+        root.setStyle("-fx-background-color: white;");
+        root.setMinWidth(420);
+
+        Label icon = new Label("✅");
+        icon.setStyle("-fx-font-size: 48;");
+        Label title = new Label("Signature enregistrée !");
+        title.setStyle("-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #1f6f5c;");
+
+        VBox details = new VBox(6);
+        details.setPadding(new Insets(12, 16, 12, 16));
+        details.setStyle("-fx-background-color: #f0f7f4; -fx-background-radius: 10;");
+        details.getChildren().addAll(
+            styledDetail("Signataire", nom),
+            styledDetail("Rôle", role),
+            styledDetail("Date & heure", signedAt),
+            styledDetail("Hash SHA-256", hash.substring(0, Math.min(32, hash.length())) + "...")
+        );
+
+        Button closeBtn = new Button("Fermer");
+        closeBtn.setStyle("-fx-background-color: #1f6f5c; -fx-text-fill: white; -fx-font-weight: bold; " +
+                "-fx-background-radius: 20; -fx-padding: 10 40; -fx-cursor: hand;");
+        closeBtn.setOnAction(e -> d.close());
+
+        root.getChildren().addAll(icon, title, details, closeBtn);
+        d.setScene(new javafx.scene.Scene(root));
+        d.showAndWait();
+    }
+
+    private javafx.scene.layout.HBox styledDetail(String label, String value) {
+        javafx.scene.layout.HBox line = new javafx.scene.layout.HBox(8);
+        Label lbl = new Label(label + " :");
+        lbl.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #555; -fx-min-width: 100;");
+        Label val = new Label(value);
+        val.setStyle("-fx-font-size: 12; -fx-text-fill: #333; -fx-wrap-text: true;");
+        val.setMaxWidth(260);
+        val.setWrapText(true);
+        line.getChildren().addAll(lbl, val);
+        return line;
     }
 
     // Afficher la page de statistiques avec PieCharts et cartes récapitulatives

@@ -57,6 +57,7 @@ public class OrdonnanceController {
 
     @FXML
     public void initialize() {
+        org.example.util.ElectronicSignatureService.getInstance().initColonnes();
         // Générer un numéro d'ordonnance unique au format ORD-ANNEE-4CHIFFRES
         numeroOrdonnance = "ORD-" + LocalDateTime.now().getYear() + "-" + String.format("%04d", (int)(Math.random() * 10000));
         numeroBannerLabel.setText(numeroOrdonnance); // Afficher dans le bandeau
@@ -197,11 +198,10 @@ public class OrdonnanceController {
             }
 
             // Afficher un message de succès
-            Alert alert = new Alert(Alert.AlertType.INFORMATION); // Créer une alerte info
-            alert.setTitle("Succès"); // Titre
-            alert.setHeaderText(null); // Pas de header
-            alert.setContentText("Votre ordonnance " + numeroOrdonnance + " a été envoyée avec succès."); // Message
-            alert.showAndWait(); // Afficher et attendre la fermeture
+            org.example.util.DialogService.showSuccess(
+                "Ordonnance envoyée",
+                "Votre ordonnance " + numeroOrdonnance + " a été envoyée avec succès.\nElle sera traitée par notre équipe sous 24h."
+            );
 
             goToMesOrdonnances(); // Rediriger vers la page "Mes Ordonnances"
         } catch (SQLException e) { // En cas d'erreur SQL
@@ -211,6 +211,187 @@ public class OrdonnanceController {
             e.printStackTrace(); // Log de l'erreur
             submitButton.setDisable(false); // Réactiver le bouton
         }
+    }
+
+    // Ouvre la fenêtre de signature électronique patient
+    @FXML
+    private void handleSignerPatient() {
+        User currentUser = userService.getCurrentUser();
+        if (currentUser == null) {
+            errorLabel.setText("Veuillez vous connecter pour signer.");
+            return;
+        }
+        if (ordonnanceId <= 0) {
+            errorLabel.setText("Soumettez d'abord votre ordonnance avant de la signer.");
+            return;
+        }
+        showSignaturePatientDialog();
+    }
+
+    private void showSignaturePatientDialog() {
+        User currentUser = userService.getCurrentUser();
+        String nomPatient = currentUser != null && currentUser.getNom() != null
+                ? currentUser.getNom() : "Patient";
+
+        // Vérifier si déjà signé
+        boolean[] sigs = org.example.util.ElectronicSignatureService.getInstance()
+                .verifierSignatures(ordonnanceId);
+
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.setTitle("Signature Électronique Patient");
+        dialog.setResizable(false);
+
+        javafx.scene.layout.VBox root = new javafx.scene.layout.VBox(0);
+        root.setStyle("-fx-background-color: #f8f9fa;");
+        root.setMinWidth(480);
+
+        // En-tête
+        javafx.scene.layout.VBox header = new javafx.scene.layout.VBox(6);
+        header.setAlignment(javafx.geometry.Pos.CENTER);
+        header.setPadding(new javafx.geometry.Insets(22, 20, 16, 20));
+        header.setStyle("-fx-background-color: #2980b9;");
+        Label titleLbl = new Label("✍  Signature Électronique Patient");
+        titleLbl.setStyle("-fx-font-size: 17; -fx-font-weight: bold; -fx-text-fill: white;");
+        Label subLbl = new Label("Ordonnance : " + numeroOrdonnance);
+        subLbl.setStyle("-fx-font-size: 12; -fx-text-fill: rgba(255,255,255,0.8);");
+        header.getChildren().addAll(titleLbl, subLbl);
+
+        javafx.scene.layout.VBox body = new javafx.scene.layout.VBox(14);
+        body.setPadding(new javafx.geometry.Insets(20, 24, 10, 24));
+
+        // Déjà signé ?
+        if (sigs[1]) {
+            javafx.scene.layout.HBox alreadySigned = new javafx.scene.layout.HBox(8);
+            alreadySigned.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            alreadySigned.setPadding(new javafx.geometry.Insets(10, 14, 10, 14));
+            alreadySigned.setStyle("-fx-background-color: #d4edda; -fx-background-radius: 8;");
+            Label ok = new Label("✅  Vous avez déjà signé cette ordonnance.");
+            ok.setStyle("-fx-font-size: 13; -fx-text-fill: #155724; -fx-font-weight: bold;");
+            alreadySigned.getChildren().add(ok);
+            body.getChildren().add(alreadySigned);
+        }
+
+        // Info patient
+        javafx.scene.layout.HBox patientInfo = new javafx.scene.layout.HBox(8);
+        patientInfo.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        patientInfo.setPadding(new javafx.geometry.Insets(10, 14, 10, 14));
+        patientInfo.setStyle("-fx-background-color: #eaf4fb; -fx-background-radius: 8;");
+        Label patLbl = new Label("👤  Patient : " + nomPatient);
+        patLbl.setStyle("-fx-font-size: 13; -fx-text-fill: #2980b9; -fx-font-weight: bold;");
+        patientInfo.getChildren().add(patLbl);
+
+        // Consentement
+        CheckBox consentCheck = new CheckBox(
+            "Je certifie avoir lu et compris les instructions de traitement\n" +
+            "et consens à l'utilisation de cette signature électronique.");
+        consentCheck.setStyle("-fx-font-size: 12; -fx-text-fill: #333; -fx-wrap-text: true;");
+        consentCheck.setWrapText(true);
+        consentCheck.setMaxWidth(420);
+
+        // Canvas signature manuscrite
+        Label canvasLbl = new Label("Tracez votre signature :");
+        canvasLbl.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #333;");
+
+        javafx.scene.canvas.Canvas canvas = new javafx.scene.canvas.Canvas(430, 130);
+        javafx.scene.canvas.GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.setFill(javafx.scene.paint.Color.WHITE);
+        gc.fillRect(0, 0, 430, 130);
+        // Ligne de base
+        gc.setStroke(javafx.scene.paint.Color.LIGHTGRAY);
+        gc.setLineWidth(1);
+        gc.strokeLine(20, 100, 410, 100);
+        gc.setStroke(javafx.scene.paint.Color.web("#2980b9"));
+        gc.setLineWidth(2.5);
+
+        final double[] lastPos = {-1, -1};
+        canvas.setOnMousePressed(e -> { lastPos[0] = e.getX(); lastPos[1] = e.getY(); });
+        canvas.setOnMouseDragged(e -> {
+            gc.strokeLine(lastPos[0], lastPos[1], e.getX(), e.getY());
+            lastPos[0] = e.getX(); lastPos[1] = e.getY();
+        });
+        canvas.setStyle("-fx-border-color: #ccc; -fx-border-width: 1;");
+
+        Button clearBtn = new Button("🗑 Effacer");
+        clearBtn.setStyle("-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 11; " +
+                "-fx-background-radius: 6; -fx-padding: 5 14; -fx-cursor: hand;");
+        clearBtn.setOnAction(e -> {
+            gc.setFill(javafx.scene.paint.Color.WHITE);
+            gc.fillRect(0, 0, 430, 130);
+            gc.setStroke(javafx.scene.paint.Color.LIGHTGRAY);
+            gc.setLineWidth(1);
+            gc.strokeLine(20, 100, 410, 100);
+            gc.setStroke(javafx.scene.paint.Color.web("#2980b9"));
+            gc.setLineWidth(2.5);
+        });
+
+        Label errLbl = new Label();
+        errLbl.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 12;");
+
+        body.getChildren().addAll(patientInfo, consentCheck, canvasLbl, canvas, clearBtn, errLbl);
+
+        // Footer
+        javafx.scene.layout.HBox footer = new javafx.scene.layout.HBox(12);
+        footer.setAlignment(javafx.geometry.Pos.CENTER);
+        footer.setPadding(new javafx.geometry.Insets(14, 24, 20, 24));
+
+        Button cancelBtn = new Button("Annuler");
+        cancelBtn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; " +
+                "-fx-background-radius: 20; -fx-padding: 10 30; -fx-cursor: hand;");
+        cancelBtn.setOnAction(e -> dialog.close());
+
+        Button signBtn = new Button("✍  Signer mon ordonnance");
+        signBtn.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; " +
+                "-fx-background-radius: 20; -fx-padding: 10 30; -fx-cursor: hand; -fx-font-size: 13;");
+        signBtn.setOnAction(e -> {
+            if (!consentCheck.isSelected()) {
+                errLbl.setText("Veuillez cocher la case de consentement.");
+                return;
+            }
+            String signatureData = nomPatient + "|" + System.currentTimeMillis();
+            org.example.util.ElectronicSignatureService.SignatureResult result =
+                    org.example.util.ElectronicSignatureService.getInstance()
+                            .signer(numeroOrdonnance, nomPatient, "patient", signatureData);
+
+            if (!result.success) { errLbl.setText(result.message); return; }
+
+            boolean saved = org.example.util.ElectronicSignatureService.getInstance()
+                    .sauvegarderSignaturePatient(ordonnanceId, result);
+
+            if (saved) {
+                dialog.close();
+                // Fenêtre de confirmation
+                javafx.stage.Stage ok = new javafx.stage.Stage();
+                ok.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+                ok.setTitle("Signature enregistrée");
+                javafx.scene.layout.VBox okRoot = new javafx.scene.layout.VBox(16);
+                okRoot.setAlignment(javafx.geometry.Pos.CENTER);
+                okRoot.setPadding(new javafx.geometry.Insets(30, 40, 30, 40));
+                okRoot.setStyle("-fx-background-color: white;");
+                okRoot.setMinWidth(380);
+                Label okIcon = new Label("✅"); okIcon.setStyle("-fx-font-size: 48;");
+                Label okTitle = new Label("Signature enregistrée !");
+                okTitle.setStyle("-fx-font-size: 17; -fx-font-weight: bold; -fx-text-fill: #2980b9;");
+                Label okSub = new Label("Votre ordonnance " + numeroOrdonnance + "\na été signée électroniquement le " + result.signedAt + ".");
+                okSub.setStyle("-fx-font-size: 12; -fx-text-fill: #555; -fx-text-alignment: center; -fx-wrap-text: true;");
+                okSub.setWrapText(true);
+                okSub.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+                Button okBtn = new Button("Fermer");
+                okBtn.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; " +
+                        "-fx-background-radius: 20; -fx-padding: 10 40; -fx-cursor: hand;");
+                okBtn.setOnAction(ev -> ok.close());
+                okRoot.getChildren().addAll(okIcon, okTitle, okSub, okBtn);
+                ok.setScene(new javafx.scene.Scene(okRoot));
+                ok.showAndWait();
+            } else {
+                errLbl.setText("Erreur lors de la sauvegarde de la signature.");
+            }
+        });
+
+        footer.getChildren().addAll(cancelBtn, signBtn);
+        root.getChildren().addAll(header, body, footer);
+        dialog.setScene(new javafx.scene.Scene(root));
+        dialog.showAndWait();
     }
 
     // Navigation vers la page d'accueil

@@ -10,6 +10,9 @@ public class CuraVitaApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        // Démarrer le serveur HTTP local pour les QR codes PDF
+        org.example.util.QRPdfServerService.getInstance();
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
         Parent root = loader.load();
         Scene scene = new Scene(root);

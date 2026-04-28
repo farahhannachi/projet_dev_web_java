@@ -23,7 +23,10 @@ public class BackTraitementController {
     @FXML private VBox pageContainer; // Conteneur principal de la page (remplacé dynamiquement)
 
     @FXML
-    public void initialize() { showList(); } // Initialisation : afficher la liste des traitements
+    public void initialize() {
+        org.example.util.AuditService.getInstance().initTable();
+        showList();
+    }
 
     public void openNewForm() { showForm(null); } // Ouvrir le formulaire d'ajout (appelé depuis le Dashboard)
 
@@ -61,21 +64,58 @@ public class BackTraitementController {
         filterCard.getChildren().addAll(new Label("\uD83D\uDD0D Filtrer par :"), filters);
 
         TableView<ObservableList<String>> table = new TableView<>();
-        table.getStyleClass().add("modern-table"); table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY); table.setMinHeight(400);
+        table.getStyleClass().add("modern-table"); table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY); table.setMinHeight(400);
         String[] hdrs = {"ID","Ordonnance","Patient","Produit","Dosage","Fr\u00e9quence","Dur\u00e9e (jours)","Date D\u00e9but","Date Fin","Statut","Actions"};
         for (int i = 0; i < hdrs.length; i++) {
             final int col = i;
             TableColumn<ObservableList<String>, String> c = new TableColumn<>(hdrs[i]);
             c.setCellValueFactory(p -> new javafx.beans.property.SimpleStringProperty(col < p.getValue().size() ? p.getValue().get(col) : ""));
+            // Largeur fixe pour la colonne Actions
             if (i == hdrs.length - 1) {
+                c.setMinWidth(310);
+                c.setPrefWidth(340);
+                c.setResizable(false);
                 c.setCellFactory(tc -> new TableCell<>() {
-                    final Button eb = new Button("Modifier"); final Button db = new Button("Supprimer"); final HBox bx = new HBox(5, eb, db);
-                    { eb.setStyle("-fx-background-color:#f39c12;-fx-text-fill:white;-fx-font-size:11;-fx-background-radius:5;-fx-cursor:hand;-fx-padding:3 8;");
-                      db.setStyle("-fx-background-color:#e74c3c;-fx-text-fill:white;-fx-font-size:11;-fx-background-radius:5;-fx-cursor:hand;-fx-padding:3 8;");
-                      eb.setOnAction(e -> showForm(getTableView().getItems().get(getIndex()).get(0)));
-                      db.setOnAction(e -> { String id = getTableView().getItems().get(getIndex()).get(0);
-                          new Alert(Alert.AlertType.CONFIRMATION,"Supprimer #"+id+" ?",ButtonType.YES,ButtonType.NO).showAndWait().ifPresent(b -> {
-                              if(b==ButtonType.YES){try{PreparedStatement p2=DatabaseUtil.getInstance().getConnection().prepareStatement("DELETE FROM traitement WHERE id_traitement=?");p2.setInt(1,Integer.parseInt(id));p2.executeUpdate();p2.close();showList();}catch(SQLException ex){}}});});}
+                    final Button eb = new Button("Modifier");
+                    final Button db = new Button("Supprimer");
+                    final Button histBtn = new Button("📋 Historique");
+                    final Button predBtn = new Button("🧠 Prédiction");
+                    final HBox bx = new HBox(5, eb, predBtn, histBtn, db);
+                    {
+                        eb.setStyle("-fx-background-color:#f39c12;-fx-text-fill:white;-fx-font-size:11;-fx-background-radius:5;-fx-cursor:hand;-fx-padding:3 8;");
+                        db.setStyle("-fx-background-color:#e74c3c;-fx-text-fill:white;-fx-font-size:11;-fx-background-radius:5;-fx-cursor:hand;-fx-padding:3 8;");
+                        histBtn.setStyle("-fx-background-color:#2980b9;-fx-text-fill:white;-fx-font-size:11;-fx-background-radius:5;-fx-cursor:hand;-fx-padding:3 8;");
+                        predBtn.setStyle("-fx-background-color:#6c3483;-fx-text-fill:white;-fx-font-size:11;-fx-background-radius:5;-fx-cursor:hand;-fx-padding:3 8;");
+                        eb.setOnAction(e -> showForm(getTableView().getItems().get(getIndex()).get(0)));
+                        predBtn.setOnAction(e -> {
+                            ObservableList<String> row = getTableView().getItems().get(getIndex());
+                            String patientNom = row.size() > 2 ? row.get(2) : "Patient";
+                            int traitId = Integer.parseInt(row.get(0));
+                            showAdherenceDialog(traitId, patientNom);
+                        });
+                        histBtn.setOnAction(e -> {
+                            ObservableList<String> row = getTableView().getItems().get(getIndex());
+                            String label = row.size() > 3 ? row.get(3) : "Traitement #" + row.get(0);
+                            showHistoriqueDialog("traitement", row.get(0), label);
+                        });
+                        db.setOnAction(e -> {
+                            String id = getTableView().getItems().get(getIndex()).get(0);
+                            ObservableList<String> row = getTableView().getItems().get(getIndex());
+                            String produitNom = row.size() > 3 ? row.get(3) : "?";
+                            String dosage    = row.size() > 4 ? row.get(4) : "";
+                            String statut    = row.size() > 9 ? row.get(9) : "";
+                            if (org.example.util.DialogService.showDeleteConfirmation("le traitement #" + id + " (" + produitNom + ")")) {
+                                try {
+                                    org.example.util.AuditService.getInstance().logSuppression(
+                                        "traitement", id,
+                                        "Produit=" + produitNom + " | dosage=" + dosage + " | statut=" + statut,
+                                        "Admin");
+                                    PreparedStatement p2 = DatabaseUtil.getInstance().getConnection().prepareStatement("DELETE FROM traitement WHERE id_traitement=?");
+                                    p2.setInt(1, Integer.parseInt(id)); p2.executeUpdate(); p2.close(); showList();
+                                } catch (SQLException ex) { org.example.util.DialogService.showError("Erreur", ex.getMessage()); }
+                            }
+                        });
+                    }
                     @Override protected void updateItem(String item, boolean empty) { super.updateItem(item, empty); setGraphic(empty ? null : bx); }
                 });
             }
@@ -302,6 +342,36 @@ public class BackTraitementController {
             } catch (SQLException e) { System.out.println(e.getMessage()); }
         }
 
+        // Bouton IA suggestion dosage/fréquence/repas/durée
+        Button iaBtn = new Button("\uD83E\uDD16 Suggestion IA");
+        iaBtn.setStyle("-fx-background-color: #6c3483; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;");
+        iaBtn.setOnAction(e -> {
+            if (produitEntries.isEmpty()) { err.setText("Ajoutez au moins un produit avant de demander une suggestion IA."); return; }
+            String notes = notesF.getText() != null ? notesF.getText().trim() : "";
+            StringBuilder rapport = new StringBuilder();
+            for (java.util.Map<String, Object> entry : produitEntries) {
+                String prodStr = (String) entry.get("produit");
+                int prodId = Integer.parseInt(prodStr.split(" - ")[0]);
+                String prodNom = prodStr.split(" - ")[1];
+                org.example.util.TreatmentSuggestionService.Suggestion sug =
+                        org.example.util.TreatmentSuggestionService.getInstance().suggerer(prodId, notes);
+                ((TextField) entry.get("dosage")).setText(sug.dosage);
+                ((TextField) entry.get("frequence")).setText(sug.frequence);
+                ((ComboBox<String>) entry.get("repas")).setValue(sug.repas);
+                dureeF.setText(String.valueOf(sug.dureeJours));
+                rapport.append("\uD83D\uDCE6 ").append(prodNom).append("\n")
+                       .append("  Dosage    : ").append(sug.dosage).append("\n")
+                       .append("  Fréquence : ").append(sug.frequence).append("\n")
+                       .append("  Repas     : ").append(sug.repas).append("\n")
+                       .append("  Durée     : ").append(sug.dureeJours).append(" jours\n")
+                       .append("  Source    : ").append(sug.source).append("\n\n");
+            }
+            refreshRef[0].run();
+            org.example.util.DialogService.showSuccess("🤖 Suggestion IA appliquée",
+                "Les champs ont été remplis automatiquement.\n\n" + rapport.toString());
+            err.setText("");
+        });
+
         HBox btns = new HBox(15); btns.setAlignment(Pos.CENTER); btns.setPadding(new Insets(10, 0, 0, 0));
         Button cancel = new Button("\u2190 Retour"); cancel.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25; -fx-cursor: hand;");
         cancel.setOnAction(e -> showList());
@@ -489,19 +559,65 @@ public class BackTraitementController {
                 int userId = Integer.parseInt(userC.getValue().split(" - ")[0]);
                 int ordId = Integer.parseInt(ordC.getValue().split(" - ")[0]);
                 if (isEdit) {
+                    // ── Lire les anciennes valeurs AVANT suppression pour l'audit ──
+                    java.util.List<String> anciennesLignes = new java.util.ArrayList<>();
+                    try {
+                        PreparedStatement psOldT = DatabaseUtil.getInstance().getConnection().prepareStatement(
+                            "SELECT p.nom, t.dosage, t.frequence, t.repas, t.duree_jours, t.status, t.notes " +
+                            "FROM traitement t LEFT JOIN produit p ON t.id_produit_id = p.id_produit " +
+                            "WHERE t.id_ordonnance_id = ?");
+                        psOldT.setInt(1, ordId);
+                        ResultSet rsOldT = psOldT.executeQuery();
+                        while (rsOldT.next()) {
+                            anciennesLignes.add(
+                                (rsOldT.getString("nom") != null ? rsOldT.getString("nom") : "?") +
+                                " | dosage=" + (rsOldT.getString("dosage") != null ? rsOldT.getString("dosage") : "") +
+                                " | freq=" + (rsOldT.getString("frequence") != null ? rsOldT.getString("frequence") : "") +
+                                " | repas=" + (rsOldT.getString("repas") != null ? rsOldT.getString("repas") : "") +
+                                " | durée=" + rsOldT.getInt("duree_jours") + "j" +
+                                " | statut=" + (rsOldT.getString("status") != null ? rsOldT.getString("status") : "")
+                            );
+                        }
+                        rsOldT.close(); psOldT.close();
+                    } catch (Exception ignored) {}
+
                     PreparedStatement psDel = DatabaseUtil.getInstance().getConnection().prepareStatement("DELETE FROM traitement WHERE id_ordonnance_id = ?");
                     psDel.setInt(1, ordId); psDel.executeUpdate(); psDel.close();
+
+                    // Audit suppression des anciens traitements
+                    org.example.util.AuditService audit = org.example.util.AuditService.getInstance();
+                    for (String ancienne : anciennesLignes) {
+                        audit.log("traitement", editId, "SUPPRESSION",
+                            "Traitement supprimé (remplacement)", ancienne, null, "Admin");
+                    }
+
                     for (java.util.Map<String, Object> entry : produitEntries) {
                         int prodId = Integer.parseInt(((String) entry.get("produit")).split(" - ")[0]);
                         String dos = ((TextField) entry.get("dosage")).getText().trim();
                         String freq = ((TextField) entry.get("frequence")).getText().trim();
                         String repas = ((ComboBox<?>) entry.get("repas")).getValue() != null ? ((ComboBox<?>) entry.get("repas")).getValue().toString() : "";
-                        PreparedStatement ps = DatabaseUtil.getInstance().getConnection().prepareStatement("INSERT INTO traitement (id_utilisateur_id,dosage,frequence,duree_jours,date_debut,date_fin,status,notes,id_ordonnance_id,id_produit_id,repas) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+                        PreparedStatement ps = DatabaseUtil.getInstance().getConnection().prepareStatement("INSERT INTO traitement (id_utilisateur_id,dosage,frequence,duree_jours,date_debut,date_fin,status,notes,id_ordonnance_id,id_produit_id,repas) VALUES (?,?,?,?,?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
                         ps.setInt(1, userId); ps.setString(2, dos); ps.setString(3, freq); ps.setInt(4, duree);
                         ps.setTimestamp(5, ddP.getValue() != null ? Timestamp.valueOf(ddP.getValue().atStartOfDay()) : null);
                         ps.setTimestamp(6, dfP.getValue() != null ? Timestamp.valueOf(dfP.getValue().atStartOfDay()) : null);
                         ps.setString(7, statC.getValue()); ps.setString(8, notesText);
-                        ps.setInt(9, ordId); ps.setInt(10, prodId); ps.setString(11, repas); ps.executeUpdate(); ps.close();
+                        ps.setInt(9, ordId); ps.setInt(10, prodId); ps.setString(11, repas); ps.executeUpdate();
+
+                        // Audit création du nouveau traitement
+                        ResultSet gk = ps.getGeneratedKeys();
+                        if (gk.next()) {
+                            String newId = String.valueOf(gk.getInt(1));
+                            String prodNom = ((String) entry.get("produit")).contains(" - ") ? ((String) entry.get("produit")).split(" - ", 2)[1] : (String) entry.get("produit");
+                            String nouvelleLigne = prodNom +
+                                " | dosage=" + dos +
+                                " | freq=" + freq +
+                                " | repas=" + repas +
+                                " | durée=" + duree + "j" +
+                                " | statut=" + statC.getValue();
+                            audit.log("traitement", newId, "CRÉATION",
+                                "Nouveau traitement (remplacement)", null, nouvelleLigne, "Admin");
+                        }
+                        gk.close(); ps.close();
                     }
                 } else {
                     String traitStatus = "en_attente";
@@ -514,12 +630,89 @@ public class BackTraitementController {
                         String dos = ((TextField) entry.get("dosage")).getText().trim();
                         String freq = ((TextField) entry.get("frequence")).getText().trim();
                         String repas = ((ComboBox<?>) entry.get("repas")).getValue() != null ? ((ComboBox<?>) entry.get("repas")).getValue().toString() : "";
-                        PreparedStatement ps = DatabaseUtil.getInstance().getConnection().prepareStatement("INSERT INTO traitement (id_utilisateur_id,dosage,frequence,duree_jours,date_debut,date_fin,status,notes,id_ordonnance_id,id_produit_id,repas) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+                        PreparedStatement ps = DatabaseUtil.getInstance().getConnection().prepareStatement("INSERT INTO traitement (id_utilisateur_id,dosage,frequence,duree_jours,date_debut,date_fin,status,notes,id_ordonnance_id,id_produit_id,repas) VALUES (?,?,?,?,?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
                         ps.setInt(1, userId); ps.setString(2, dos); ps.setString(3, freq); ps.setInt(4, duree);
                         ps.setTimestamp(5, ddP.getValue() != null ? Timestamp.valueOf(ddP.getValue().atStartOfDay()) : Timestamp.valueOf(java.time.LocalDateTime.now()));
                         ps.setTimestamp(6, dfP.getValue() != null ? Timestamp.valueOf(dfP.getValue().atStartOfDay()) : null);
                         ps.setString(7, traitStatus); ps.setString(8, notesText);
-                        ps.setInt(9, ordId); ps.setInt(10, prodId); ps.setString(11, repas); ps.executeUpdate(); ps.close();
+                        ps.setInt(9, ordId); ps.setInt(10, prodId); ps.setString(11, repas); ps.executeUpdate();
+                        // Audit création
+                        ResultSet gk = ps.getGeneratedKeys();
+                        if (gk.next()) {
+                            String newId = String.valueOf(gk.getInt(1));
+                            String prodNom = ((String) entry.get("produit")).contains(" - ") ? ((String) entry.get("produit")).split(" - ", 2)[1] : (String) entry.get("produit");
+                            org.example.util.AuditService.getInstance().logCreation("traitement", newId,
+                                prodNom + " | dosage=" + dos + " | freq=" + freq + " | statut=" + traitStatus, "Admin");
+                        }
+                        gk.close(); ps.close();
+                    }
+                }
+                // Envoi email au patient après modification (mode edit uniquement)
+                if (isEdit) {
+                    try {
+                        // Récupérer email + nom du patient
+                        PreparedStatement psEmail = DatabaseUtil.getInstance().getConnection().prepareStatement(
+                            "SELECT u.email, u.nom, u.prenom, o.numero_ordonnance FROM utilisateur u " +
+                            "JOIN ordonnance o ON o.id_utilisateur_id = u.id_utilisateur " +
+                            "WHERE u.id_utilisateur = ? AND o.id_ordonnance = ?");
+                        psEmail.setInt(1, userId);
+                        psEmail.setInt(2, ordId);
+                        ResultSet rsEmail = psEmail.executeQuery();
+                        if (rsEmail.next()) {
+                            String email = rsEmail.getString("email");
+                            String prenom = rsEmail.getString("prenom") != null ? rsEmail.getString("prenom") : "";
+                            String nom = rsEmail.getString("nom") != null ? rsEmail.getString("nom") : "";
+                            String numOrd = rsEmail.getString("numero_ordonnance");
+
+                            // Construire le détail des produits
+                            StringBuilder produitsHtml = new StringBuilder();
+                            for (java.util.Map<String, Object> entry : produitEntries) {
+                                String prodNom = ((String) entry.get("produit")).split(" - ")[1];
+                                String dos = ((TextField) entry.get("dosage")).getText().trim();
+                                String freq = ((TextField) entry.get("frequence")).getText().trim();
+                                String rep = ((ComboBox<?>) entry.get("repas")).getValue() != null ? ((ComboBox<?>) entry.get("repas")).getValue().toString() : "-";
+                                produitsHtml.append("<tr>")
+                                    .append("<td style='padding:8px;border:1px solid #ddd;'>").append(prodNom).append("</td>")
+                                    .append("<td style='padding:8px;border:1px solid #ddd;'>").append(dos).append("</td>")
+                                    .append("<td style='padding:8px;border:1px solid #ddd;'>").append(freq).append("</td>")
+                                    .append("<td style='padding:8px;border:1px solid #ddd;'>").append(rep).append("</td>")
+                                    .append("<td style='padding:8px;border:1px solid #ddd;'>").append(duree).append(" jours</td>")
+                                    .append("</tr>");
+                            }
+
+                            String htmlBody =
+                                "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;border:1px solid #e0e0e0;border-radius:12px;overflow:hidden;'>" +
+                                "<div style='background-color:#1f6f5c;padding:25px;text-align:center;'>" +
+                                "<h1 style='color:white;margin:0;font-size:24px;'>CuraVita Pharmacie</h1>" +
+                                "<p style='color:rgba(255,255,255,0.85);margin:5px 0 0;font-size:13px;'>Votre santé, notre priorité</p>" +
+                                "</div>" +
+                                "<div style='padding:30px;background:#fff;'>" +
+                                "<p style='font-size:16px;color:#333;'>Bonjour <strong>" + prenom + " " + nom + "</strong>,</p>" +
+                                "<p style='font-size:14px;color:#555;line-height:1.6;'>Nous avons le plaisir de vous informer que votre ordonnance <strong style='color:#1f6f5c;'>" + numOrd + "</strong> a été traitée avec succès par notre équipe pharmaceutique. Votre traitement est désormais complet et prêt à être suivi.</p>" +
+                                "<div style='background:#f0f8f5;border-left:4px solid #1f6f5c;padding:15px;border-radius:6px;margin:20px 0;'>" +
+                                "<p style='margin:0;font-size:13px;color:#1f6f5c;font-weight:bold;'>📋 Détail de votre traitement :</p>" +
+                                "</div>" +
+                                "<table style='width:100%;border-collapse:collapse;font-size:13px;'>" +
+                                "<thead><tr style='background:#1f6f5c;color:white;'>" +
+                                "<th style='padding:10px;text-align:left;'>Produit</th>" +
+                                "<th style='padding:10px;text-align:left;'>Dosage</th>" +
+                                "<th style='padding:10px;text-align:left;'>Fréquence</th>" +
+                                "<th style='padding:10px;text-align:left;'>Repas</th>" +
+                                "<th style='padding:10px;text-align:left;'>Durée</th>" +
+                                "</tr></thead><tbody>" + produitsHtml + "</tbody></table>" +
+                                "<p style='font-size:14px;color:#555;margin-top:25px;line-height:1.6;'>Connectez-vous à votre espace <strong>CuraVita</strong> pour consulter l'intégralité de votre dossier médical et suivre l'évolution de vos traitements.</p>" +
+                                "<p style='font-size:12px;color:#999;margin-top:30px;border-top:1px solid #eee;padding-top:15px;'>Cet email a été envoyé automatiquement par CuraVita Pharmacie. Merci de ne pas y répondre.</p>" +
+                                "</div></div>";
+
+                            org.example.util.EmailService.getInstance().send(
+                                email,
+                                "✅ Votre traitement est prêt — Ordonnance " + numOrd,
+                                htmlBody
+                            );
+                        }
+                        rsEmail.close(); psEmail.close();
+                    } catch (Exception emailEx) {
+                        System.err.println("[Email] Erreur : " + emailEx.getMessage());
                     }
                 }
                 showList();
@@ -528,7 +721,7 @@ public class BackTraitementController {
                 save.setDisable(false);
             }
         });
-        btns.getChildren().addAll(cancel, save);
+        btns.getChildren().addAll(cancel, iaBtn, save);
 
         form.getChildren().addAll(new Label("Ordonnance"), ordC, new Label("Produit(s)"), prodRow, produitsFieldsBox, new Label("Patient"), userC,
                 new Label("Notes"), notesF, new Label("Dur\u00e9e (jours)"), dureeF, r2);
@@ -539,6 +732,349 @@ public class BackTraitementController {
         VBox wrap = new VBox(card); wrap.setAlignment(Pos.TOP_CENTER); wrap.setPadding(new Insets(30)); wrap.setStyle("-fx-background-color: #f5f5f5;");
         ScrollPane sc = new ScrollPane(wrap); sc.setFitToWidth(true); sc.setStyle("-fx-background-color: #f5f5f5;");
         pageContainer.getChildren().add(sc); VBox.setVgrow(sc, Priority.ALWAYS);
+    }
+
+    // Fenêtre popup prédiction non-adhérence pour un traitement spécifique
+    private void showAdherenceDialog(int traitId, String patientNom) {
+        // Récupérer l'ID utilisateur depuis le traitement
+        int userId = 0;
+        try {
+            PreparedStatement ps = DatabaseUtil.getInstance().getConnection()
+                    .prepareStatement("SELECT id_utilisateur_id FROM traitement WHERE id_traitement=?");
+            ps.setInt(1, traitId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) userId = rs.getInt(1);
+            rs.close(); ps.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
+        // Calculer le risque
+        org.example.util.AdherencePredictor.PatientRisk risk = null;
+        try {
+            java.util.List<org.example.util.AdherencePredictor.PatientRisk> tous =
+                    org.example.util.AdherencePredictor.getInstance().predireTousLesRisques();
+            for (org.example.util.AdherencePredictor.PatientRisk r : tous) {
+                if (r.userId == userId) { risk = r; break; }
+            }
+        } catch (Exception e) { System.err.println(e.getMessage()); }
+
+        double score = risk != null ? risk.scoreRisque : 0;
+
+        // Couleur et niveau selon score
+        String headerColor, iconText, niveauText, bodyBg, borderColor;
+        if (score >= 0.6) {
+            headerColor = "#e74c3c"; iconText = "✕"; niveauText = "ÉLEVÉ";
+            bodyBg = "#fdecea"; borderColor = "#e74c3c";
+        } else if (score >= 0.3) {
+            headerColor = "#e67e22"; iconText = "⚠️"; niveauText = "MODÉRÉ";
+            bodyBg = "#fff8e1"; borderColor = "#f39c12";
+        } else {
+            headerColor = "#27ae60"; iconText = "✅"; niveauText = "FAIBLE";
+            bodyBg = "#eafaf1"; borderColor = "#27ae60";
+        }
+
+        Stage dialog = new Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.setTitle("Prédiction Non-Adhérence");
+        dialog.setResizable(false);
+
+        VBox root = new VBox(0);
+        root.setStyle("-fx-background-color: #f8f9fa;");
+        root.setMinWidth(440); root.setMaxWidth(440);
+
+        // ── En-tête coloré ────────────────────────────────────────────
+        VBox header = new VBox(8);
+        header.setAlignment(Pos.CENTER);
+        header.setPadding(new Insets(22, 20, 16, 20));
+        header.setStyle("-fx-background-color: " + headerColor + ";");
+
+        javafx.scene.layout.StackPane iconCircle = new javafx.scene.layout.StackPane();
+        iconCircle.setMinSize(56, 56); iconCircle.setMaxSize(56, 56);
+        iconCircle.setStyle("-fx-background-color: rgba(255,255,255,0.2); -fx-background-radius: 28;");
+        Label iconLbl = new Label(iconText);
+        iconLbl.setStyle("-fx-font-size: 24; -fx-text-fill: white;");
+        iconCircle.getChildren().add(iconLbl);
+
+        Label titleLbl = new Label("🧠 Prédiction Non-Adhérence");
+        titleLbl.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: white;");
+        Label subLbl = new Label("Patient : " + patientNom);
+        subLbl.setStyle("-fx-font-size: 12; -fx-text-fill: rgba(255,255,255,0.85);");
+        header.getChildren().addAll(iconCircle, titleLbl, subLbl);
+
+        // ── Corps ─────────────────────────────────────────────────────
+        VBox body = new VBox(12);
+        body.setPadding(new Insets(18, 24, 10, 24));
+
+        // Bandeau niveau de risque
+        VBox niveauBand = new VBox(6);
+        niveauBand.setPadding(new Insets(12, 14, 12, 14));
+        niveauBand.setStyle("-fx-background-color: " + bodyBg + "; -fx-background-radius: 8; " +
+                "-fx-border-color: " + borderColor + "; -fx-border-width: 0 0 0 4; -fx-border-radius: 0 8 8 0;");
+
+        Label niveauLbl = new Label("Niveau de risque : " + niveauText);
+        niveauLbl.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: " + headerColor + ";");
+
+        // Barre de progression
+        javafx.scene.control.ProgressBar bar = new javafx.scene.control.ProgressBar(score);
+        bar.setPrefWidth(370); bar.setPrefHeight(12);
+        bar.setStyle("-fx-accent: " + headerColor + ";");
+
+        Label scoreVal = new Label(String.format("Score : %.0f%%", score * 100));
+        scoreVal.setStyle("-fx-font-size: 12; -fx-text-fill: " + headerColor + "; -fx-font-weight: bold;");
+        niveauBand.getChildren().addAll(niveauLbl, bar, scoreVal);
+        body.getChildren().add(niveauBand);
+
+        // Facteurs détectés
+        VBox factorsBox = new VBox(5);
+        factorsBox.setPadding(new Insets(10, 14, 10, 14));
+        factorsBox.setStyle("-fx-background-color: white; -fx-background-radius: 8; " +
+                "-fx-border-color: #dee2e6; -fx-border-width: 1; -fx-border-radius: 8;");
+        Label factTitle = new Label("🔍 Facteurs détectés :");
+        factTitle.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        factorsBox.getChildren().add(factTitle);
+
+        if (risk != null && !risk.facteurs.isEmpty()) {
+            for (String f : risk.facteurs) {
+                Label fl = new Label("  • " + f);
+                fl.setStyle("-fx-font-size: 12; -fx-text-fill: #555; -fx-wrap-text: true;");
+                fl.setMaxWidth(370); fl.setWrapText(true);
+                factorsBox.getChildren().add(fl);
+            }
+        } else {
+            Label fl = new Label("  • Aucun facteur de risque détecté");
+            fl.setStyle("-fx-font-size: 12; -fx-text-fill: #27ae60;");
+            factorsBox.getChildren().add(fl);
+        }
+        body.getChildren().add(factorsBox);
+
+        // Recommandation
+        String conseil;
+        if (score >= 0.6) conseil = "Suivi renforcé recommandé. Contacter le patient rapidement.";
+        else if (score >= 0.3) conseil = "Surveiller l'évolution du traitement de près.";
+        else conseil = "Patient adhérent. Continuer le suivi normal.";
+
+        VBox conseilBox = new VBox(4);
+        conseilBox.setPadding(new Insets(10, 14, 10, 14));
+        conseilBox.setStyle("-fx-background-color: #eaf4fb; -fx-background-radius: 8; " +
+                "-fx-border-color: #2980b9; -fx-border-width: 0 0 0 3; -fx-border-radius: 0 8 8 0;");
+        Label conseilTitle = new Label("💡 Recommandation :");
+        conseilTitle.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #2980b9;");
+        Label conseilLbl = new Label(conseil);
+        conseilLbl.setStyle("-fx-font-size: 12; -fx-text-fill: #2c3e50; -fx-wrap-text: true;");
+        conseilLbl.setMaxWidth(370); conseilLbl.setWrapText(true);
+        conseilBox.getChildren().addAll(conseilTitle, conseilLbl);
+        body.getChildren().add(conseilBox);
+
+        // ── Footer ────────────────────────────────────────────────────
+        VBox footer = new VBox();
+        footer.setAlignment(Pos.CENTER);
+        footer.setPadding(new Insets(14, 24, 20, 24));
+        Button closeBtn = new Button("Compris");
+        closeBtn.setStyle("-fx-background-color: " + headerColor + "; -fx-text-fill: white; " +
+                "-fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 50; " +
+                "-fx-cursor: hand; -fx-font-size: 13;");
+        closeBtn.setOnAction(ev -> dialog.close());
+        footer.getChildren().add(closeBtn);
+
+        root.getChildren().addAll(header, body, footer);
+        dialog.setScene(new Scene(root));
+        dialog.showAndWait();
+    }
+
+    // Prédiction de non-adhérence au traitement
+    private void showAdherencePrediction() {
+        pageContainer.getChildren().clear();
+        HBox greenBar = new HBox(); greenBar.setMinHeight(6); greenBar.setStyle("-fx-background-color: #6c3483;");
+
+        VBox header = new VBox(5); header.setPadding(new Insets(25, 30, 25, 30));
+        header.setStyle("-fx-background-color: white; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0.2, 0, 2);");
+        Label t = new Label("\uD83E\uDDE0 Prédiction de Non-Adhérence");
+        t.setStyle("-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: #6c3483;");
+        Label s = new Label("Patients à risque d'abandonner leur traitement — basé sur l'historique");
+        s.setStyle("-fx-font-size: 12; -fx-text-fill: #888;");
+        Button backBtn = new Button("\u2190 Retour");
+        backBtn.setStyle("-fx-background-color: #eee; -fx-background-radius: 15; -fx-padding: 6 16; -fx-cursor: hand;");
+        backBtn.setOnAction(e -> showList());
+        header.getChildren().addAll(backBtn, t, s);
+
+        java.util.List<org.example.util.AdherencePredictor.PatientRisk> risques =
+                org.example.util.AdherencePredictor.getInstance().predireTousLesRisques();
+
+        long nbEleve = risques.stream().filter(r -> "Élevé".equals(r.niveau)).count();
+        long nbModere = risques.stream().filter(r -> "Modéré".equals(r.niveau)).count();
+        long nbFaible = risques.stream().filter(r -> "Faible".equals(r.niveau)).count();
+
+        HBox summary = new HBox(20); summary.setPadding(new Insets(20, 30, 10, 30)); summary.setAlignment(Pos.CENTER_LEFT);
+        summary.getChildren().addAll(
+            riskCard("\uD83D\uDD34 Risque Élevé", String.valueOf(nbEleve), "#e74c3c"),
+            riskCard("\uD83D\uDFE1 Risque Modéré", String.valueOf(nbModere), "#f39c12"),
+            riskCard("\uD83D\uDFE2 Risque Faible", String.valueOf(nbFaible), "#27ae60")
+        );
+
+        TableView<ObservableList<String>> table = new TableView<>();
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setMinHeight(350);
+
+        String[] cols = {"Patient","Total","Abandonnés","Ord. Expirées","En attente +30j","Score","Niveau","Facteurs"};
+        for (int i = 0; i < cols.length; i++) {
+            final int idx = i;
+            TableColumn<ObservableList<String>, String> col = new TableColumn<>(cols[i]);
+            col.setCellValueFactory(p -> new javafx.beans.property.SimpleStringProperty(
+                    idx < p.getValue().size() ? p.getValue().get(idx) : ""));
+            if (i == 6) {
+                col.setCellFactory(tc -> new TableCell<>() {
+                    @Override protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || item == null) { setText(null); setStyle(""); return; }
+                        setText(item);
+                        if ("Élevé".equals(item)) setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                        else if ("Modéré".equals(item)) setStyle("-fx-text-fill: #f39c12; -fx-font-weight: bold;");
+                        else setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
+                    }
+                });
+            }
+            table.getColumns().add(col);
+        }
+
+        javafx.collections.ObservableList<ObservableList<String>> data = FXCollections.observableArrayList();
+        for (org.example.util.AdherencePredictor.PatientRisk r : risques) {
+            ObservableList<String> row = FXCollections.observableArrayList();
+            row.add(r.nomPatient);
+            row.add(String.valueOf(r.totalTraitements));
+            row.add(String.valueOf(r.traitementsAbandonnés));
+            row.add(String.valueOf(r.ordonnancesExpirees));
+            row.add(String.valueOf(r.traitementsEnAttenteTropLongs));
+            row.add(String.format("%.0f%%", r.scoreRisque * 100));
+            row.add(r.niveau);
+            row.add(r.facteurs.isEmpty() ? "Aucun facteur détecté" : String.join(" | ", r.facteurs));
+            data.add(row);
+        }
+        data.sort((a, b) -> b.get(5).compareTo(a.get(5)));
+        table.setItems(data);
+
+        VBox tw = new VBox(table); tw.setPadding(new Insets(10, 30, 30, 30)); VBox.setVgrow(table, Priority.ALWAYS);
+        pageContainer.getChildren().addAll(greenBar, header, summary, tw);
+        VBox.setVgrow(tw, Priority.ALWAYS);
+    }
+
+    private HBox riskCard(String label, String value, String color) {
+        HBox card = new HBox(10); card.setAlignment(Pos.CENTER_LEFT);
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15 25; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 6, 0.2, 0, 2); -fx-border-color: " + color +
+                "; -fx-border-radius: 10; -fx-border-width: 2;");
+        Label lbl = new Label(label); lbl.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #333;");
+        Label val = new Label(value); val.setStyle("-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
+        card.getChildren().addAll(val, lbl);
+        return card;
+    }
+
+    // Fenêtre d'historique des modifications
+    private void showHistoriqueDialog(String entite, String entiteId, String entiteLabel) {
+        java.util.List<org.example.util.AuditService.AuditEntry> entries =
+                org.example.util.AuditService.getInstance().getHistorique(entite, entiteId);
+
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.setTitle("Historique — " + entiteLabel);
+        dialog.setResizable(true);
+
+        VBox root = new VBox(0);
+        root.setStyle("-fx-background-color: #f5f5f5;");
+        root.setMinWidth(620); root.setPrefWidth(680);
+
+        // En-tête
+        VBox header = new VBox(5);
+        header.setPadding(new Insets(20, 24, 16, 24));
+        header.setStyle("-fx-background-color: #2980b9;");
+        Label titleLbl = new Label("📋 Historique des modifications");
+        titleLbl.setStyle("-fx-font-size: 17; -fx-font-weight: bold; -fx-text-fill: white;");
+        Label subLbl = new Label(entite.substring(0,1).toUpperCase() + entite.substring(1) + " #" + entiteId + " — " + entiteLabel);
+        subLbl.setStyle("-fx-font-size: 12; -fx-text-fill: rgba(255,255,255,0.85);");
+        header.getChildren().addAll(titleLbl, subLbl);
+
+        VBox body = new VBox(8);
+        body.setPadding(new Insets(16, 20, 16, 20));
+
+        if (entries.isEmpty()) {
+            Label empty = new Label("Aucune modification enregistrée pour cet élément.");
+            empty.setStyle("-fx-font-size: 13; -fx-text-fill: #888; -fx-padding: 20;");
+            body.getChildren().add(empty);
+        } else {
+            for (org.example.util.AuditService.AuditEntry e : entries) {
+                VBox card = new VBox(5);
+                card.setPadding(new Insets(10, 14, 10, 14));
+                String bg, border, actionColor;
+                switch (e.action) {
+                    case "CRÉATION":    bg = "#eafaf1"; border = "#27ae60"; actionColor = "#27ae60"; break;
+                    case "SUPPRESSION": bg = "#fdecea"; border = "#e74c3c"; actionColor = "#e74c3c"; break;
+                    default:            bg = "#eaf4fb"; border = "#2980b9"; actionColor = "#2980b9"; break;
+                }
+                card.setStyle("-fx-background-color:" + bg + "; -fx-background-radius:8; " +
+                        "-fx-border-color:" + border + "; -fx-border-width:0 0 0 4; -fx-border-radius:0 8 8 0;");
+
+                HBox topRow = new HBox(10);
+                topRow.setAlignment(Pos.CENTER_LEFT);
+                Label actionLbl = new Label(e.action);
+                actionLbl.setStyle("-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:" + actionColor +
+                        "; -fx-background-color:white; -fx-padding:2 8; -fx-background-radius:10;");
+                Label dateLbl = new Label("🕐 " + e.modifieAt);
+                dateLbl.setStyle("-fx-font-size:11; -fx-text-fill:#666;");
+                Label adminLbl = new Label("👤 " + e.modifiePar);
+                adminLbl.setStyle("-fx-font-size:11; -fx-text-fill:#666;");
+                topRow.getChildren().addAll(actionLbl, dateLbl, adminLbl);
+                card.getChildren().add(topRow);
+
+                if (e.champ != null && !e.champ.isBlank()) {
+                    Label champLbl = new Label("Champ : " + e.champ);
+                    champLbl.setStyle("-fx-font-size:12; -fx-font-weight:bold; -fx-text-fill:#2c3e50;");
+                    card.getChildren().add(champLbl);
+                }
+                if (e.ancienneValeur != null || e.nouvelleValeur != null) {
+                    HBox diffRow = new HBox(8);
+                    diffRow.setAlignment(Pos.CENTER_LEFT);
+                    if (e.ancienneValeur != null && !e.ancienneValeur.isBlank()) {
+                        Label av = new Label("Avant : " + trunc(e.ancienneValeur, 60));
+                        av.setStyle("-fx-font-size:11; -fx-text-fill:#e74c3c;");
+                        diffRow.getChildren().add(av);
+                    }
+                    if (e.ancienneValeur != null && !e.ancienneValeur.isBlank()
+                            && e.nouvelleValeur != null && !e.nouvelleValeur.isBlank()) {
+                        diffRow.getChildren().add(new Label("→"));
+                    }
+                    if (e.nouvelleValeur != null && !e.nouvelleValeur.isBlank()) {
+                        Label ap = new Label("Après : " + trunc(e.nouvelleValeur, 60));
+                        ap.setStyle("-fx-font-size:11; -fx-text-fill:#27ae60;");
+                        diffRow.getChildren().add(ap);
+                    }
+                    card.getChildren().add(diffRow);
+                }
+                body.getChildren().add(card);
+            }
+        }
+
+        HBox footer = new HBox();
+        footer.setAlignment(Pos.CENTER);
+        footer.setPadding(new Insets(12, 20, 18, 20));
+        Button closeBtn = new Button("Fermer");
+        closeBtn.setStyle("-fx-background-color:#2980b9; -fx-text-fill:white; -fx-font-weight:bold; " +
+                "-fx-background-radius:20; -fx-padding:10 40; -fx-cursor:hand;");
+        closeBtn.setOnAction(e -> dialog.close());
+        footer.getChildren().add(closeBtn);
+
+        ScrollPane scroll = new ScrollPane(body);
+        scroll.setFitToWidth(true);
+        scroll.setPrefHeight(420);
+        scroll.setStyle("-fx-background:transparent; -fx-background-color:transparent;");
+
+        root.getChildren().addAll(header, scroll, footer);
+        dialog.setScene(new javafx.scene.Scene(root));
+        dialog.showAndWait();
+    }
+
+    private String trunc(String s, int max) {
+        if (s == null) return "";
+        return s.length() > max ? s.substring(0, max) + "..." : s;
     }
 
     // Afficher la page de statistiques avec PieCharts, cartes récapitulatives et top produits

@@ -123,8 +123,6 @@
                 <Insets left="80" right="80" bottom="15"/>
             </VBox.margin>
             <Label text="&#128203; Mes Ordonnances &amp; Traitements" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #333;"/>
-            <Region HBox.hgrow="ALWAYS"/>
-            <Button text="&#128196; Exporter PDF" styleClass="mesord-export-btn" onAction="#exportPDF"/>
         </HBox>
 
         <!-- Cards container -->

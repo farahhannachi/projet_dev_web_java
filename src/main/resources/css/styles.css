@@ -899,6 +899,20 @@
     -fx-background-color: #174f42;
 }
 
+.traitement-btn-ia {
+    -fx-background-color: #6c3483;
+    -fx-text-fill: white;
+    -fx-font-size: 13;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+}
+
+.traitement-btn-ia:hover {
+    -fx-background-color: #512e6e;
+}
+
 .traitement-produit-tag {
     -fx-background-color: #e8f5e9;
     -fx-background-radius: 20;

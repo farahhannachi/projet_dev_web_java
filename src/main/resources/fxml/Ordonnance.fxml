@@ -115,6 +115,19 @@
 
                     <!-- Submit -->
                     <Button fx:id="submitButton" text="Envoyer mon ordonnance" styleClass="ord-btn-submit" onAction="#handleSubmitOrdonnance" maxWidth="Infinity"/>
+
+                    <!-- Signature électronique patient -->
+                    <Separator/>
+                    <Label text="Signature &#201;lectronique" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #2980b9;"/>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="&#9989;" style="-fx-font-size: 14;"/>
+                        <Label text="Signez &#233;lectroniquement votre ordonnance pour la valider officiellement."
+                               style="-fx-font-size: 12; -fx-text-fill: #555; -fx-wrap-text: true;" maxWidth="380" wrapText="true"/>
+                    </HBox>
+                    <Button text="&#9997;  Signer mon ordonnance" onAction="#handleSignerPatient"
+                            style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13; -fx-background-radius: 10; -fx-padding: 12 20; -fx-cursor: hand;"
+                            maxWidth="Infinity"/>
+
                     <Label text="En envoyant ce formulaire, j'accepte que mes donn&#233;es soient trait&#233;es par CuraVita dans le cadre strict de la d&#233;livrance de m&#233;dicaments."
                            style="-fx-font-size: 10; -fx-text-fill: #999; -fx-wrap-text: true; -fx-text-alignment: center;"/>
 
