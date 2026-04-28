@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="org.example.controller.FrontAdresseFormController"
+        fitToWidth="true" fitToHeight="true" pannable="true"
+        hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+        <BorderPane styleClass="admin-root front-module-page">
+            <top>
+                <VBox styleClass="admin-header-wrap">
+                    <HBox styleClass="navbar-symfony" alignment="CENTER">
+                        <Label text="CuraVita" styleClass="logo-text"/>
+                        <Region HBox.hgrow="SOMETIMES"/>
+                        <HBox styleClass="menu-container" alignment="CENTER">
+                            <Button text="Accueil" styleClass="menu-item" onAction="#goHome"/>
+                            <Button text="Produits" styleClass="menu-item" onAction="#showFrontProduits"/>
+                            <Button text="Panier" styleClass="menu-item" onAction="#showFrontPanier"/>
+                            <Button text="Adresses" styleClass="menu-item menu-item-active" onAction="#showFrontAddresses"/>
+                            <Button text="Commandes" styleClass="menu-item" onAction="#showFrontTracking"/>
+                            <Button text="Ordonnance" styleClass="menu-item"/>
+                            <Button text="Traitement" styleClass="menu-item"/>
+                            <Button text="Guide Sant&#233;" styleClass="menu-item"/>
+                            <Button text="Contact" styleClass="menu-item"/>
+                            <Button text="&#192; propos" styleClass="menu-item"/>
+                        </HBox>
+                        <Region HBox.hgrow="SOMETIMES"/>
+
+                        <StackPane>
+                            <HBox styleClass="icon-container" alignment="CENTER">
+                                <Button text="&#128269;" styleClass="icon-button" onAction="#handleSearch"/>
+                                <Button fx:id="profileButton" text="&#128100;" styleClass="icon-button" onAction="#toggleProfileDropdown"/>
+                            </HBox>
+
+                            <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false">
+                                <VBox.margin>
+                                    <Insets top="45" right="0" bottom="0" left="0"/>
+                                </VBox.margin>
+                                <Button text="Profil" styleClass="dropdown-item" onAction="#showProfile"/>
+                                <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                                <Button text="Logout" styleClass="dropdown-item" onAction="#logout"/>
+                            </VBox>
+                        </StackPane>
+                    </HBox>
+                </VBox>
+            </top>
+
+            <center>
+                <VBox spacing="12" styleClass="address-form-wrap">
+                    <VBox spacing="10" styleClass="address-form-card">
+                        <HBox alignment="CENTER_LEFT">
+                            <VBox spacing="4">
+                                <Label fx:id="formTitleLabel" text="Ajouter adresse" styleClass="addresses-title"/>
+                                <Label fx:id="formSubtitleLabel" text="Ajoute une nouvelle adresse de livraison." styleClass="addresses-subtitle"/>
+                            </VBox>
+                        </HBox>
+
+                        <GridPane hgap="10" vgap="10" styleClass="address-grid">
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="50"/>
+                                <ColumnConstraints percentWidth="50"/>
+                            </columnConstraints>
+
+                            <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                <Label text="Nom complet" styleClass="field-label"/>
+                                <TextField fx:id="fullNameField" styleClass="form-field"/>
+                            </VBox>
+
+                            <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                <Label text="Telephone" styleClass="field-label"/>
+                                <TextField fx:id="phoneField" styleClass="form-field"/>
+                            </VBox>
+
+                            <VBox spacing="8" styleClass="map-card" GridPane.columnSpan="2" GridPane.rowIndex="1">
+                                <HBox spacing="8">
+                                    <TextField fx:id="geoSearchField" promptText="Rechercher une adresse..." HBox.hgrow="ALWAYS" styleClass="form-field"/>
+                                    <Button text="Utiliser ma localisation" styleClass="btn-admin-primary" onAction="#handleUseMyLocation"/>
+                                </HBox>
+                                <ListView fx:id="geoSuggestionsList" prefHeight="120" styleClass="map-results"/>
+                                <ImageView fx:id="mapPreviewImage" fitWidth="700" fitHeight="260" preserveRatio="false" smooth="true" styleClass="map-preview-image"/>
+                                <Label fx:id="mapStatusLabel" text="Carte chargee" styleClass="admin-subtitle"/>
+                            </VBox>
+
+                            <VBox spacing="4" GridPane.columnSpan="2" GridPane.rowIndex="2">
+                                <Label text="Adresse" styleClass="field-label"/>
+                                <TextField fx:id="line1Field" styleClass="form-field"/>
+                            </VBox>
+
+                            <VBox spacing="4" GridPane.columnSpan="2" GridPane.rowIndex="3">
+                                <Label text="Complement" styleClass="field-label"/>
+                                <TextField fx:id="line2Field" styleClass="form-field"/>
+                            </VBox>
+
+                            <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="4">
+                                <Label text="Ville" styleClass="field-label"/>
+                                <TextField fx:id="cityField" styleClass="form-field"/>
+                            </VBox>
+
+                            <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                                <Label text="Region" styleClass="field-label"/>
+                                <TextField fx:id="regionField" styleClass="form-field"/>
+                            </VBox>
+
+                            <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="5">
+                                <Label text="Code postal" styleClass="field-label"/>
+                                <TextField fx:id="postalCodeField" styleClass="form-field"/>
+                            </VBox>
+
+                            <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                                <Label text="Pays" styleClass="field-label"/>
+                                <TextField fx:id="countryField" styleClass="form-field"/>
+                            </VBox>
+                        </GridPane>
+
+                        <HBox spacing="10">
+                            <Button text="Retour" styleClass="btn-admin-outline" onAction="#goBackToAddresses"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button text="Enregistrer" styleClass="btn-admin-primary" onAction="#handleSaveAddress"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </center>
+            <bottom>
+                <VBox styleClass="front-footer">
+                    <HBox spacing="30" styleClass="front-footer-top">
+                        <VBox spacing="10" HBox.hgrow="ALWAYS">
+                            <Label text="Votre sante, notre priorite. Pharmacie en ligne agreee et securisee." styleClass="front-footer-text" wrapText="true"/>
+                            <Label text="123 Avenue de la Sante, 75001 Paris" styleClass="front-footer-text"/>
+                            <Label text="01 23 45 67 89" styleClass="front-footer-text"/>
+                        </VBox>
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Navigation" styleClass="front-footer-title"/>
+                            <Label text="Accueil" styleClass="front-footer-link"/>
+                            <Label text="Nos Produits" styleClass="front-footer-link"/>
+                            <Label text="Conseils Sante" styleClass="front-footer-link"/>
+                            <Label text="Contact" styleClass="front-footer-link"/>
+                        </VBox>
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Services" styleClass="front-footer-title"/>
+                            <Label text="Envoi d'ordonnance" styleClass="front-footer-link"/>
+                            <Label text="Click &amp; Collect" styleClass="front-footer-link"/>
+                            <Label text="Livraison Express" styleClass="front-footer-link"/>
+                        </VBox>
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Aide" styleClass="front-footer-title"/>
+                            <Label text="FAQ" styleClass="front-footer-link"/>
+                            <Label text="Mon Compte" styleClass="front-footer-link"/>
+                            <Label text="Suivi de commande" styleClass="front-footer-link"/>
+                        </VBox>
+                    </HBox>
+                    <HBox styleClass="front-footer-bottom" alignment="CENTER_LEFT">
+                        <Label text="2026 CuraVita. Tous droits reserves." styleClass="front-footer-copy"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label text="Espace Admin" styleClass="front-footer-link"/>
+                        <Label text="Mentions Legales" styleClass="front-footer-link"/>
+                        <Label text="CGV" styleClass="front-footer-link"/>
+                        <Label text="Confidentialite" styleClass="front-footer-link"/>
+                    </HBox>
+                </VBox>
+            </bottom>
+        </BorderPane>
+    </content>
+</ScrollPane>

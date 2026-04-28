@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket #{{ question.id }} - {{ question.objet }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+            background: #fff;
+        }
+        
+        .container {
+            padding: 20px;
+            max-width: 100%;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #16563f;
+            margin-bottom: 25px;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #16563f;
+            margin-bottom: 5px;
+        }
+        
+        .logo span {
+            color: #0f3d2a;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 11px;
+        }
+        
+        /* Ticket Info Box */
+        .ticket-header {
+            background: linear-gradient(135deg, #16563f 0%, #0f3d2a 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .ticket-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .ticket-meta {
+            display: table;
+            width: 100%;
+        }
+        
+        .meta-row {
+            display: table-row;
+        }
+        
+        .meta-label {
+            display: table-cell;
+            width: 120px;
+            padding: 3px 0;
+            font-weight: bold;
+            opacity: 0.9;
+        }
+        
+        .meta-value {
+            display: table-cell;
+            padding: 3px 0;
+        }
+        
+        /* Status & Priority Badges */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .badge-ouvert { background: #4895ef; color: white; }
+        .badge-en_cours { background: #f77f00; color: white; }
+        .badge-resolu { background: #2a9d8f; color: white; }
+        .badge-ferme { background: #6c757d; color: white; }
+        
+        .badge-haute { background: #e63946; color: white; }
+        .badge-normale { background: #f77f00; color: white; }
+        .badge-basse { background: #2a9d8f; color: white; }
+        
+        .badge-support { background: #16563f; color: white; }
+        .badge-reclamation { background: #e63946; color: white; }
+        .badge-retour { background: #f77f00; color: white; }
+        
+        /* Client Info */
+        .client-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #16563f;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #16563f;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .info-grid {
+            display: table;
+            width: 100%;
+        }
+        
+        .info-row {
+            display: table-row;
+        }
+        
+        .info-label {
+            display: table-cell;
+            width: 100px;
+            padding: 4px 0;
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .info-value {
+            display: table-cell;
+            padding: 4px 0;
+        }
+        
+        /* Description */
+        .description-section {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .description-content {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        /* Responses Section */
+        .responses-section {
+            margin-bottom: 20px;
+        }
+        
+        .response-item {
+            margin-bottom: 15px;
+            page-break-inside: avoid;
+        }
+        
+        .response-agent {
+            background: #e8f5e9;
+            border-left: 4px solid #16563f;
+            padding: 12px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .response-client {
+            background: #f0f9f0;
+            border-left: 4px solid #2a9d8f;
+            padding: 12px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .response-bot {
+            background: #fff3e0;
+            border-left: 4px solid #f77f00;
+            padding: 12px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .response-header {
+            display: table;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        
+        .response-author {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .response-date {
+            color: #666;
+            font-size: 10px;
+        }
+        
+        .response-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .response-meta {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #ccc;
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .response-meta span {
+            margin-right: 15px;
+        }
+        
+        /* No responses */
+        .no-responses {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 10px;
+        }
+        
+        .footer-logo {
+            font-size: 14px;
+            font-weight: bold;
+            color: #16563f;
+            margin-bottom: 5px;
+        }
+        
+        /* File attachment indicator */
+        .attachment {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            color: #495057;
+            margin-top: 5px;
+        }
+        
+        .attachment:before {
+            content: "📎 ";
+        }
+        
+        /* Page break helper */
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">CURA<span>VITA</span></div>
+            <div class="subtitle">Votre Pharmacie de Confiance - Rapport de Ticket Support</div>
+        </div>
+        
+        <!-- Ticket Info -->
+        <div class="ticket-header">
+            <div class="ticket-title">Ticket #{{ question.id }} - {{ question.objet }}</div>
+            <div class="ticket-meta">
+                <div class="meta-row">
+                    <span class="meta-label">Type:</span>
+                    <span class="meta-value">
+                        <span class="badge badge-{{ question.typeTicket }}">{{ question.typeTicket|capitalize }}</span>
+                    </span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Statut:</span>
+                    <span class="meta-value">
+                        <span class="badge badge-{{ question.statut }}">
+                            {% if question.statut == 'en_cours' %}En cours
+                            {% elseif question.statut == 'resolu' %}Résolu
+                            {% elseif question.statut == 'ferme' %}Fermé
+                            {% else %}{{ question.statut|capitalize }}{% endif %}
+                        </span>
+                    </span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Priorité:</span>
+                    <span class="meta-value">
+                        <span class="badge badge-{{ question.priorite }}">{{ question.priorite|capitalize }}</span>
+                    </span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Date création:</span>
+                    <span class="meta-value">{{ question.createdAt ? question.createdAt|date('d/m/Y à H:i') : 'N/A' }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Client Info -->
+        <div class="client-info">
+            <div class="section-title">Informations Client</div>
+            <div class="info-grid">
+                <div class="info-row">
+                    <span class="info-label">Nom:</span>
+                    <span class="info-value">{{ question.utilisateur.nom }} {{ question.utilisateur.prenom }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">{{ question.utilisateur.email }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Description -->
+        <div class="description-section">
+            <div class="section-title">Description du Problème</div>
+            <div class="description-content">{{ question.description }}</div>
+            {% if question.fileName %}
+            <div class="attachment">{{ question.fileName }}</div>
+            {% endif %}
+        </div>
+        
+        <!-- Responses -->
+        <div class="responses-section">
+            <div class="section-title">Historique des Échanges ({{ reponses|length }} réponse{% if reponses|length > 1 %}s{% endif %})</div>
+            
+            {% if reponses|length > 0 %}
+                {% for reponse in reponses %}
+                <div class="response-item">
+                    <div class="response-{{ reponse.auteurType }}">
+                        <div class="response-header">
+                            <span class="response-author">
+                                {% if reponse.auteurType == 'agent' %}
+                                    👨‍💼 Agent Support
+                                {% elseif reponse.auteurType == 'client' %}
+                                    👤 {{ question.utilisateur.prenom }} {{ question.utilisateur.nom }}
+                                {% else %}
+                                    🤖 Bot Automatique
+                                {% endif %}
+                            </span>
+                            <span class="response-date"> - {{ reponse.createdAt ? reponse.createdAt|date('d/m/Y à H:i') : '' }}</span>
+                        </div>
+                        <div class="response-content">{{ reponse.reponseText }}</div>
+                        
+                        {% if reponse.actionType != 'aucune' or reponse.fileName %}
+                        <div class="response-meta">
+                            {% if reponse.actionType != 'aucune' %}
+                            <span><strong>Action:</strong> {{ reponse.actionType|replace({'_': ' '})|capitalize }}</span>
+                            {% endif %}
+                            {% if reponse.reponseRole %}
+                            <span><strong>Type:</strong> {{ reponse.reponseRole|replace({'_': ' '})|capitalize }}</span>
+                            {% endif %}
+                            {% if reponse.fileName %}
+                            <span class="attachment">{{ reponse.fileName }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-responses">
+                    Aucune réponse pour ce ticket
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-logo">CURAVITA</div>
+            <p>Document généré le {{ date_generation|date('d/m/Y à H:i:s') }}</p>
+            <p>Ce document est un export officiel de votre ticket support.</p>
+            <p>© {{ date_generation|date('Y') }} CURAVITA Pharmacie - Tous droits réservés</p>
+        </div>
+    </div>
+</body>
+</html>

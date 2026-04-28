@@ -1,0 +1,1691 @@
+{% extends 'front/_base.html.twig' %}
+
+{% block title %}Support Client - CURAVITA{% endblock %}
+
+{% block stylesheets %}
+<style>
+    /* ========== VARIABLES ========== */
+    .support-page {
+        --primary: #16563f;
+        --primary-dark: #0f3d2a;
+        --primary-light: #1e7a52;
+        --accent: #28a745;
+        --gold: #f4c430;
+        --glass: rgba(255, 255, 255, 0.1);
+        --gradient-1: linear-gradient(135deg, #16563f 0%, #28a745 100%);
+        --gradient-2: linear-gradient(135deg, #0f3d2a 0%, #16563f 100%);
+        overflow-x: hidden;
+    }
+
+    /* ========== HERO SECTION ========== */
+    .hero-support {
+        min-height: 60vh;
+        background: linear-gradient(135deg, #0a1628 0%, #16563f 50%, #0f3d2a 100%);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .hero-support::before {
+        content: '';
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(40, 167, 69, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(22, 86, 63, 0.4) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(244, 196, 48, 0.1) 0%, transparent 30%);
+        animation: nebula 20s ease-in-out infinite;
+    }
+
+    @keyframes nebula {
+        0%, 100% { transform: translate(-10%, -10%) rotate(0deg); }
+        50% { transform: translate(10%, 10%) rotate(180deg); }
+    }
+
+    /* Floating particles */
+    .particles {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        animation: float-particle 15s infinite;
+    }
+
+    .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+    .particle:nth-child(2) { left: 20%; animation-delay: 2s; }
+    .particle:nth-child(3) { left: 30%; animation-delay: 4s; }
+    .particle:nth-child(4) { left: 40%; animation-delay: 1s; }
+    .particle:nth-child(5) { left: 50%; animation-delay: 3s; }
+    .particle:nth-child(6) { left: 60%; animation-delay: 5s; }
+    .particle:nth-child(7) { left: 70%; animation-delay: 2.5s; }
+    .particle:nth-child(8) { left: 80%; animation-delay: 4.5s; }
+
+    @keyframes float-particle {
+        0% { transform: translateY(100vh) scale(0); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+    }
+
+    /* Hero Decorative Illustrations */
+    .hero-illustration {
+        position: absolute;
+        opacity: 0.12;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .hero-illustration.left {
+        left: 5%;
+        bottom: 10%;
+        width: 180px;
+        animation: float-illustration 6s ease-in-out infinite;
+    }
+
+    .hero-illustration.right {
+        right: 5%;
+        top: 15%;
+        width: 160px;
+        animation: float-illustration 6s ease-in-out infinite reverse;
+    }
+
+    @keyframes float-illustration {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(3deg); }
+    }
+
+    .hero-content-support {
+        position: relative;
+        z-index: 10;
+        text-align: center;
+        padding: 2rem;
+        max-width: 900px;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--glass);
+        backdrop-filter: blur(10px);
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        border: 1px solid rgba(255,255,255,0.2);
+        color: var(--gold);
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+        animation: slideDown 1s ease;
+    }
+
+    .hero-badge::before {
+        content: 'ðŸ’¬';
+    }
+
+    .hero-title-support {
+        font-size: clamp(2.5rem, 8vw, 4rem);
+        font-weight: 800;
+        color: white;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        animation: slideUp 1s ease 0.2s both;
+    }
+
+    .hero-title-support span {
+        background: linear-gradient(135deg, var(--gold) 0%, #ffd700 50%, var(--gold) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        background-size: 200% auto;
+        animation: shimmer 3s linear infinite;
+    }
+
+    @keyframes shimmer {
+        0% { background-position: 0% center; }
+        100% { background-position: 200% center; }
+    }
+
+    .hero-subtitle-support {
+        font-size: 1.25rem;
+        color: rgba(255,255,255,0.8);
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.8;
+        animation: slideUp 1s ease 0.4s both;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ========== MAIN SECTION ========== */
+    .support-section {
+        padding: 5rem 0;
+        background: linear-gradient(180deg, #f8faf9 0%, white 100%);
+        position: relative;
+    }
+
+    .support-section::before {
+        content: '';
+        position: absolute;
+        top: -80px;
+        left: 0;
+        right: 0;
+        height: 80px;
+        background: linear-gradient(to bottom right, transparent 49%, #f8faf9 50%);
+    }
+
+    .support-container {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        display: grid;
+        grid-template-columns: 1fr 1.4fr;
+        gap: 3rem;
+    }
+
+    @media (max-width: 992px) {
+        .support-container { 
+            grid-template-columns: 1fr; 
+        }
+    }
+
+    /* ========== FORM CARD ========== */
+    .form-card {
+        background: white;
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: 0 20px 60px rgba(22, 86, 63, 0.1);
+        border: 1px solid #eee;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .form-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: var(--gradient-1);
+        transform: scaleX(0);
+        transition: transform 0.5s ease;
+    }
+
+    .form-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .form-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 30px 80px rgba(22, 86, 63, 0.15);
+    }
+
+    .form-header {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .form-icon {
+        width: 70px;
+        height: 70px;
+        background: var(--gradient-1);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        transition: transform 0.5s ease;
+    }
+
+    .form-card:hover .form-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .form-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin: 0 0 0.25rem;
+    }
+
+    .form-subtitle {
+        color: #666;
+        margin: 0;
+    }
+
+    /* FORM FIELDS */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    /* Speech-to-Text Input Wrapper */
+    .input-with-speech {
+        position: relative;
+    }
+
+    .input-with-speech input,
+    .input-with-speech textarea {
+        width: 100%;
+        padding-right: 50px;
+    }
+
+    .speech-btn {
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        width: 36px;
+        height: 36px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .speech-btn:hover {
+        background: #f0fdf4;
+    }
+
+    .speech-btn svg {
+        width: 20px;
+        height: 20px;
+        color: #9ca3af;
+        transition: all 0.3s;
+    }
+
+    .speech-btn:hover svg {
+        color: var(--primary);
+    }
+
+    .speech-btn.recording {
+        background: #fef2f2;
+        animation: pulse-recording 1.5s ease-in-out infinite;
+    }
+
+    .speech-btn.recording svg {
+        color: #ef4444;
+    }
+
+    @keyframes pulse-recording {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    }
+
+    .speech-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Speech status indicator */
+    .speech-status {
+        font-size: 0.75rem;
+        color: #ef4444;
+        margin-top: 0.25rem;
+        display: none;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .speech-status.active {
+        display: flex;
+    }
+
+    .speech-status::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        background: #ef4444;
+        border-radius: 50%;
+        animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 1rem 1.25rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-family: inherit;
+        background: #f9fafb;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(22, 86, 63, 0.1);
+    }
+
+    .form-group textarea {
+        min-height: 140px;
+        resize: vertical;
+    }
+
+    /* UPLOAD ZONE */
+    .upload-zone {
+        border: 2px dashed #d1d5db;
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #fafafa;
+    }
+
+    .upload-zone:hover {
+        border-color: var(--primary);
+        background: #f0fdf4;
+    }
+
+    .upload-zone input { display: none; }
+
+    .upload-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem;
+        color: var(--primary);
+    }
+
+    .upload-text {
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .upload-hint {
+        color: #9ca3af;
+        font-size: 0.875rem;
+    }
+
+    #fileDisplay {
+        margin-top: 1rem;
+        padding: 0.75rem 1rem;
+        background: #dcfce7;
+        border-radius: 8px;
+        color: #166534;
+        font-weight: 600;
+        display: none;
+    }
+
+    #fileDisplay.show { display: block; }
+
+    /* SUBMIT BUTTON */
+    .btn-submit {
+        width: 100%;
+        padding: 1.25rem 2rem;
+        background: var(--gradient-1);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(22, 86, 63, 0.3);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(22, 86, 63, 0.4);
+    }
+
+    /* ========== TICKETS CARD ========== */
+    .tickets-card {
+        background: white;
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: 0 20px 60px rgba(22, 86, 63, 0.1);
+        border: 1px solid #eee;
+    }
+
+    .tickets-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f3f4f6;
+    }
+
+    .tickets-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .tickets-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        background: var(--gradient-1);
+        color: white;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+    /* FLASH MESSAGES */
+    .flash-msg {
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+    }
+
+    .flash-msg.success {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #86efac;
+    }
+
+    .flash-msg.error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
+    }
+
+    /* TICKETS LIST */
+    .tickets-list {
+        max-height: 650px;
+        overflow-y: auto;
+    }
+
+    .tickets-list::-webkit-scrollbar { width: 6px; }
+    .tickets-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 3px; }
+    .tickets-list::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+
+    /* TICKET ITEM */
+    .ticket-item {
+        background: #fafafa;
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 1.25rem;
+        padding-bottom: 3rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .ticket-item:hover {
+        border-color: var(--primary);
+        background: white;
+        transform: translateX(8px);
+        box-shadow: 0 10px 30px rgba(22, 86, 63, 0.1);
+    }
+
+    .ticket-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .ticket-id {
+        background: var(--gradient-1);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .ticket-date {
+        color: #9ca3af;
+        font-size: 0.85rem;
+    }
+
+    .ticket-subject {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0 0 0.5rem;
+    }
+
+    .ticket-desc {
+        color: #6b7280;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .ticket-file {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 0.75rem;
+        padding: 0.4rem 0.75rem;
+        background: #ecfdf5;
+        color: #059669;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .ticket-file:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    .ticket-bottom {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    /* STATUS BADGES */
+    .status-badge {
+        padding: 0.35rem 0.9rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-badge.ouvert { background: #dcfce7; color: #166534; }
+    .status-badge.en_cours { background: #fef3c7; color: #92400e; }
+    .status-badge.ferme { background: #f3f4f6; color: #4b5563; }
+    .status-badge.resolu { background: #d1fae5; color: #065f46; }
+
+    /* ACTION BUTTONS - COMPACT & ALIGNED */
+    .actions-btns {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+    }
+
+    .actions-btns form {
+        display: flex;
+        margin: 0;
+        padding: 0;
+    }
+
+    .action-btn {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid;
+        padding: 0;
+        margin: 0;
+    }
+
+    .action-btn svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    .action-btn.edit {
+        background: #f0fdf4;
+        color: #16563f;
+        border-color: #a7f3d0;
+    }
+
+    .action-btn.edit:hover {
+        background: #16563f;
+        color: white;
+        border-color: #16563f;
+        transform: scale(1.08);
+    }
+
+    .action-btn.delete {
+        background: #fef2f2;
+        color: #ef4444;
+        border-color: #fecaca;
+    }
+
+    .action-btn.delete:hover {
+        background: #ef4444;
+        color: white;
+        border-color: #ef4444;
+        transform: scale(1.08);
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+    }
+
+    .empty-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2.5rem;
+        color: var(--accent);
+    }
+
+    .empty-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-text {
+        color: #9ca3af;
+    }
+
+    /* ========== FAQ SECTION ========== */
+    .faq-section {
+        padding: 5rem 0;
+        background: linear-gradient(180deg, white 0%, #f8faf9 100%);
+    }
+
+    .faq-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .faq-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .faq-illustration {
+        display: block;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 1.5rem;
+    }
+
+    .faq-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--gradient-1);
+        color: white;
+        padding: 0.5rem 1.25rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1rem;
+    }
+
+    .faq-title {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: var(--primary);
+        margin: 0 0 0.75rem;
+    }
+
+    .faq-subtitle {
+        color: #6b7280;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .faq-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .faq-item {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .faq-item:hover {
+        border-color: var(--primary);
+        box-shadow: 0 10px 30px rgba(22, 86, 63, 0.1);
+    }
+
+    .faq-item.active {
+        border-color: var(--primary);
+        box-shadow: 0 10px 40px rgba(22, 86, 63, 0.15);
+    }
+
+    .faq-question {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem 1.5rem;
+        cursor: pointer;
+        background: white;
+        transition: background 0.3s;
+    }
+
+    .faq-item.active .faq-question {
+        background: #f0fdf4;
+    }
+
+    .faq-question-text {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .faq-question-icon {
+        width: 32px;
+        height: 32px;
+        background: var(--gradient-1);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .faq-toggle {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        flex-shrink: 0;
+    }
+
+    .faq-toggle svg {
+        width: 14px;
+        height: 14px;
+        color: #6b7280;
+        transition: transform 0.3s;
+    }
+
+    .faq-item.active .faq-toggle {
+        background: var(--primary);
+    }
+
+    .faq-item.active .faq-toggle svg {
+        color: white;
+        transform: rotate(180deg);
+    }
+
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease, padding 0.3s ease;
+    }
+
+    .faq-item.active .faq-answer {
+        max-height: 300px;
+    }
+
+    .faq-answer-content {
+        padding: 0 1.5rem 1.5rem;
+        padding-left: 4rem;
+        color: #4b5563;
+        line-height: 1.7;
+        font-size: 0.95rem;
+    }
+
+    /* ========== PROFANITY FILTER NOTIFICATION ========== */
+    .profanity-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .profanity-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .profanity-modal {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        max-width: 450px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        transform: scale(0.8) translateY(20px);
+        transition: transform 0.3s ease;
+    }
+
+    .profanity-overlay.show .profanity-modal {
+        transform: scale(1) translateY(0);
+    }
+
+    .profanity-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2.5rem;
+        animation: shake 0.5s ease-in-out;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-10px); }
+        40% { transform: translateX(10px); }
+        60% { transform: translateX(-10px); }
+        80% { transform: translateX(10px); }
+    }
+
+    .profanity-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #dc2626;
+        margin-bottom: 0.75rem;
+    }
+
+    .profanity-message {
+        color: #6b7280;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .profanity-field {
+        background: #fef2f2;
+        border: 2px solid #fecaca;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .profanity-field-label {
+        font-size: 0.8rem;
+        color: #991b1b;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+
+    .profanity-field-text {
+        color: #dc2626;
+        font-weight: 500;
+    }
+
+    .profanity-btn {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2.5rem;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+        display: inline-block;
+        margin-top: 0.5rem;
+    }
+
+    .profanity-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(220, 38, 38, 0.5);
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .profanity-btn:active {
+        transform: translateY(-1px);
+    }
+
+    /* Loading overlay */
+    .form-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 24px;
+        z-index: 100;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .form-loading.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #e5e7eb;
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    /* Highlight error field */
+    .field-error {
+        animation: field-shake 0.5s ease-in-out;
+    }
+
+    .field-error input,
+    .field-error textarea {
+        border-color: #dc2626 !important;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2) !important;
+    }
+
+    @keyframes field-shake {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-5px); }
+        40% { transform: translateX(5px); }
+        60% { transform: translateX(-5px); }
+        80% { transform: translateX(5px); }
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 768px) {
+        .hero-support { min-height: 50vh; }
+        .support-section { padding: 3rem 0; }
+        .form-card, .tickets-card { padding: 1.5rem; }
+        .form-header { flex-direction: column; text-align: center; }
+        .ticket-bottom { flex-direction: column; gap: 1rem; align-items: flex-start; }
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="support-page">
+    <!-- ========== HERO ========== -->
+    <section class="hero-support">
+        <div class="particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+
+        <!-- Decorative Illustrations -->
+        <svg class="hero-illustration left" viewBox="0 0 200 200" fill="none">
+            <!-- Headset/Support Icon -->
+            <circle cx="100" cy="100" r="80" stroke="white" stroke-width="4"/>
+            <path d="M60 90 C60 60 140 60 140 90 L140 120 C140 130 130 140 120 140 L80 140 C70 140 60 130 60 120 Z" stroke="white" stroke-width="4" fill="none"/>
+            <rect x="45" y="85" width="20" height="40" rx="8" fill="white"/>
+            <rect x="135" y="85" width="20" height="40" rx="8" fill="white"/>
+            <path d="M90 115 L110 115" stroke="white" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="85" cy="95" r="5" fill="white"/>
+            <circle cx="115" cy="95" r="5" fill="white"/>
+        </svg>
+
+        <svg class="hero-illustration right" viewBox="0 0 200 200" fill="none">
+            <!-- Chat Bubbles -->
+            <rect x="20" y="40" width="100" height="70" rx="15" stroke="white" stroke-width="4" fill="none"/>
+            <path d="M40 110 L30 130 L60 110" stroke="white" stroke-width="4" fill="none"/>
+            <line x1="40" y1="65" x2="100" y2="65" stroke="white" stroke-width="4" stroke-linecap="round"/>
+            <line x1="40" y1="85" x2="80" y2="85" stroke="white" stroke-width="4" stroke-linecap="round"/>
+            <rect x="80" y="90" width="100" height="70" rx="15" stroke="white" stroke-width="4" fill="none"/>
+            <path d="M160 160 L170 180 L140 160" stroke="white" stroke-width="4" fill="none"/>
+            <line x1="100" y1="115" x2="160" y2="115" stroke="white" stroke-width="4" stroke-linecap="round"/>
+            <line x1="100" y1="135" x2="140" y2="135" stroke="white" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        
+        <div class="hero-content-support">
+            <div class="hero-badge">Centre de Support</div>
+            <h1 class="hero-title-support">Besoin d'<span>Aide</span> ?</h1>
+            <p class="hero-subtitle-support">Notre Ã©quipe d'experts est Ã  votre Ã©coute 24h/24. CrÃ©ez un ticket et recevez une rÃ©ponse personnalisÃ©e rapidement.</p>
+        </div>
+    </section>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <section class="support-section">
+        <div class="support-container">
+            
+            <!-- FORM -->
+            <div class="form-card">
+                <div class="form-header">
+                    <div class="form-icon">{% if editMode %}âœï¸{% else %}ðŸ“©{% endif %}</div>
+                    <div>
+                        <h2 class="form-title">{% if editMode %}Modifier le ticket{% else %}Nouveau Ticket{% endif %}</h2>
+                        <p class="form-subtitle">{% if editMode %}Mettez Ã  jour votre demande{% else %}DÃ©crivez votre problÃ¨me en dÃ©tail{% endif %}</p>
+                    </div>
+                </div>
+
+                {{ form_start(form, {'attr': {'id': 'ticketForm', 'novalidate': 'novalidate'}}) }}
+                
+                <div class="form-group">
+                    <label class="form-label">ðŸ“Œ Objet de la demande</label>
+                    <div class="input-with-speech">
+                        {{ form_widget(form.objet, {'attr': {'placeholder': 'Ex: Question sur ma commande ', 'id': 'question_objet'}}) }}
+                        <button type="button" class="speech-btn" onclick="toggleSpeech('question_objet', this)" title="Dicter avec la voix">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                <line x1="12" y1="19" x2="12" y2="23"/>
+                                <line x1="8" y1="23" x2="16" y2="23"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="speech-status" id="speech-status-question_objet">Ã‰coute en cours...</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ðŸ“ Description dÃ©taillÃ©e</label>
+                    <div class="input-with-speech">
+                        {{ form_widget(form.description, {'attr': {'placeholder': 'Expliquez votre problÃ¨me ou question en dÃ©tail...', 'id': 'question_description'}}) }}
+                        <button type="button" class="speech-btn" onclick="toggleSpeech('question_description', this)" title="Dicter avec la voix">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                <line x1="12" y1="19" x2="12" y2="23"/>
+                                <line x1="8" y1="23" x2="16" y2="23"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="speech-status" id="speech-status-question_description">Ã‰coute en cours...</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ðŸ“Ž PiÃ¨ce jointe (optionnel)</label>
+                    <div class="upload-zone" onclick="document.getElementById('question_fichier').click()">
+                        <div class="upload-icon">ðŸ“‚</div>
+                        <p class="upload-text">Cliquez pour ajouter un fichier</p>
+                        <p class="upload-hint">PDF, JPG, PNG âDT¢ Maximum 5 Mo</p>
+                        {{ form_widget(form.fichier, {'attr': {'onchange': 'displayFileName(this)'}}) }}
+                    </div>
+                    <div id="fileDisplay"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ðŸ·ï¸ Type de ticket</label>
+                    {{ form_widget(form.typeTicket) }}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">âš¡ PrioritÃ©</label>
+                    {{ form_widget(form.priorite) }}
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    {% if editMode %}ðŸ’¾ Sauvegarder les modifications{% else %}ðŸšDT Envoyer le ticket{% endif %}
+                </button>
+
+                {{ form_end(form) }}
+            </div>
+
+            <!-- TICKETS -->
+            <div class="tickets-card">
+                <div class="tickets-header">
+                    <h2 class="tickets-title">ðŸ“‹ Mes Tickets</h2>
+                    <span class="tickets-count">{{ mesQuestions|length }}</span>
+                </div>
+
+                {% for msg in app.flashes('success') %}
+                    <div class="flash-msg success">âœ… {{ msg }}</div>
+                {% endfor %}
+                {% for msg in app.flashes('error') %}
+                    <div class="flash-msg error">âŒ {{ msg }}</div>
+                {% endfor %}
+
+                <div class="tickets-list">
+                    {% if mesQuestions is empty %}
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <svg viewBox="0 0 80 80" fill="none" style="width: 60px; height: 60px;">
+                                    <rect x="15" y="20" width="50" height="40" rx="5" stroke="#28a745" stroke-width="3" fill="none"/>
+                                    <path d="M15 30 L40 48 L65 30" stroke="#28a745" stroke-width="3" fill="none"/>
+                                    <circle cx="60" cy="18" r="12" fill="#dcfce7" stroke="#16563f" stroke-width="2"/>
+                                    <text x="60" y="23" text-anchor="middle" fill="#16563f" font-size="14" font-weight="bold">0</text>
+                                </svg>
+                            </div>
+                            <h3 class="empty-title">Aucun ticket</h3>
+                            <p class="empty-text">CrÃ©ez votre premier ticket de support.</p>
+                        </div>
+                    {% else %}
+                        {% for q in mesQuestions %}
+                            <div class="ticket-item" onclick="window.location='{{ path('app_question_show', {id: q.id}) }}'">
+                                <div class="ticket-top">
+                                    <span class="ticket-id">#{{ q.id }}</span>
+                                    <span class="ticket-date">{{ q.createdAt|date('d/m/Y H:i') }}</span>
+                                </div>
+                                <h3 class="ticket-subject">{{ q.objet }}</h3>
+                                <p class="ticket-desc">{{ q.description }}</p>
+                                {% if q.fileName %}
+                                    <a href="{{ q.filePath }}" target="_blank" class="ticket-file" onclick="event.stopPropagation();">
+                                        ðŸ“„ {{ q.fileName }}
+                                    </a>
+                                {% endif %}
+                                <div class="ticket-bottom">
+                                    <span class="status-badge {{ q.statut }}">
+                                        {% if q.statut == 'ouvert' %}ðŸŸ¢ Ouvert
+                                        {% elseif q.statut == 'en_cours' %}ðŸŸ  En cours
+                                        {% elseif q.statut == 'ferme' %}ðŸ”’ FermÃ©
+                                        {% elseif q.statut == 'resolu' %}âœ… RÃ©solu
+                                        {% else %}{{ q.statut }}{% endif %}
+                                    </span>
+                                </div>
+                                <div class="actions-btns" onclick="event.stopPropagation()">
+                                    <a href="{{ path('app_question_edit', {id: q.id}) }}" class="action-btn edit" title="Modifier">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    </a>
+                                    <form method="post" action="{{ path('app_question_delete', {id: q.id}) }}" onsubmit="return confirm('Supprimer ce ticket ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ q.id) }}">
+                                        <button type="submit" class="action-btn delete" title="Supprimer">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FAQ SECTION ========== -->
+    <section class="faq-section">
+        <div class="faq-container">
+            <div class="faq-header">
+                <svg class="faq-illustration" viewBox="0 0 120 120" fill="none">
+                    <!-- Question mark illustration -->
+                    <circle cx="60" cy="60" r="55" fill="#ecfdf5" stroke="#16563f" stroke-width="3"/>
+                    <path d="M50 45 Q50 30 60 30 Q75 30 75 45 Q75 55 60 60 L60 70" stroke="#16563f" stroke-width="6" stroke-linecap="round" fill="none"/>
+                    <circle cx="60" cy="85" r="5" fill="#16563f"/>
+                    <!-- Small decorative elements -->
+                    <circle cx="25" cy="35" r="4" fill="#28a745" opacity="0.5"/>
+                    <circle cx="95" cy="85" r="3" fill="#28a745" opacity="0.5"/>
+                    <circle cx="90" cy="25" r="5" fill="#16563f" opacity="0.3"/>
+                </svg>
+                <span class="faq-badge">â“ FAQ</span>
+                <h2 class="faq-title">Questions FrÃ©quentes</h2>
+                <p class="faq-subtitle">Trouvez rapidement des rÃ©ponses Ã  vos questions</p>
+            </div>
+
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span class="faq-question-text">
+                            <span class="faq-question-icon">ðŸ“¦</span>
+                            Comment suivre ma commande ?
+                        </span>
+                        <span class="faq-toggle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Connectez-vous Ã  votre compte et accÃ©dez Ã  la section "Mes Commandes". Vous y trouverez le statut en temps rÃ©el de toutes vos commandes ainsi que le numÃ©ro de suivi pour les livraisons en cours.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span class="faq-question-text">
+                            <span class="faq-question-icon">ðŸ”„</span>
+                            Quelle est la politique de retour ?
+                        </span>
+                        <span class="faq-toggle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Vous disposez de 14 jours aprÃ¨s rÃ©ception pour retourner un produit non ouvert dans son emballage d'origine. Les mÃ©dicaments sur ordonnance ne peuvent pas Ãªtre retournÃ©s pour des raisons de sÃ©curitÃ© sanitaire.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span class="faq-question-text">
+                            <span class="faq-question-icon">ðŸ’³</span>
+                            Quels moyens de paiement acceptez-vous ?
+                        </span>
+                        <span class="faq-toggle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Nous acceptons les cartes bancaires (Visa, Mastercard), PayPal, et le paiement Ã  la livraison. Tous les paiements sont sÃ©curisÃ©s par cryptage SSL.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span class="faq-question-text">
+                            <span class="faq-question-icon">ðŸšš</span>
+                            Quels sont les dÃ©lais de livraison ?
+                        </span>
+                        <span class="faq-toggle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            La livraison standard prend 2-4 jours ouvrÃ©s. La livraison express (24-48h) est disponible pour les commandes passÃ©es avant 14h. La livraison est gratuite Ã  partir de 50â‚¬ d'achat.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span class="faq-question-text">
+                            <span class="faq-question-icon">ðŸ“‹</span>
+                            Comment envoyer mon ordonnance ?
+                        </span>
+                        <span class="faq-toggle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Vous pouvez tÃ©lÃ©charger votre ordonnance directement lors de la commande ou l'envoyer par email Ã  ordonnance@curavita.com. Notre Ã©quipe de pharmaciens la vÃ©rifiera sous 24h.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span class="faq-question-text">
+                            <span class="faq-question-icon">â°</span>
+                            Quel est le dÃ©lai de rÃ©ponse du support ?
+                        </span>
+                        <span class="faq-toggle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Notre Ã©quipe rÃ©pond gÃ©nÃ©ralement sous 24 heures ouvrÃ©es. Pour les urgences, vous pouvez nous appeler directement au 01 23 45 67 89 du lundi au vendredi de 9h Ã  18h.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+// ========== SPEECH-TO-TEXT FUNCTIONALITY ==========
+let currentRecognition = null;
+let currentButton = null;
+let silenceTimer = null;
+const SILENCE_TIMEOUT = 2000; // 2 seconds of silence to stop
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+function toggleSpeech(targetId, button) {
+    // Check browser support
+    if (!SpeechRecognition) {
+        alert('DÃ©solÃ©, votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome, Edge ou Safari.');
+        return;
+    }
+
+    // If already recording, stop it
+    if (currentRecognition && currentButton === button) {
+        stopSpeech();
+        return;
+    }
+
+    // Stop any previous recording
+    if (currentRecognition) {
+        stopSpeech();
+    }
+
+    // Start new recording
+    startSpeech(targetId, button);
+}
+
+function startSpeech(targetId, button) {
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'fr-FR';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    const targetField = document.getElementById(targetId);
+    const statusEl = document.getElementById('speech-status-' + targetId);
+    let finalTranscript = '';
+    const existingText = targetField.value;
+
+    // Visual feedback
+    button.classList.add('recording');
+    statusEl.classList.add('active');
+    currentButton = button;
+    currentRecognition = recognition;
+
+    // Reset silence timer
+    function resetSilenceTimer() {
+        if (silenceTimer) clearTimeout(silenceTimer);
+        silenceTimer = setTimeout(() => {
+            console.log('Silence detected, stopping...');
+            stopSpeech();
+        }, SILENCE_TIMEOUT);
+    }
+
+    recognition.onresult = (event) => {
+        resetSilenceTimer();
+        
+        let interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                finalTranscript += transcript + ' ';
+            } else {
+                interimTranscript += transcript;
+            }
+        }
+
+        // Update field with existing text + new text
+        const separator = existingText && !existingText.endsWith(' ') ? ' ' : '';
+        targetField.value = existingText + separator + finalTranscript + interimTranscript;
+    };
+
+    recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        if (event.error === 'not-allowed') {
+            alert('Veuillez autoriser l\'accÃ¨s au microphone pour utiliser cette fonctionnalitÃ©.');
+        }
+        stopSpeech();
+    };
+
+    recognition.onend = () => {
+        // Clean up
+        if (currentButton === button) {
+            stopSpeech();
+        }
+    };
+
+    recognition.start();
+    resetSilenceTimer();
+}
+
+function stopSpeech() {
+    if (silenceTimer) {
+        clearTimeout(silenceTimer);
+        silenceTimer = null;
+    }
+
+    if (currentRecognition) {
+        currentRecognition.stop();
+        currentRecognition = null;
+    }
+
+    if (currentButton) {
+        currentButton.classList.remove('recording');
+        const targetId = currentButton.onclick.toString().match(/'([^']+)'/)[1];
+        const statusEl = document.getElementById('speech-status-' + targetId);
+        if (statusEl) statusEl.classList.remove('active');
+        currentButton = null;
+    }
+}
+
+function displayFileName(input) {
+    const display = document.getElementById('fileDisplay');
+    if (input.files && input.files[0]) {
+        display.textContent = 'âœ… ' + input.files[0].name;
+        display.classList.add('show');
+    } else {
+        display.classList.remove('show');
+    }
+}
+
+function toggleFaq(element) {
+    const faqItem = element.parentElement;
+    const isActive = faqItem.classList.contains('active');
+    
+    // Close all FAQ items
+    document.querySelectorAll('.faq-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Open clicked item if it wasn't active
+    if (!isActive) {
+        faqItem.classList.add('active');
+    }
+}
+
+// ========== PROFANITY FILTER FUNCTIONALITY ==========
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('ticketForm');
+    if (!form) return;
+
+    // Add loading overlay to form
+    const formCard = form.closest('.form-card');
+    formCard.style.position = 'relative';
+    
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'form-loading';
+    loadingOverlay.innerHTML = `
+        <div class="loading-spinner"></div>
+        <div class="loading-text">VÃ©rification du contenu...</div>
+    `;
+    formCard.appendChild(loadingOverlay);
+
+    // Create profanity modal
+    const profanityModal = document.createElement('div');
+    profanityModal.className = 'profanity-overlay';
+    profanityModal.id = 'profanityModal';
+    profanityModal.innerHTML = `
+        <div class="profanity-modal">
+            <div class="profanity-icon">ðŸš«</div>
+            <h3 class="profanity-title">Contenu inappropriÃ© dÃ©tectÃ©</h3>
+            <p class="profanity-message">Votre message contient des termes inappropriÃ©s. Veuillez reformuler votre texte avant de soumettre.</p>
+            <div class="profanity-field" id="profanityFieldInfo">
+                <div class="profanity-field-label">Champ concernÃ©</div>
+                <div class="profanity-field-text" id="profanityFieldText"></div>
+            </div>
+            <button class="profanity-btn" onclick="closeProfanityModal()">Compris, je corrige</button>
+        </div>
+    `;
+    document.body.appendChild(profanityModal);
+
+    // Intercept form submission
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const objetField = document.getElementById('question_objet');
+        const descriptionField = document.getElementById('question_description');
+        
+        const objetValue = objetField ? objetField.value.trim() : '';
+        const descriptionValue = descriptionField ? descriptionField.value.trim() : '';
+
+        // Show loading
+        loadingOverlay.classList.add('show');
+
+        try {
+            // Check objet field
+            if (objetValue) {
+                const objetResult = await checkProfanity(objetValue);
+                if (objetResult.has_profanity) {
+                    loadingOverlay.classList.remove('show');
+                    showProfanityError('Objet', objetResult.censored || objetValue, 'question_objet');
+                    return;
+                }
+            }
+
+            // Check description field
+            if (descriptionValue) {
+                const descResult = await checkProfanity(descriptionValue);
+                if (descResult.has_profanity) {
+                    loadingOverlay.classList.remove('show');
+                    showProfanityError('Description', descResult.censored || descriptionValue, 'question_description');
+                    return;
+                }
+            }
+
+            // All clear - submit the form
+            loadingOverlay.classList.remove('show');
+            form.submit();
+
+        } catch (error) {
+            console.error('Profanity check error:', error);
+            // On error, allow submission (graceful fallback)
+            loadingOverlay.classList.remove('show');
+            form.submit();
+        }
+    });
+});
+
+async function checkProfanity(text) {
+    const response = await fetch('/api/check-profanity', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: text })
+    });
+
+    if (!response.ok) {
+        throw new Error('API error');
+    }
+
+    return await response.json();
+}
+
+function showProfanityError(fieldName, censoredText, fieldId) {
+    const modal = document.getElementById('profanityModal');
+    const fieldText = document.getElementById('profanityFieldText');
+    const fieldLabel = modal.querySelector('.profanity-field-label');
+    
+    fieldLabel.textContent = fieldName;
+    fieldText.textContent = censoredText;
+    
+    // Highlight the problematic field
+    const fieldWrapper = document.getElementById(fieldId).closest('.form-group');
+    if (fieldWrapper) {
+        fieldWrapper.classList.add('field-error');
+        setTimeout(() => fieldWrapper.classList.remove('field-error'), 1000);
+    }
+    
+    modal.classList.add('show');
+    modal.dataset.focusField = fieldId;
+}
+
+function closeProfanityModal() {
+    const modal = document.getElementById('profanityModal');
+    modal.classList.remove('show');
+    
+    // Focus on the problematic field
+    const fieldId = modal.dataset.focusField;
+    if (fieldId) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.focus();
+            field.select();
+        }
+    }
+}
+</script>
+{% endblock %}

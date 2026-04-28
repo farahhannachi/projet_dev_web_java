@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="org.example.controller.LoginController"
+        fitToWidth="true" fitToHeight="true" pannable="true"
+        hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+    <AnchorPane styleClass="lol-root">
+    
+    <!-- Floating Background Shapes -->
+    <StackPane fx:id="backgroundPane" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" 
+               AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" styleClass="floating-bg">
+        <StackPane styleClass="floating-circle" translateX="-100" translateY="50"/>
+        <StackPane styleClass="floating-circle" translateX="100" translateY="-80"/>
+        <StackPane styleClass="floating-circle" translateX="-50" translateY="150"/>
+        <StackPane styleClass="floating-circle" translateX="150" translateY="100"/>
+    </StackPane>
+    
+    <!-- Main Container Card -->
+    <StackPane AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" 
+               AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+        
+        <StackPane styleClass="lol-card" maxWidth="900" maxHeight="550">
+            
+            <!-- Content Container with Clip -->
+            <StackPane fx:id="cardContent" styleClass="card-content-container">
+                
+                <!-- Sign In Form Panel (LEFT) -->
+                <StackPane fx:id="signInPanel" styleClass="form-panel-left">
+                    <VBox spacing="20" alignment="CENTER" prefWidth="380">
+                        <Text text="Welcome Back" styleClass="lol-title"/>
+                        <Text text="Sign in to continue" styleClass="lol-subtitle"/>
+                        
+                        <VBox spacing="15" prefWidth="300">
+                            <TextField fx:id="loginEmail" promptText="Email" styleClass="lol-input"/>
+                            <PasswordField fx:id="loginPassword" promptText="Password" styleClass="lol-input"/>
+                        </VBox>
+                        
+                        <Label fx:id="loginError" text="" styleClass="lol-error"/>
+                        
+                        <Button text="SIGN IN" onAction="#handleLogin" styleClass="lol-button-primary" 
+                                maxWidth="280" prefHeight="45"/>
+                        
+                        <HBox spacing="5" alignment="CENTER">
+                            <Text text="Don't have an account?" styleClass="lol-text-small"/>
+                            <Button text="Sign Up" onAction="#showSignUp" styleClass="lol-link-button"/>
+                        </HBox>
+                    </VBox>
+                </StackPane>
+                
+                <!-- Sign Up Form Panel (RIGHT) -->
+                <StackPane fx:id="signUpPanel" styleClass="form-panel-right">
+                    <VBox spacing="20" alignment="CENTER" prefWidth="380">
+                        <Text text="Create Account" styleClass="lol-title"/>
+                        <Text text="Join us today" styleClass="lol-subtitle"/>
+                        
+                        <VBox spacing="15" prefWidth="300">
+                            <TextField fx:id="signupName" promptText="Full Name" styleClass="lol-input"/>
+                            <TextField fx:id="signupEmail" promptText="Email" styleClass="lol-input"/>
+                            <PasswordField fx:id="signupPassword" promptText="Password" styleClass="lol-input"/>
+                        </VBox>
+                        
+                        <Label fx:id="signupError" text="" styleClass="lol-error"/>
+                        
+                        <Button text="SIGN UP" onAction="#handleSignup" styleClass="lol-button-primary" 
+                                maxWidth="280" prefHeight="45"/>
+                        
+                        <HBox spacing="5" alignment="CENTER">
+                            <Text text="Already have an account?" styleClass="lol-text-small"/>
+                            <Button text="Sign In" onAction="#showSignIn" styleClass="lol-link-button"/>
+                        </HBox>
+                    </VBox>
+                </StackPane>
+                
+            </StackPane>
+        </StackPane>
+    </StackPane>
+    
+        </AnchorPane>
+    </content>
+</ScrollPane>

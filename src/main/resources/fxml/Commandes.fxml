@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.controller.CommandesController"
+            fitToWidth="true" fitToHeight="true" pannable="true"
+            hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+        <StackPane styleClass="admin-root">
+    <BorderPane>
+        <top>
+            <VBox spacing="14" styleClass="admin-header-wrap">
+                <HBox alignment="CENTER_LEFT" spacing="20" styleClass="admin-header">
+                    <VBox spacing="2">
+                        <Label text="Commandes" styleClass="admin-title"/>
+                        <Label text="Suivi et operations commandes" styleClass="admin-subtitle"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Retour" onAction="#goBack" styleClass="btn-admin-primary"/>
+                </HBox>
+
+                <HBox spacing="12" styleClass="stats-row">
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Total commandes" styleClass="stat-label"/>
+                        <Label fx:id="totalCommandesLabel" text="0" styleClass="stat-value"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="En cours" styleClass="stat-label"/>
+                        <Label fx:id="commandesEnCoursLabel" text="0" styleClass="stat-value warning"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Livrees" styleClass="stat-label"/>
+                        <Label fx:id="commandesLivreesLabel" text="0" styleClass="stat-value success"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Suspectes" styleClass="stat-label"/>
+                        <Label fx:id="commandesSuspectesLabel" text="0" styleClass="stat-value danger"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Montant total" styleClass="stat-label"/>
+                        <Label fx:id="montantTotalLabel" text="0.00 DT" styleClass="stat-value"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="10" styleClass="filters-row">
+                    <TextField fx:id="searchField" promptText="Recherche client..." HBox.hgrow="ALWAYS" styleClass="filter-field"/>
+                    <ComboBox fx:id="statutFilterCombo" promptText="Statut" styleClass="filter-field"/>
+                    <ComboBox fx:id="sortCombo" promptText="Tri" styleClass="filter-field"/>
+                    <CheckBox fx:id="fraudOnlyCheck" text="Suspectes seulement"/>
+                </HBox>
+            </VBox>
+        </top>
+
+        <center>
+            <VBox styleClass="table-card" BorderPane.alignment="CENTER">
+                <TableView fx:id="commandesTable" VBox.vgrow="ALWAYS" styleClass="admin-table">
+                    <columns>
+                        <TableColumn fx:id="idCol" text="ID" prefWidth="60" visible="false"/>
+                        <TableColumn fx:id="clientCol" text="Client" prefWidth="180"/>
+                        <TableColumn fx:id="statutCol" text="Statut" prefWidth="130"/>
+                        <TableColumn fx:id="totalHtCol" text="Total HT" prefWidth="120"/>
+                        <TableColumn fx:id="totalTtcCol" text="Total TTC" prefWidth="120"/>
+                        <TableColumn fx:id="dateCol" text="Date" prefWidth="140"/>
+                    </columns>
+                </TableView>
+            </VBox>
+        </center>
+
+        <bottom>
+            <HBox spacing="10" alignment="CENTER_LEFT" styleClass="admin-actions-row">
+                <Button text="Ajouter (interdit)" onAction="#handleAjouterCommande" disable="true" styleClass="btn-admin-outline"/>
+                <Button text="Confirmer" onAction="#handleConfirmerCommande" styleClass="btn-admin-primary"/>
+                <Button text="Modifier" onAction="#handleModifierCommande" styleClass="btn-admin-outline"/>
+                <Button text="Supprimer" onAction="#handleSupprimerCommande" styleClass="btn-admin-danger"/>
+            </HBox>
+        </bottom>
+    </BorderPane>
+
+    <VBox fx:id="modalOverlay" visible="false" managed="false" style="-fx-background-color: rgba(0,0,0,0.4);" alignment="CENTER" spacing="0">
+        <VBox spacing="20" styleClass="admin-modal" maxWidth="720">
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <Label fx:id="modalTitle" text="Modifier la commande" styleClass="admin-modal-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="X" onAction="#handleCloseModal" styleClass="btn-admin-outline"/>
+            </HBox>
+
+            <GridPane hgap="15" vgap="10">
+                <Label text="Client :" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="field-label"/>
+                <TextField fx:id="clientField" promptText="Nom du client" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Statut :" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="field-label"/>
+                <ComboBox fx:id="statutField" promptText="Statut" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Mode paiement :" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="field-label"/>
+                <ComboBox fx:id="modePaiementField" promptText="Mode paiement" GridPane.rowIndex="2" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Adresse livraison :" GridPane.rowIndex="3" GridPane.columnIndex="0" styleClass="field-label"/>
+                <TextField fx:id="adresseLivraisonField" promptText="Adresse" GridPane.rowIndex="3" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Telephone :" GridPane.rowIndex="4" GridPane.columnIndex="0" styleClass="field-label"/>
+                <TextField fx:id="telephoneField" promptText="Telephone" GridPane.rowIndex="4" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Email :" GridPane.rowIndex="5" GridPane.columnIndex="0" styleClass="field-label"/>
+                <TextField fx:id="emailField" promptText="Email" GridPane.rowIndex="5" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Message :" GridPane.rowIndex="6" GridPane.columnIndex="0" styleClass="field-label"/>
+                <TextArea fx:id="messageArea" promptText="Message client" prefRowCount="2" GridPane.rowIndex="6" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Produits IDs JSON :" GridPane.rowIndex="7" GridPane.columnIndex="0" styleClass="field-label"/>
+                <TextArea fx:id="produitsIdsArea" promptText="[1,2,3]" prefRowCount="2" GridPane.rowIndex="7" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Coupon code :" GridPane.rowIndex="8" GridPane.columnIndex="0" styleClass="field-label"/>
+                <TextField fx:id="couponCodeField" promptText="Code coupon" GridPane.rowIndex="8" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Coupon discount :" GridPane.rowIndex="9" GridPane.columnIndex="0" styleClass="field-label"/>
+                <TextField fx:id="couponDiscountField" promptText="0.00" GridPane.rowIndex="9" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Fraud score :" GridPane.rowIndex="10" GridPane.columnIndex="0" styleClass="field-label"/>
+                <TextField fx:id="fraudScoreField" promptText="0-100" GridPane.rowIndex="10" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Base shipping :" GridPane.rowIndex="11" GridPane.columnIndex="0" styleClass="field-label"/>
+                <TextField fx:id="baseShippingCostField" promptText="0.00" GridPane.rowIndex="11" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Livraison estimee :" GridPane.rowIndex="12" GridPane.columnIndex="0" styleClass="field-label"/>
+                <DatePicker fx:id="estimatedDeliveryPicker" GridPane.rowIndex="12" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Total HT :" GridPane.rowIndex="13" GridPane.columnIndex="0" styleClass="field-label"/>
+                <TextField fx:id="totalHtField" promptText="0.00" GridPane.rowIndex="13" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Total TTC :" GridPane.rowIndex="14" GridPane.columnIndex="0" styleClass="field-label"/>
+                <TextField fx:id="totalField" promptText="0.00" GridPane.rowIndex="14" GridPane.columnIndex="1" styleClass="form-field"/>
+
+                <Label text="Date commande :" GridPane.rowIndex="15" GridPane.columnIndex="0" styleClass="field-label"/>
+                <DatePicker fx:id="datePicker" GridPane.rowIndex="15" GridPane.columnIndex="1" styleClass="form-field"/>
+            </GridPane>
+
+            <VBox fx:id="deleteConfirmBox" visible="false" managed="false" spacing="15">
+                <Label text="Etes-vous sur de vouloir supprimer cette commande ?" styleClass="field-label"/>
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <Button text="Non, Annuler" onAction="#handleCancelDelete" styleClass="btn-admin-outline"/>
+                    <Button text="Oui, Supprimer" onAction="#handleConfirmDelete" styleClass="btn-admin-danger"/>
+                </HBox>
+            </VBox>
+
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button fx:id="cancelBtn" text="Annuler" onAction="#handleCloseModal" styleClass="btn-admin-outline"/>
+                <Button fx:id="saveBtn" text="Enregistrer" onAction="#handleSaveCommande" styleClass="btn-admin-primary"/>
+            </HBox>
+        </VBox>
+    </VBox>
+        </StackPane>
+    </content>
+</ScrollPane>
