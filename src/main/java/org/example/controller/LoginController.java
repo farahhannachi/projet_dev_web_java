@@ -14,6 +14,7 @@ import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.model.User;
+import org.example.service.TwoFactorAuthService;
 import org.example.service.UserService;
 
 import java.io.IOException;
@@ -50,10 +51,17 @@ public class LoginController {
     @FXML private StackPane backgroundPane;
     @FXML private StackPane bannedOverlayPane;
     @FXML private VBox bannedModal;
+    @FXML private StackPane twoFactorOverlayPane;
+    @FXML private VBox twoFactorModal;
+    @FXML private TextField twoFactorCodeField;
+    @FXML private Label twoFactorError;
+    @FXML private Label twoFactorUserLabel;
 
     private UserService userService = new UserService();
+    private TwoFactorAuthService twoFactorAuthService = new TwoFactorAuthService();
     private boolean isSignInMode = true;
     private boolean isAnimating = false;
+    private User pendingTwoFactorUser;
     
     // Password strength tracking
     private boolean hasMinLength = false;
@@ -169,6 +177,12 @@ public class LoginController {
                 showBannedModal();
                 return;
             }
+
+            if (user.isTotpEnabled()) {
+                pendingTwoFactorUser = user;
+                showTwoFactorModal(user);
+                return;
+            }
             
             try {
                 goToNextPage(user);
@@ -190,6 +204,68 @@ public class LoginController {
         FadeTransition fade = new FadeTransition(Duration.millis(300), bannedOverlayPane);
         fade.setFromValue(0);
         fade.setToValue(1);
+        fade.play();
+    }
+
+    private void showTwoFactorModal(User user) {
+        if (twoFactorUserLabel != null) {
+            twoFactorUserLabel.setText("Account: " + user.getEmail());
+        }
+        twoFactorCodeField.clear();
+        twoFactorError.setText("");
+        twoFactorOverlayPane.setVisible(true);
+        twoFactorOverlayPane.setManaged(true);
+        twoFactorModal.setVisible(true);
+        twoFactorModal.setManaged(true);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(250), twoFactorOverlayPane);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+        fade.play();
+    }
+
+    @FXML
+    private void handleVerifyTwoFactor() {
+        if (pendingTwoFactorUser == null) {
+            closeTwoFactorModal();
+            return;
+        }
+
+        String code = twoFactorCodeField.getText().trim();
+        if (!code.matches("\\d{6}")) {
+            twoFactorError.setText("Enter a valid 6-digit code.");
+            return;
+        }
+
+        boolean valid = twoFactorAuthService.verifyCode(pendingTwoFactorUser.getTotpSecret(), code);
+        if (!valid) {
+            twoFactorError.setText("Invalid code. Try again.");
+            return;
+        }
+
+        try {
+            User authenticatedUser = pendingTwoFactorUser;
+            closeTwoFactorModal();
+            goToNextPage(authenticatedUser);
+        } catch (IOException e) {
+            twoFactorError.setText("Unable to continue login.");
+        }
+    }
+
+    @FXML
+    private void closeTwoFactorModal() {
+        FadeTransition fade = new FadeTransition(Duration.millis(220), twoFactorOverlayPane);
+        fade.setFromValue(1);
+        fade.setToValue(0);
+        fade.setOnFinished(e -> {
+            twoFactorOverlayPane.setVisible(false);
+            twoFactorOverlayPane.setManaged(false);
+            twoFactorModal.setVisible(false);
+            twoFactorModal.setManaged(false);
+            twoFactorCodeField.clear();
+            twoFactorError.setText("");
+            pendingTwoFactorUser = null;
+        });
         fade.play();
     }
 

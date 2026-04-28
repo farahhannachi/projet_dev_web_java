@@ -114,6 +114,15 @@ public class UserService {
                         currentUser.setAvatarConfig(null);
                     }
                     
+                    try {
+                        currentUser.setTotpSecret(rs.getString("totp_secret"));
+                        currentUser.setTotpEnabled(rs.getBoolean("totp_enabled"));
+                    } catch (SQLException e) {
+                        System.out.println("[DEBUG] totp columns not found in database");
+                        currentUser.setTotpSecret(null);
+                        currentUser.setTotpEnabled(false);
+                    }
+                    
                     // Check if account is blocked
                     String etatCompte = rs.getString("etat_compte");
                     if ("bloque".equalsIgnoreCase(etatCompte)) {
@@ -274,6 +283,8 @@ public class UserService {
                     fullName.trim()
                 );
                 user.setAvatarConfig(rs.getString("avatar_config"));
+                user.setTotpSecret(rs.getString("totp_secret"));
+                user.setTotpEnabled(rs.getBoolean("totp_enabled"));
                 
                 // Check blocked status
                 String etatCompte = rs.getString("etat_compte");
@@ -421,6 +432,31 @@ public class UserService {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public boolean updateUserTwoFactor(int id, String secret, boolean enabled) {
+        String sql = "UPDATE utilisateur SET totp_secret = ?, totp_enabled = ? WHERE id_utilisateur = ?";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, secret);
+            stmt.setBoolean(2, enabled);
+            stmt.setInt(3, id);
+            boolean updated = stmt.executeUpdate() > 0;
+
+            if (updated && currentUser != null && currentUser.getId() == id) {
+                currentUser.setTotpSecret(secret);
+                currentUser.setTotpEnabled(enabled);
+            }
+            return updated;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean disableUserTwoFactor(int id) {
+        return updateUserTwoFactor(id, null, false);
     }
     
     public boolean deleteUser(int id) {

@@ -12,6 +12,8 @@ public class User {
     private String avatarConfig; // Avatar JSON configuration
     private Boolean blocked; // Is user blocked?
     private LocalDateTime createdAt; // Creation date
+    private String totpSecret;
+    private boolean totpEnabled;
 
     public User() {}
 
@@ -47,6 +49,8 @@ public class User {
     }
     public String getAvatarConfig() { return avatarConfig; }
     public void setAvatarConfig(String avatarConfig) { this.avatarConfig = avatarConfig; }
+    public String getTotpSecret() { return totpSecret; }
+    public boolean isTotpEnabled() { return totpEnabled; }
 
     // Setters
     public void setId(int id) { this.id = id; }
@@ -56,5 +60,7 @@ public class User {
     public void setNom(String nom) { this.nom = nom; }
     public void setBlocked(Boolean blocked) { this.blocked = blocked; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setTotpSecret(String totpSecret) { this.totpSecret = totpSecret; }
+    public void setTotpEnabled(boolean totpEnabled) { this.totpEnabled = totpEnabled; }
 }
 

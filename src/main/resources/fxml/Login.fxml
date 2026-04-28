@@ -128,4 +128,19 @@
         </VBox>
     </StackPane>
 
+    <!-- 2FA Modal Overlay -->
+    <StackPane fx:id="twoFactorOverlayPane" visible="false" managed="false" styleClass="two-factor-login-overlay" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+        <VBox fx:id="twoFactorModal" visible="false" managed="false" styleClass="two-factor-login-modal" StackPane.alignment="CENTER">
+            <Label text="Two-Factor Authentication" styleClass="two-factor-login-title"/>
+            <Label text="Enter the 6-digit code from your authenticator app to finish signing in." styleClass="two-factor-login-subtitle"/>
+            <Label fx:id="twoFactorUserLabel" text="" styleClass="two-factor-login-account"/>
+            <TextField fx:id="twoFactorCodeField" promptText="123456" styleClass="lol-input two-factor-login-input" maxWidth="220"/>
+            <Label fx:id="twoFactorError" text="" styleClass="lol-error"/>
+            <HBox alignment="CENTER" spacing="12" styleClass="two-factor-login-actions">
+                <Button text="VERIFY" onAction="#handleVerifyTwoFactor" styleClass="two-factor-login-verify" prefWidth="140" prefHeight="42"/>
+                <Button text="CANCEL" onAction="#closeTwoFactorModal" styleClass="two-factor-login-cancel" prefWidth="120" prefHeight="42"/>
+            </HBox>
+        </VBox>
+    </StackPane>
+
 </AnchorPane>

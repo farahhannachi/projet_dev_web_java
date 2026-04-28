@@ -1,86 +1,100 @@
 package org.example.controller;
 
-import javafx.animation.*;
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
+import javafx.animation.PauseTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import javafx.concurrent.Task;
 import org.example.model.Avatar;
 import org.example.model.User;
+import org.example.config.AIConfig;
+import org.example.service.OpenRouterService;
+import org.example.service.TwoFactorAuthService;
 import org.example.service.UserService;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
+import javafx.concurrent.Task;
 
 public class ProfilController {
 
-    // Hero Section Fields
+    @FXML private StackPane mainStack;
     @FXML private StackPane heroSection;
     @FXML private ImageView heroBackgroundImage;
-    @FXML private Button editBackgroundBtn;
     @FXML private ImageView heroAvatarImage;
-    @FXML private Button editAvatarOverlayBtn;
+    @FXML private StackPane heroAvatarFrame;
     @FXML private Label heroNameLabel;
     @FXML private Label heroEmailLabel;
     @FXML private Label heroRoleLabel;
     @FXML private Label heroStatusBadge;
-    
-    @FXML private StackPane mainStack;
+
     @FXML private StackPane overlayPane;
-    
     @FXML private VBox editModal;
     @FXML private VBox deleteModal;
     @FXML private VBox avatarPanel;
     @FXML private VBox successModal;
-
-    @FXML private Circle avatarCircle;
-    @FXML private ImageView avatarImageView;
-    @FXML private Label avatarLabel;
-    @FXML private Label previewLabel;
+    @FXML private StackPane previewAvatarFrame;
     @FXML private ImageView previewImageView;
-    @FXML private Label nameLabel;
 
     @FXML private Label infoNameLabel;
     @FXML private Label infoEmailLabel;
     @FXML private Label infoRoleLabel;
+    @FXML private Label emailInfoCardLabel;
+    @FXML private Label roleInfoCardLabel;
     @FXML private Label infoStatusLabel;
-    @FXML private Label infoDateLabel;
+    @FXML private Label twoFactorStatusLabel;
+    @FXML private Label twoFactorDescriptionLabel;
+    @FXML private TextField twoFactorSecretField;
+    @FXML private TextField twoFactorCodeField;
+    @FXML private Label twoFactorMessageLabel;
+    @FXML private VBox twoFactorSetupBox;
+    @FXML private Button prepareTwoFactorButton;
+    @FXML private Button disableTwoFactorButton;
+    @FXML private VBox assistantPanel;
+    @FXML private Button assistantFloatingButton;
+    @FXML private ScrollPane assistantScrollPane;
+    @FXML private VBox assistantMessagesBox;
+    @FXML private TextField assistantInputField;
+    @FXML private Button assistantSendButton;
+    @FXML private Label assistantHintLabel;
+    @FXML private Label assistantTitleLabel;
 
     @FXML private TextField editNameField;
     @FXML private TextField editEmailField;
     @FXML private PasswordField editPasswordField;
     @FXML private Label editErrorLabel;
-
     @FXML private Label successMessage;
-    
-    // Navbar elements
+
     @FXML private HBox profileContainer;
     @FXML private VBox profileDropdown;
     @FXML private Circle navbarAvatarCircle;
-    @FXML private Label navbarAvatarLabel;
     @FXML private Label navbarUsername;
-    
-    // Style buttons
+
     @FXML private Button styleCartoon;
     @FXML private Button styleNeutral;
     @FXML private Button stylePixel;
@@ -89,362 +103,466 @@ public class ProfilController {
     @FXML private Button styleLorelei;
     @FXML private Button styleRobot;
 
-    private UserService userService = new UserService();
+    private final UserService userService = new UserService();
+    private final TwoFactorAuthService twoFactorAuthService = new TwoFactorAuthService();
+    private final OpenRouterService aiAssistantService = new OpenRouterService();
     private User currentUser;
     private Avatar currentAvatar;
     private Avatar previewAvatar;
-    private String selectedStyle = "cartoon";
-    
-    private static final String EMAIL_PATTERN = "^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
-    private static final Pattern emailPattern = Pattern.compile(EMAIL_PATTERN);
+    private String selectedStyle = "avataaars";
+    private String pendingTwoFactorSecret;
+    private boolean assistantRequestRunning;
+    private long nextAssistantRequestAllowedAt;
+
+    private static final long ASSISTANT_COOLDOWN_MS = 1500;
+
+    private static final Pattern EMAIL_PATTERN =
+            Pattern.compile("^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
 
     @FXML
     public void initialize() {
         currentUser = userService.getCurrentUser();
+        configureAvatarViews();
+
         if (currentUser != null) {
             loadProfileData();
-            loadUserAvatar();
             loadNavbarUserData();
             loadHeroSection();
+            loadUserAvatar();
+            refreshTwoFactorSection();
+            initializeAssistant();
         }
-        
-        // Fade in animation for hero section
+
         if (heroSection != null) {
-            FadeTransition fade = new FadeTransition(Duration.millis(600), heroSection);
+            FadeTransition fade = new FadeTransition(Duration.millis(500), heroSection);
             fade.setFromValue(0);
             fade.setToValue(1);
             fade.play();
         }
-        
-        // Pulse animation for avatar
-        if (avatarImageView != null) {
-            ScaleTransition pulse = new ScaleTransition(Duration.seconds(1.5), avatarImageView);
+
+        if (heroAvatarImage != null) {
+            ScaleTransition pulse = new ScaleTransition(Duration.seconds(1.6), heroAvatarImage);
             pulse.setFromX(1);
-            pulse.setToX(1.05);
+            pulse.setToX(1.025);
             pulse.setFromY(1);
-            pulse.setToY(1.05);
+            pulse.setToY(1.025);
             pulse.setAutoReverse(true);
             pulse.setCycleCount(Animation.INDEFINITE);
             pulse.play();
         }
     }
-    
-    /**
-     * Load the hero section with user data and default/custom background
-     */
+
+    private void configureAvatarViews() {
+        applyAvatarClip(heroAvatarImage, 74);
+        applyAvatarClip(previewImageView, 72);
+
+        DropShadow shadow = new DropShadow();
+        shadow.setColor(Color.rgb(10, 54, 39, 0.22));
+        shadow.setRadius(24);
+        shadow.setSpread(0.16);
+        shadow.setOffsetY(10);
+
+        if (heroAvatarFrame != null) {
+            heroAvatarFrame.setEffect(shadow);
+        }
+        if (previewAvatarFrame != null) {
+            previewAvatarFrame.setEffect(shadow);
+        }
+    }
+
+    private void applyAvatarClip(ImageView imageView, double radius) {
+        if (imageView == null) {
+            return;
+        }
+
+        Circle clip = new Circle(radius, radius, radius);
+        imageView.setClip(clip);
+        imageView.setPreserveRatio(false);
+        imageView.setSmooth(true);
+    }
+
     private void loadHeroSection() {
-        if (currentUser == null) return;
-        
-       // Set hero labels - CALVINO STYLE
-        if (heroNameLabel != null) {
-            // Format: "My name is [Name]"
-            String firstName = currentUser.getNom().split(" ")[0];
-            heroNameLabel.setText("My name is " + firstName + ".");
+        if (currentUser == null) {
+            return;
         }
-        if (heroEmailLabel != null) {
-            heroEmailLabel.setText(currentUser.getEmail());
+
+        String fullName = safeText(currentUser.getNom(), "Utilisateur CuraVita");
+        String firstName = fullName.split(" ")[0];
+        heroNameLabel.setText("My name is " + firstName + ".");
+        heroEmailLabel.setText(safeText(currentUser.getEmail(), "email@curavita.com"));
+        heroRoleLabel.setText(currentUser.getType().equalsIgnoreCase("admin") ? "Pharmacy Administrator" : "Customer");
+
+        heroStatusBadge.getStyleClass().removeAll("active", "blocked");
+        if (currentUser.isBlocked()) {
+            heroStatusBadge.setText("BLOQUE");
+            heroStatusBadge.getStyleClass().add("blocked");
+        } else {
+            heroStatusBadge.setText("ACTIF");
+            heroStatusBadge.getStyleClass().add("active");
         }
-        if (heroRoleLabel != null) {
-            // Role based on user type
-            String roleText = currentUser.getType().equalsIgnoreCase("admin") 
-                ? "Pharmacy Administrator" 
-                : "Customer";
-            heroRoleLabel.setText(roleText);
-        }
-        if (heroStatusBadge != null) {
-            if (currentUser.isBlocked()) {
-                heroStatusBadge.setText("BLOQUÉ");
-                heroStatusBadge.getStyleClass().add("blocked");
-            } else {
-                heroStatusBadge.setText("ACTIF");
-                heroStatusBadge.getStyleClass().add("active");
-            }
-        }
-        
-        // Load hero avatar
-        loadHeroAvatar();
-        
-        // Load background (image)
+
         loadHeroBackground();
     }
-    
-    /**
-     * Load avatar in hero section
-     */
-    private void loadHeroAvatar() {
-        if (heroAvatarImage == null) return;
-        
-        String avatarConfig = currentUser.getAvatarConfig();
-        Avatar heroAvatar;
-        if (avatarConfig != null && !avatarConfig.isEmpty()) {
-            heroAvatar = Avatar.fromJson(avatarConfig);
-        } else {
-            heroAvatar = Avatar.generateRandom();
-        }
-        
-        try {
-            Image image = new Image(heroAvatar.getAvatarUrl(), true);
-            heroAvatarImage.setImage(image);
-            heroAvatarImage.setVisible(true);
-        } catch (Exception e) {
-            System.out.println("Failed to load hero avatar: " + e.getMessage());
-        }
-    }
-    
-    /**
-     * Load background (image or video)
-     */
+
     private void loadHeroBackground() {
-        // Try loading default background image
         try {
-            String defaultBgUrl = "https://images.unsplash.com/photo-1576091160550-2173dba999f3?w=1920&h=400&fit=crop";
-            Image bgImage = new Image(defaultBgUrl, true);
-            bgImage.progressProperty().addListener((obs, oldProgress, newProgress) -> {
-                if (newProgress.doubleValue() == 1.0 && bgImage.isError() == false) {
-                    heroBackgroundImage.setImage(bgImage);
-                    heroBackgroundImage.setVisible(true);
-                }
-            });
-            
-            // Fallback: if image fails or takes too long, use gradient
-            Task<Void> fallbackTask = new Task<>() {
-                @Override
-                protected Void call() throws Exception {
-                    Thread.sleep(3000);
-                    return null;
-                }
-            };
-            fallbackTask.setOnSucceeded(e -> {
-                if (heroBackgroundImage.getImage() == null) {
-                    applyGradientBackground();
-                }
-            });
-            fallbackTask.run();
-            
-        } catch (Exception e) {
-            System.out.println("Failed to load default background: " + e.getMessage());
-            applyGradientBackground();
+            Image bgImage = new Image(
+                    "https://images.unsplash.com/photo-1576091160550-2173dba999f3?w=1600&h=420&fit=crop",
+                    1600,
+                    420,
+                    false,
+                    true,
+                    true
+            );
+            heroBackgroundImage.setImage(bgImage);
+        } catch (Exception exception) {
+            heroSection.setStyle("-fx-background-color: linear-gradient(to right, #1f6f54, #2f8f67);");
         }
     }
-    
-    /**
-     * Apply gradient background as fallback
-     */
-    private void applyGradientBackground() {
-        // Create a simple gradient using Rectangle
-        Rectangle gradient = new Rectangle();
-        gradient.setWidth(1920);
-        gradient.setHeight(350);
-        
-        // Create green gradient
-        LinearGradient linearGradient = new LinearGradient(
-            0, 0, 0, 1, 
-            true, 
-            CycleMethod.NO_CYCLE,
-            new Stop(0, Color.web("#1F6F54")),
-            new Stop(0.5, Color.web("#2E8B57")),
-            new Stop(1, Color.web("#3CB371"))
-        );
-        gradient.setFill(linearGradient);
-        
-        // Add to hero section as background
-        if (heroSection != null) {
-            heroSection.setStyle("-fx-background-color: #1F6F54;");
-        }
-    }
-    
-    /**
-     * Handle background change (image upload only)
-     */
-    @FXML
-    private void handleChangeBackground() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Choisir une image de fond");
-        fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp")
-        );
-        
-        File selectedFile = fileChooser.showOpenDialog(null);
-        if (selectedFile != null) {
-            String filePath = selectedFile.toURI().toString();
-            setImageBackground(filePath);
-        }
-    }
-    
-    /**
-     * Set image as background
-     */
-    private void setImageBackground(String imagePath) {
-        try {
-            Image image = new Image(imagePath, true);
-            image.progressProperty().addListener((obs, oldProgress, newProgress) -> {
-                if (newProgress.doubleValue() == 1.0) {
-                    heroBackgroundImage.setImage(image);
-                }
-            });
-        } catch (Exception e) {
-            System.out.println("Failed to load background image: " + e.getMessage());
-        }
-    }
-    
+
     private void loadNavbarUserData() {
-        if (currentUser != null) {
-            // Set username in navbar
-            if (navbarUsername != null) {
-                String username = currentUser.getNom();
-                if (username != null && !username.isEmpty()) {
-                    // Get first name only for cleaner look
-                    String firstName = username.split(" ")[0];
-                    navbarUsername.setText(firstName);
-                } else {
-                    navbarUsername.setText("Utilisateur");
-                }
-            }
-            
-            // Set avatar circle color
-            if (navbarAvatarCircle != null) {
-                navbarAvatarCircle.setStyle("-fx-fill: #1f6f54; -fx-stroke: white; -fx-stroke-width: 2;");
-            }
+        if (currentUser == null) {
+            return;
+        }
+
+        if (navbarUsername != null) {
+            String username = safeText(currentUser.getNom(), "Utilisateur");
+            navbarUsername.setText(username.split(" ")[0]);
+        }
+
+        if (navbarAvatarCircle != null) {
+            navbarAvatarCircle.setStyle("-fx-fill: #1f6f54; -fx-stroke: white; -fx-stroke-width: 2;");
         }
     }
 
     private void loadProfileData() {
-        if (nameLabel != null) nameLabel.setText(currentUser.getNom());
+        String name = safeText(currentUser.getNom(), "Utilisateur");
+        String email = safeText(currentUser.getEmail(), "email@curavita.com");
+        String role = safeText(currentUser.getType(), "client").toUpperCase();
 
-        if (infoNameLabel != null) infoNameLabel.setText(currentUser.getNom());
-        if (infoEmailLabel != null) infoEmailLabel.setText(currentUser.getEmail());
-        if (infoRoleLabel != null) infoRoleLabel.setText(currentUser.getType().toUpperCase());
+        if (infoNameLabel != null) infoNameLabel.setText(name);
+        if (infoEmailLabel != null) infoEmailLabel.setText(email);
+        if (emailInfoCardLabel != null) emailInfoCardLabel.setText(email);
+        if (infoRoleLabel != null) infoRoleLabel.setText(role);
+        if (roleInfoCardLabel != null) roleInfoCardLabel.setText(role);
 
-        boolean isBlocked = currentUser.isBlocked();
         if (infoStatusLabel != null) {
-            if (isBlocked) {
-                infoStatusLabel.setText("BLOQUÉ");
+            if (currentUser.isBlocked()) {
+                infoStatusLabel.setText("BLOQUE");
                 infoStatusLabel.setStyle("-fx-text-fill: #dc2626;");
             } else {
                 infoStatusLabel.setText("ACTIF");
                 infoStatusLabel.setStyle("-fx-text-fill: #059669;");
             }
         }
-
-        if (infoDateLabel != null) infoDateLabel.setText(currentUser.getCreatedAt());
     }
-    
+
+    private void refreshTwoFactorSection() {
+        if (currentUser == null) {
+            return;
+        }
+
+        boolean enabled = currentUser.isTotpEnabled();
+        twoFactorStatusLabel.setText(enabled ? "Active" : "Inactive");
+        twoFactorStatusLabel.getStyleClass().removeAll("on", "off");
+        twoFactorStatusLabel.getStyleClass().add(enabled ? "on" : "off");
+
+        twoFactorDescriptionLabel.setText(enabled
+                ? "2FA is enabled. After sign-in, this user must confirm access with a 6-digit authenticator code."
+                : "Enable 2FA with an authenticator app to secure sign-in with a second verification step.");
+
+        disableTwoFactorButton.setVisible(enabled);
+        disableTwoFactorButton.setManaged(enabled);
+        prepareTwoFactorButton.setText(enabled ? "Regenerer la cle" : "Configurer la 2FA");
+
+        if (!enabled && (pendingTwoFactorSecret == null || pendingTwoFactorSecret.isBlank())) {
+            twoFactorSetupBox.setVisible(false);
+            twoFactorSetupBox.setManaged(false);
+        }
+        if (enabled) {
+            twoFactorSetupBox.setVisible(false);
+            twoFactorSetupBox.setManaged(false);
+            twoFactorSecretField.clear();
+            twoFactorCodeField.clear();
+        }
+    }
+
+    private void initializeAssistant() {
+        if (assistantTitleLabel != null) {
+            assistantTitleLabel.setText(aiAssistantService.getAssistantName());
+        }
+        if (assistantHintLabel != null) {
+            assistantHintLabel.setText(buildAssistantReadyMessage());
+        }
+        setAssistantInteractionEnabled(true);
+        if (assistantMessagesBox != null && assistantMessagesBox.getChildren().isEmpty()) {
+            addAssistantMessage(aiAssistantService.getAssistantName(),
+                    "Hi. I can help you navigate CuraVita, understand products, manage your profile, or explain admin actions.",
+                    false);
+        }
+    }
+
     private void loadUserAvatar() {
         String avatarConfig = currentUser.getAvatarConfig();
         if (avatarConfig != null && !avatarConfig.isEmpty()) {
             currentAvatar = Avatar.fromJson(avatarConfig);
         } else {
-            currentAvatar = Avatar.generateRandom();
+            currentAvatar = Avatar.generateRandom("avataaars");
         }
-        
-        // Display the avatar
-        updateAvatarDisplay(avatarLabel, avatarCircle, currentAvatar);
+
+        updateAvatarDisplay(currentAvatar, true, false);
     }
-    
-    private void updateAvatarDisplay(Label label, Circle circle, Avatar avatar) {
-        if (avatar == null) {
-            avatar = Avatar.generateRandom();
+
+    private void updateAvatarDisplay(Avatar avatar, boolean updateHero, boolean updatePreview) {
+        Avatar safeAvatar = avatar != null ? avatar : Avatar.generateRandom("avataaars");
+        Image avatarImage = createAvatarImage(safeAvatar.getAvatarUrl());
+        if (avatarImage == null) {
+            avatarImage = createAvatarImage(getDefaultAvatarUrl());
         }
-        
-        // For DiceBear avatars, we use the URL to load image
-        String avatarUrl = avatar.getAvatarUrl();
-        
-        // Try to load the image
-        try {
-            Image image = new Image(avatarUrl, true);
-            image.progressProperty().addListener((obs, oldProgress, newProgress) -> {
-                if (newProgress.doubleValue() == 1.0) {
-                    // Image loaded successfully
-                }
-            });
-            
-            // Set the image to the ImageView and ensure it's visible
-            if (avatarImageView != null) {
-                avatarImageView.setImage(image);
-                avatarImageView.setVisible(true);
-                avatarImageView.setManaged(true);
-            }
-            if (previewImageView != null) {
-                previewImageView.setImage(image);
-                previewImageView.setVisible(true);
-                previewImageView.setManaged(true);
-            }
-            
-            // Hide the emoji label, show ImageView
-            if (label != null) {
-                label.setVisible(false);
-                label.setManaged(false);
-            }
-            if (circle != null) {
-                circle.setVisible(false);
-                circle.setManaged(false);
-            }
-        } catch (Exception e) {
-            // Fallback to emoji display
-            System.out.println("Failed to load avatar image: " + e.getMessage());
-            if (label != null) {
-                label.setVisible(true);
-                label.setManaged(true);
-                label.setText(avatar.getSeed() != null ? "👤" : "👤");
-            }
-            // Ensure ImageView is hidden
-            if (avatarImageView != null) {
-                avatarImageView.setVisible(false);
-                avatarImageView.setManaged(false);
-            }
+
+        if (updateHero && heroAvatarImage != null) {
+            heroAvatarImage.setImage(avatarImage);
         }
-    }
-    
-    private void updatePreviewAvatar() {
-        if (previewAvatar == null) {
-            previewAvatar = Avatar.generateRandom(selectedStyle);
-        }
-        
-        // Apply animation for preview update
-        if (previewImageView != null) {
-            // Fade out
-            FadeTransition fadeOut = new FadeTransition(Duration.millis(150), previewImageView);
-            fadeOut.setFromValue(1.0);
-            fadeOut.setToValue(0.0);
-            fadeOut.setOnFinished(e -> {
-                updateAvatarDisplay(null, null, previewAvatar);
-                // Fade in
-                FadeTransition fadeIn = new FadeTransition(Duration.millis(150), previewImageView);
-                fadeIn.setFromValue(0.0);
-                fadeIn.setToValue(1.0);
-                fadeIn.play();
-            });
-            fadeOut.play();
+        if (updatePreview && previewImageView != null) {
+            previewImageView.setImage(avatarImage);
         }
     }
 
-    // Style selection handlers
+    private Image createAvatarImage(String avatarUrl) {
+        try {
+            Image image = new Image(avatarUrl, 160, 160, false, true, true);
+            return image.isError() ? null : image;
+        } catch (Exception exception) {
+            return null;
+        }
+    }
+
+    private String getDefaultAvatarUrl() {
+        String seed = currentUser != null && currentUser.getNom() != null && !currentUser.getNom().isBlank()
+                ? currentUser.getNom().replace(" ", "+")
+                : "CuraVita";
+        return "https://api.dicebear.com/7.x/initials/png?seed=" + seed + "&backgroundColor=1f6f54&textColor=ffffff";
+    }
+
+    private String safeText(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
+    }
+
+    @FXML
+    private void toggleAssistantPanel() {
+        boolean shouldShow = !assistantPanel.isVisible();
+        assistantPanel.setVisible(shouldShow);
+        assistantPanel.setManaged(shouldShow);
+
+        if (shouldShow) {
+            assistantPanel.setOpacity(0);
+            assistantPanel.setTranslateY(18);
+
+            FadeTransition fade = new FadeTransition(Duration.millis(220), assistantPanel);
+            fade.setFromValue(0);
+            fade.setToValue(1);
+
+            TranslateTransition slide = new TranslateTransition(Duration.millis(220), assistantPanel);
+            slide.setFromY(18);
+            slide.setToY(0);
+
+            fade.play();
+            slide.play();
+            if (assistantInputField != null) {
+                assistantInputField.requestFocus();
+            }
+        }
+    }
+
+    @FXML
+    private void handleAssistantSend() {
+        long now = System.currentTimeMillis();
+        if (assistantRequestRunning) {
+            assistantHintLabel.setText("Please wait. The assistant is still replying.");
+            return;
+        }
+
+        if (now < nextAssistantRequestAllowedAt) {
+            long remainingMs = nextAssistantRequestAllowedAt - now;
+            double seconds = Math.max(1.0, Math.ceil(remainingMs / 1000.0));
+            assistantHintLabel.setText("Please wait " + (int) seconds + " second(s) before sending another message.");
+            return;
+        }
+
+        String userMessage = assistantInputField.getText().trim();
+        if (userMessage.isEmpty()) {
+            return;
+        }
+
+        assistantRequestRunning = true;
+        setAssistantInteractionEnabled(false);
+        addAssistantMessage("You", userMessage, true);
+        assistantInputField.clear();
+        assistantHintLabel.setText("Thinking...");
+
+        Task<String> task = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                return aiAssistantService.ask(userMessage, currentUser);
+            }
+        };
+
+        task.setOnSucceeded(event -> {
+            addAssistantMessage(aiAssistantService.getAssistantName(), task.getValue(), false);
+            assistantHintLabel.setText(buildAssistantReadyMessage());
+            beginAssistantCooldown();
+        });
+
+        task.setOnFailed(event -> {
+            addAssistantMessage(aiAssistantService.getAssistantName(),
+                    OpenRouterService.TEMPORARY_UNAVAILABLE_MESSAGE,
+                    false);
+            assistantHintLabel.setText("The assistant is available, but the remote AI request failed.");
+            beginAssistantCooldown();
+        });
+
+        Thread worker = new Thread(task, "assistant-request");
+        worker.setDaemon(true);
+        worker.start();
+    }
+
+    private void setAssistantInteractionEnabled(boolean enabled) {
+        if (assistantInputField != null) {
+            assistantInputField.setDisable(!enabled);
+        }
+        if (assistantSendButton != null) {
+            assistantSendButton.setDisable(!enabled);
+        }
+    }
+
+    private void beginAssistantCooldown() {
+        assistantRequestRunning = false;
+        nextAssistantRequestAllowedAt = System.currentTimeMillis() + ASSISTANT_COOLDOWN_MS;
+
+        PauseTransition cooldown = new PauseTransition(Duration.millis(ASSISTANT_COOLDOWN_MS));
+        cooldown.setOnFinished(event -> {
+            setAssistantInteractionEnabled(true);
+            assistantHintLabel.setText(buildAssistantReadyMessage());
+            if (assistantInputField != null && assistantPanel != null && assistantPanel.isVisible()) {
+                assistantInputField.requestFocus();
+            }
+        });
+        cooldown.play();
+    }
+
+    private String buildAssistantReadyMessage() {
+        return AIConfig.isConfigured()
+                ? "Connected to " + AIConfig.PROVIDER + ". Ask anything about CuraVita."
+                : "Set ASSISTANT_NAME, PROVIDER, MODEL, and API_KEY in AIConfig.java to enable live AI replies.";
+    }
+
+    private void addAssistantMessage(String sender, String message, boolean userMessage) {
+        VBox bubble = new VBox(4);
+        bubble.getStyleClass().add(userMessage ? "assistant-bubble-user" : "assistant-bubble-ai");
+
+        Label senderLabel = new Label(sender);
+        senderLabel.getStyleClass().add("assistant-message-author");
+
+        Label bodyLabel = new Label(message);
+        bodyLabel.setWrapText(true);
+        bodyLabel.getStyleClass().add("assistant-message-text");
+
+        bubble.getChildren().addAll(senderLabel, bodyLabel);
+
+        HBox row = new HBox();
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        if (userMessage) {
+            row.getChildren().addAll(spacer, bubble);
+        } else {
+            row.getChildren().addAll(bubble, spacer);
+        }
+
+        assistantMessagesBox.getChildren().add(row);
+        if (assistantScrollPane != null) {
+            assistantScrollPane.layout();
+            assistantScrollPane.setVvalue(1.0);
+        }
+    }
+
+    @FXML
+    private void handlePrepareTwoFactor() {
+        pendingTwoFactorSecret = twoFactorAuthService.generateSecret();
+        twoFactorSecretField.setText(twoFactorAuthService.buildManualEntryKey(pendingTwoFactorSecret));
+        twoFactorCodeField.clear();
+        twoFactorMessageLabel.setText("Use this secret in your authenticator app, then enter the generated code.");
+        twoFactorSetupBox.setVisible(true);
+        twoFactorSetupBox.setManaged(true);
+    }
+
+    @FXML
+    private void handleEnableTwoFactor() {
+        if (pendingTwoFactorSecret == null || pendingTwoFactorSecret.isBlank()) {
+            twoFactorMessageLabel.setText("Generate a secret first.");
+            return;
+        }
+
+        String code = twoFactorCodeField.getText().trim();
+        if (!code.matches("\\d{6}")) {
+            twoFactorMessageLabel.setText("Enter a valid 6-digit code.");
+            return;
+        }
+
+        if (!twoFactorAuthService.verifyCode(pendingTwoFactorSecret, code)) {
+            twoFactorMessageLabel.setText("Invalid code. Check your authenticator app and try again.");
+            return;
+        }
+
+        boolean updated = userService.updateUserTwoFactor(currentUser.getId(), pendingTwoFactorSecret, true);
+        if (!updated) {
+            twoFactorMessageLabel.setText("Unable to enable 2FA right now.");
+            return;
+        }
+
+        currentUser.setTotpSecret(pendingTwoFactorSecret);
+        currentUser.setTotpEnabled(true);
+        pendingTwoFactorSecret = null;
+        twoFactorMessageLabel.setText("2FA enabled successfully.");
+        refreshTwoFactorSection();
+    }
+
+    @FXML
+    private void handleDisableTwoFactor() {
+        boolean updated = userService.disableUserTwoFactor(currentUser.getId());
+        if (!updated) {
+            twoFactorMessageLabel.setText("Unable to disable 2FA right now.");
+            return;
+        }
+
+        currentUser.setTotpSecret(null);
+        currentUser.setTotpEnabled(false);
+        pendingTwoFactorSecret = null;
+        twoFactorMessageLabel.setText("2FA disabled.");
+        refreshTwoFactorSection();
+    }
+
     @FXML
     private void selectStyle(ActionEvent event) {
         Button clicked = (Button) event.getSource();
-        String style = clicked.getText().toLowerCase();
-        
-        // Map display name to style
-        selectedStyle = mapStyleName(style);
-        
-        // Update button styles
-        styleCartoon.getStyleClass().remove("selected");
-        styleNeutral.getStyleClass().remove("selected");
-        stylePixel.getStyleClass().remove("selected");
-        styleAdventure.getStyleClass().remove("selected");
-        styleEmoji.getStyleClass().remove("selected");
-        styleLorelei.getStyleClass().remove("selected");
-        styleRobot.getStyleClass().remove("selected");
-        
+        selectedStyle = mapStyleName(clicked.getText());
+        clearSelectedStyles();
         clicked.getStyleClass().add("selected");
-        
-        // Generate new avatar with selected style
         previewAvatar = Avatar.generateRandom(selectedStyle);
         updatePreviewAvatar();
     }
-    
+
+    private void clearSelectedStyles() {
+        if (styleCartoon != null) styleCartoon.getStyleClass().remove("selected");
+        if (styleNeutral != null) styleNeutral.getStyleClass().remove("selected");
+        if (stylePixel != null) stylePixel.getStyleClass().remove("selected");
+        if (styleAdventure != null) styleAdventure.getStyleClass().remove("selected");
+        if (styleEmoji != null) styleEmoji.getStyleClass().remove("selected");
+        if (styleLorelei != null) styleLorelei.getStyleClass().remove("selected");
+        if (styleRobot != null) styleRobot.getStyleClass().remove("selected");
+    }
+
     private String mapStyleName(String name) {
-        switch(name.toLowerCase()) {
+        switch (name.toLowerCase()) {
             case "cartoon": return "avataaars";
             case "neutral": return "avataaars-neutral";
             case "pixel": return "pixel-art";
@@ -455,12 +573,29 @@ public class ProfilController {
             default: return "avataaars";
         }
     }
-    
-    // Generate random avatar
+
     @FXML
     private void generateRandomAvatar() {
         previewAvatar = Avatar.generateRandom(selectedStyle);
         updatePreviewAvatar();
+    }
+
+    private void updatePreviewAvatar() {
+        if (previewAvatar == null) {
+            previewAvatar = Avatar.generateRandom(selectedStyle);
+        }
+
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(140), previewImageView);
+        fadeOut.setFromValue(1);
+        fadeOut.setToValue(0);
+        fadeOut.setOnFinished(event -> {
+            updateAvatarDisplay(previewAvatar, false, true);
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(140), previewImageView);
+            fadeIn.setFromValue(0);
+            fadeIn.setToValue(1);
+            fadeIn.play();
+        });
+        fadeOut.play();
     }
 
     @FXML
@@ -479,124 +614,111 @@ public class ProfilController {
         String password = editPasswordField.getText();
 
         if (name.isEmpty() || email.isEmpty()) {
-            editErrorLabel.setText("❌ Nom et email obligatoires");
+            editErrorLabel.setText("Nom et email obligatoires");
             return;
         }
 
-        if (!emailPattern.matcher(email).matches()) {
-            editErrorLabel.setText("❌ Format d'email invalide");
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
+            editErrorLabel.setText("Format d'email invalide");
             return;
         }
 
         if (!password.isEmpty() && password.length() < 6) {
-            editErrorLabel.setText("❌ Le mot de passe doit contenir au moins 6 caractères");
+            editErrorLabel.setText("Le mot de passe doit contenir au moins 6 caracteres");
             return;
         }
 
         String passwordToUse = password.isEmpty() ? currentUser.getPassword() : password;
-
         if (userService.updateUser(currentUser.getId(), name, email, passwordToUse, currentUser.getType())) {
             currentUser.setNom(name);
             currentUser.setEmail(email);
             loadProfileData();
-            showSuccess("✅ Profil mis à jour avec succès!");
+            loadNavbarUserData();
+            loadHeroSection();
+            showSuccess("Profil mis a jour avec succes!");
             closeModal();
         } else {
-            editErrorLabel.setText("❌ Email déjà utilisé par un autre compte");
+            editErrorLabel.setText("Email deja utilise par un autre compte");
         }
     }
 
     @FXML
     private void handleChangeAvatar() {
-        // Open avatar generator panel (DiceBear only)
         showAvatarGenerator();
     }
-    
-    /**
-     * Show avatar generator panel (DiceBear)
-     */
+
+    @FXML
+    private void handleChangeBackground() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Choisir une image de fond");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp")
+        );
+
+        File selectedFile = fileChooser.showOpenDialog(null);
+        if (selectedFile != null) {
+            heroBackgroundImage.setImage(new Image(selectedFile.toURI().toString(), 1600, 420, false, true, true));
+        }
+    }
+
     private void showAvatarGenerator() {
-        // Initialize preview with current avatar or generate new
-        if (previewAvatar == null) {
-            previewAvatar = currentAvatar != null ? currentAvatar : Avatar.generateRandom();
-        }
-        
-        // Update preview display
-        updatePreviewAvatar();
-        
-        // Select current style
+        previewAvatar = currentAvatar != null ? currentAvatar : Avatar.generateRandom(selectedStyle);
         selectedStyle = previewAvatar.getStyle();
-        
-        // Update button styles
-        if (styleCartoon != null) styleCartoon.getStyleClass().remove("selected");
-        if (styleNeutral != null) styleNeutral.getStyleClass().remove("selected");
-        if (stylePixel != null) stylePixel.getStyleClass().remove("selected");
-        if (styleAdventure != null) styleAdventure.getStyleClass().remove("selected");
-        if (styleEmoji != null) styleEmoji.getStyleClass().remove("selected");
-        if (styleLorelei != null) styleLorelei.getStyleClass().remove("selected");
-        if (styleRobot != null) styleRobot.getStyleClass().remove("selected");
-        
-        switch(selectedStyle) {
-            case "avataaars": if (styleCartoon != null) styleCartoon.getStyleClass().add("selected"); break;
-            case "avataaars-neutral": if (styleNeutral != null) styleNeutral.getStyleClass().add("selected"); break;
-            case "pixel-art": if (stylePixel != null) stylePixel.getStyleClass().add("selected"); break;
-            case "adventurer": if (styleAdventure != null) styleAdventure.getStyleClass().add("selected"); break;
-            case "fun-emoji": if (styleEmoji != null) styleEmoji.getStyleClass().add("selected"); break;
-            case "lorelei": if (styleLorelei != null) styleLorelei.getStyleClass().add("selected"); break;
-            case "bottts": if (styleRobot != null) styleRobot.getStyleClass().add("selected"); break;
-            default: if (styleCartoon != null) styleCartoon.getStyleClass().add("selected");
-        }
-        
+        clearSelectedStyles();
+        markSelectedStyle(selectedStyle);
+        updateAvatarDisplay(previewAvatar, false, true);
         showAvatarPanel();
     }
-    
 
+    private void markSelectedStyle(String style) {
+        if ("avataaars".equals(style) && styleCartoon != null) styleCartoon.getStyleClass().add("selected");
+        if ("avataaars-neutral".equals(style) && styleNeutral != null) styleNeutral.getStyleClass().add("selected");
+        if ("pixel-art".equals(style) && stylePixel != null) stylePixel.getStyleClass().add("selected");
+        if ("adventurer".equals(style) && styleAdventure != null) styleAdventure.getStyleClass().add("selected");
+        if ("fun-emoji".equals(style) && styleEmoji != null) styleEmoji.getStyleClass().add("selected");
+        if ("lorelei".equals(style) && styleLorelei != null) styleLorelei.getStyleClass().add("selected");
+        if ("bottts".equals(style) && styleRobot != null) styleRobot.getStyleClass().add("selected");
+    }
 
     @FXML
     private void handleAcceptAvatar() {
         if (previewAvatar != null) {
             currentAvatar = previewAvatar;
-            
-            // Update the main avatar display with animation
-            if (avatarImageView != null) {
-                FadeTransition fadeOut = new FadeTransition(Duration.millis(150), avatarImageView);
-                fadeOut.setFromValue(1.0);
-                fadeOut.setToValue(0.0);
-                fadeOut.setOnFinished(e -> {
-                    updateAvatarDisplay(null, null, currentAvatar);
-                    FadeTransition fadeIn = new FadeTransition(Duration.millis(150), avatarImageView);
-                    fadeIn.setFromValue(0.0);
-                    fadeIn.setToValue(1.0);
-                    fadeIn.play();
-                });
-                fadeOut.play();
-            }
-            
-            // Save to database
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(150), heroAvatarImage);
+            fadeOut.setFromValue(1);
+            fadeOut.setToValue(0);
+            fadeOut.setOnFinished(event -> {
+                updateAvatarDisplay(currentAvatar, true, false);
+                FadeTransition fadeIn = new FadeTransition(Duration.millis(150), heroAvatarImage);
+                fadeIn.setFromValue(0);
+                fadeIn.setToValue(1);
+                fadeIn.play();
+            });
+            fadeOut.play();
+
             String avatarJson = currentAvatar.toJson();
             if (userService.updateUserAvatar(currentUser.getId(), avatarJson)) {
                 currentUser.setAvatarConfig(avatarJson);
             }
         }
-        
-        showSuccess("✅ Avatar enregistré avec succès!");
+
+        showSuccess("Avatar enregistre avec succes!");
         closeAvatarPanel();
     }
 
     @FXML
     private void closeAvatarPanel() {
-        // Scale down animation for panel
         ScaleTransition scaleDown = new ScaleTransition(Duration.millis(200), avatarPanel);
         scaleDown.setFromX(1);
-        scaleDown.setToX(0.9);
+        scaleDown.setToX(0.92);
         scaleDown.setFromY(1);
-        scaleDown.setToY(0.9);
+        scaleDown.setToY(0.92);
         scaleDown.setInterpolator(Interpolator.EASE_IN);
-        
-        FadeTransition fade = new FadeTransition(Duration.millis(300), overlayPane);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(240), overlayPane);
         fade.setFromValue(1);
         fade.setToValue(0);
-        fade.setOnFinished(e -> {
+        fade.setOnFinished(event -> {
             overlayPane.setVisible(false);
             overlayPane.setManaged(false);
             avatarPanel.setVisible(false);
@@ -604,9 +726,8 @@ public class ProfilController {
             avatarPanel.setScaleX(1);
             avatarPanel.setScaleY(1);
         });
-        
-        // Run scale first, then fade
-        scaleDown.setOnFinished(e -> fade.play());
+
+        scaleDown.setOnFinished(event -> fade.play());
         scaleDown.play();
     }
 
@@ -618,106 +739,98 @@ public class ProfilController {
     @FXML
     private void handleConfirmDelete() {
         if (userService.deleteUser(currentUser.getId())) {
-            showSuccess("✅ Compte supprimé avec succès!");
+            showSuccess("Compte supprime avec succes!");
             closeModal();
             PauseTransition pause = new PauseTransition(Duration.seconds(2));
-            pause.setOnFinished(e -> {
+            pause.setOnFinished(event -> {
                 try {
                     goBack();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+                } catch (IOException exception) {
+                    exception.printStackTrace();
                 }
             });
             pause.play();
         } else {
-            showSuccess("❌ Erreur lors de la suppression");
+            showSuccess("Erreur lors de la suppression");
         }
     }
 
     private void showSuccess(String message) {
-        successMessage.setText(message.replace("✅ ", "").replace("❌ ", ""));
+        successMessage.setText(message);
         showModal(successModal);
     }
 
     private void showModal(VBox modal) {
         overlayPane.setVisible(true);
         overlayPane.setManaged(true);
-        
+
         avatarPanel.setVisible(false);
         avatarPanel.setManaged(false);
-        
-        modal.setVisible(true);
-        modal.setManaged(true);
-
-        FadeTransition fade = new FadeTransition(Duration.millis(300), overlayPane);
-        fade.setFromValue(0);
-        fade.setToValue(1);
-        fade.play();
-        
-        modal.setScaleX(0.8);
-        modal.setScaleY(0.8);
-        ScaleTransition scale = new ScaleTransition(Duration.millis(300), modal);
-        scale.setFromX(0.8);
-        scale.setFromY(0.8);
-        scale.setToX(1);
-        scale.setToY(1);
-        scale.play();
-    }
-
-    private void showAvatarPanel() {
-        overlayPane.setVisible(true);
-        overlayPane.setManaged(true);
-        
         editModal.setVisible(false);
         editModal.setManaged(false);
         deleteModal.setVisible(false);
         deleteModal.setManaged(false);
         successModal.setVisible(false);
         successModal.setManaged(false);
-        
-        avatarPanel.setVisible(true);
-        avatarPanel.setManaged(true);
-        
-        // Start small and scale up (bounce effect)
-        avatarPanel.setScaleX(0.8);
-        avatarPanel.setScaleY(0.8);
 
-        // Scale up animation
-        ScaleTransition scaleUp = new ScaleTransition(Duration.millis(400), avatarPanel);
-        scaleUp.setFromX(0.8);
-        scaleUp.setToX(1);
-        scaleUp.setFromY(0.8);
-        scaleUp.setToY(1);
-        scaleUp.setInterpolator(Interpolator.EASE_OUT);
-        
-        // Fade in
-        FadeTransition fade = new FadeTransition(Duration.millis(300), overlayPane);
+        modal.setVisible(true);
+        modal.setManaged(true);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(250), overlayPane);
         fade.setFromValue(0);
         fade.setToValue(1);
-        
-        // Play both animations
-        scaleUp.play();
         fade.play();
-        
-        avatarPanel.setTranslateY(-50);
+    }
+
+    private void showAvatarPanel() {
+        overlayPane.setVisible(true);
+        overlayPane.setManaged(true);
+
+        editModal.setVisible(false);
+        editModal.setManaged(false);
+        deleteModal.setVisible(false);
+        deleteModal.setManaged(false);
+        successModal.setVisible(false);
+        successModal.setManaged(false);
+
+        avatarPanel.setVisible(true);
+        avatarPanel.setManaged(true);
+        avatarPanel.setScaleX(0.88);
+        avatarPanel.setScaleY(0.88);
+        avatarPanel.setTranslateY(-24);
         avatarPanel.setOpacity(0);
-        TranslateTransition slide = new TranslateTransition(Duration.millis(400), avatarPanel);
-        slide.setFromY(-50);
+
+        ScaleTransition scaleUp = new ScaleTransition(Duration.millis(320), avatarPanel);
+        scaleUp.setFromX(0.88);
+        scaleUp.setToX(1);
+        scaleUp.setFromY(0.88);
+        scaleUp.setToY(1);
+        scaleUp.setInterpolator(Interpolator.EASE_OUT);
+
+        TranslateTransition slide = new TranslateTransition(Duration.millis(320), avatarPanel);
+        slide.setFromY(-24);
         slide.setToY(0);
+
+        FadeTransition panelFade = new FadeTransition(Duration.millis(320), avatarPanel);
+        panelFade.setFromValue(0);
+        panelFade.setToValue(1);
+
+        FadeTransition overlayFade = new FadeTransition(Duration.millis(240), overlayPane);
+        overlayFade.setFromValue(0);
+        overlayFade.setToValue(1);
+
+        scaleUp.play();
         slide.play();
-        
-        FadeTransition fadeIn = new FadeTransition(Duration.millis(400), avatarPanel);
-        fadeIn.setFromValue(0);
-        fadeIn.setToValue(1);
-        fadeIn.play();
+        panelFade.play();
+        overlayFade.play();
     }
 
     @FXML
     private void closeModal() {
-        FadeTransition fade = new FadeTransition(Duration.millis(300), overlayPane);
+        FadeTransition fade = new FadeTransition(Duration.millis(240), overlayPane);
         fade.setFromValue(1);
         fade.setToValue(0);
-        fade.setOnFinished(e -> {
+        fade.setOnFinished(event -> {
             overlayPane.setVisible(false);
             overlayPane.setManaged(false);
             editModal.setVisible(false);
@@ -742,12 +855,12 @@ public class ProfilController {
         stage.setScene(scene);
         stage.setFullScreen(true);
     }
-    
+
     @FXML
     private void goToAccueil() throws IOException {
         goBack();
     }
-    
+
     @FXML
     private void goToDashboard() throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Dashboard.fxml"));
@@ -758,69 +871,49 @@ public class ProfilController {
         stage.setScene(scene);
         stage.setFullScreen(true);
     }
-    
+
     @FXML
     private void toggleProfileDropdown() {
-        if (profileDropdown != null) {
-            boolean isVisible = profileDropdown.isVisible();
-            
-            if (isVisible) {
-                // Close with fade + scale out
-                FadeTransition fade = new FadeTransition(Duration.millis(200), profileDropdown);
-                fade.setFromValue(1.0);
-                fade.setToValue(0.0);
-                
-                ScaleTransition scale = new ScaleTransition(Duration.millis(200), profileDropdown);
-                scale.setFromX(1.0);
-                scale.setFromY(1.0);
-                scale.setToX(0.95);
-                scale.setToY(0.95);
-                
-                scale.setOnFinished(e -> {
-                    profileDropdown.setVisible(false);
-                    profileDropdown.setManaged(false);
-                });
-                
-                fade.play();
-                scale.play();
-            } else {
-                // Open with fade + scale in
-                profileDropdown.setVisible(true);
-                profileDropdown.setManaged(true);
-                profileDropdown.setOpacity(0);
-                profileDropdown.setScaleX(0.95);
-                profileDropdown.setScaleY(0.95);
-                
-                FadeTransition fade = new FadeTransition(Duration.millis(200), profileDropdown);
-                fade.setFromValue(0.0);
-                fade.setToValue(1.0);
-                
-                ScaleTransition scale = new ScaleTransition(Duration.millis(200), profileDropdown);
-                scale.setFromX(0.95);
-                scale.setFromY(0.95);
-                scale.setToX(1.0);
-                scale.setToY(1.0);
-                
-                fade.play();
-                scale.play();
-            }
+        if (profileDropdown == null) {
+            return;
+        }
+
+        boolean isVisible = profileDropdown.isVisible();
+        if (isVisible) {
+            FadeTransition fade = new FadeTransition(Duration.millis(180), profileDropdown);
+            fade.setFromValue(1);
+            fade.setToValue(0);
+            fade.setOnFinished(event -> {
+                profileDropdown.setVisible(false);
+                profileDropdown.setManaged(false);
+            });
+            fade.play();
+        } else {
+            profileDropdown.setVisible(true);
+            profileDropdown.setManaged(true);
+            profileDropdown.setOpacity(0);
+
+            FadeTransition fade = new FadeTransition(Duration.millis(180), profileDropdown);
+            fade.setFromValue(0);
+            fade.setToValue(1);
+            fade.play();
         }
     }
-    
+
     @FXML
     private void closeDropdownIfOpen() {
         if (profileDropdown != null && profileDropdown.isVisible()) {
-            FadeTransition fade = new FadeTransition(Duration.millis(200), profileDropdown);
-            fade.setFromValue(1.0);
-            fade.setToValue(0.0);
-            fade.setOnFinished(e -> {
+            FadeTransition fade = new FadeTransition(Duration.millis(160), profileDropdown);
+            fade.setFromValue(1);
+            fade.setToValue(0);
+            fade.setOnFinished(event -> {
                 profileDropdown.setVisible(false);
                 profileDropdown.setManaged(false);
             });
             fade.play();
         }
     }
-    
+
     @FXML
     private void logout() throws IOException {
         userService.logout();
