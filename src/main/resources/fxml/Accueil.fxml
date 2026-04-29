@@ -3,68 +3,67 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
+<?import javafx.scene.shape.SVGPath?>
 
-<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
-      fx:controller="org.example.controller.AccueilController" styleClass="root">
-    
-    <!-- ============================================
-         NAVBAR (TOP)
-    ============================================ -->
-    <HBox styleClass="navbar-pill" alignment="CENTER">
-        <VBox.margin>
-            <Insets top="20" left="40" right="40" bottom="0"/>
-        </VBox.margin>
-        
-        <!-- LEFT: Logo -->
-        <Label text="CuraVita" styleClass="logo-text"/>
-        
-        <!-- Spacer -->
-        <Region HBox.hgrow="SOMETIMES"/>
-        
-        <!-- CENTER: Menu Items -->
-        <HBox styleClass="menu-container" alignment="CENTER">
-            <Button text="Accueil" styleClass="menu-item"/>
-            <Button text="Produits" styleClass="menu-item"/>
-            <Button text="Commandes" styleClass="menu-item"/>
-            <Button text="Ordonnance" styleClass="menu-item"/>
-            <Button text="Traitement" styleClass="menu-item"/>
-            <Button text="Guide Sant&#233;" styleClass="menu-item"/>
-            <Button text="Contact" styleClass="menu-item" onAction="#handleContact"/>
-            <Button text="&#192; propos" styleClass="menu-item"/>
-        </HBox>
-        
-        <!-- Spacer -->
-        <Region HBox.hgrow="SOMETIMES"/>
-        
-        <!-- RIGHT: Icons -->
-        <StackPane>
-            <HBox styleClass="icon-container" alignment="CENTER">
-                <Button text="&#128269;" styleClass="icon-button" onAction="#handleSearch"/>
-                <Button fx:id="profileButton" text="&#128100;" styleClass="icon-button" onAction="#toggleProfileDropdown"/>
-                <StackPane>
-                    <Button fx:id="messagesButton" text="&#9993;" styleClass="icon-button" onAction="#handleMessages" />
-                    <Label fx:id="messagesBadge" text="0" styleClass="message-badge" />
-                </StackPane>
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.example.controller.AccueilController" styleClass="root" fx:id="rootContainer">
+    <VBox spacing="0" VBox.vgrow="ALWAYS">
+        <!-- ============================================
+             NAVBAR (TOP)
+        ============================================ -->
+        <HBox styleClass="navbar-pill" alignment="CENTER">
+            <VBox.margin>
+                <Insets top="20" left="40" right="40" bottom="0"/>
+            </VBox.margin>
+
+            <!-- LEFT: Logo -->
+            <Label text="CuraVita" styleClass="logo-text"/>
+
+            <!-- Spacer -->
+            <Region HBox.hgrow="SOMETIMES"/>
+
+            <!-- CENTER: Menu Items -->
+            <HBox styleClass="menu-container" alignment="CENTER">
+                <Button text="Accueil" styleClass="menu-item"/>
+                <Button text="Produits" styleClass="menu-item"/>
+                <Button text="Commandes" styleClass="menu-item"/>
+                <Button text="Ordonnance" styleClass="menu-item"/>
+                <Button text="Traitement" styleClass="menu-item"/>
+                <Button text="Guide Sant&#233;" styleClass="menu-item"/>
+                <Button text="Contact" styleClass="menu-item" onAction="#handleContact"/>
+                <Button text="&#192; propos" styleClass="menu-item"/>
             </HBox>
-            
-            <!-- Profile Dropdown -->
-            <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false">
-                <VBox.margin>
-                    <Insets top="45" right="0" bottom="0" left="0"/>
-                </VBox.margin>
-                <Button text="Profil" styleClass="dropdown-item" onAction="#showProfile"/>
-                <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
-                <Button text="Logout" styleClass="dropdown-item" onAction="#logout"/>
-            </VBox>
-        </StackPane>
-    </HBox>
-    
-    <!-- ============================================
-         MAIN CONTENT AREA
-    ============================================ -->
-    <VBox styleClass="main-content" VBox.vgrow="ALWAYS">
-        
+
+            <!-- Spacer -->
+            <Region HBox.hgrow="SOMETIMES"/>
+
+            <!-- RIGHT: Icons -->
+            <StackPane>
+                <HBox styleClass="icon-container" alignment="CENTER">
+                    <Button text="&#128269;" styleClass="icon-button" onAction="#handleSearch"/>
+                    <Button fx:id="profileButton" text="&#128100;" styleClass="icon-button" onAction="#toggleProfileDropdown"/>
+                    <StackPane>
+                        <Button fx:id="messagesButton" text="" styleClass="icon-button" onAction="#handleMessages">
+                            <graphic>
+                                <SVGPath content="M12,22c1.1,0 2,-0.9 2,-2h-4c0,1.1 0.89,2 2,2zM18,16v-5c0,-3.07 -1.64,-5.64 -4.5,-6.32V4c0,-0.83 -0.67,-1.5 -1.5,-1.5s-1.5,0.67 -1.5,1.5v0.68C7.63,5.36 6,7.92 6,11v5l-2,2v1h16v-1l-2,-2z" fill="white" scaleX="0.8" scaleY="0.8"/>
+                            </graphic>
+                        </Button>
+                        <Label fx:id="messagesBadge" text="0" styleClass="message-badge" />
+                    </StackPane>
+                </HBox>
+
+                <!-- Profile Dropdown -->
+                <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false">
+                    <VBox.margin>
+                        <Insets top="45" right="0" bottom="0" left="0"/>
+                    </VBox.margin>
+                    <Button text="Profil" styleClass="dropdown-item" onAction="#showProfile"/>
+                    <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                    <Button text="Logout" styleClass="dropdown-item" onAction="#logout"/>
+                </VBox>
+            </StackPane>
+        </HBox>
+
         <!-- ============================================
              HERO SECTION (GREEN)
         ============================================ -->
@@ -117,5 +116,31 @@
         </HBox>
         
     </VBox>
-    
-</VBox>
+
+    <StackPane fx:id="notificationsOverlay" visible="false" managed="false" styleClass="notification-overlay-dimmer">
+        <VBox fx:id="notificationsPopup" styleClass="notification-popup" StackPane.alignment="CENTER"
+              maxWidth="520" maxHeight="560">
+
+            <HBox alignment="CENTER_LEFT" styleClass="notification-popup-header">
+                <Label text="Notifications" styleClass="notification-popup-title" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="popupUnreadBadge" text="0" styleClass="notification-popup-count" />
+                <Button fx:id="closeNotificationsButton" text="✕" styleClass="notification-close-btn" onAction="#closeNotificationsPopup" />
+            </HBox>
+
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="notification-popup-scroll" prefHeight="450" minHeight="300">
+                <VBox fx:id="notificationsList" spacing="8" styleClass="notification-list" />
+            </ScrollPane>
+
+            <Label fx:id="notificationsEmptyLabel" text="Aucune notification" styleClass="notification-empty" visible="false" managed="false" />
+
+        </VBox>
+    </StackPane>
+
+    <!-- Overlay pour les détails de notification structuré dans le même StackPane principal -->
+    <StackPane fx:id="detailOverlayContainer" visible="false" managed="false" styleClass="notification-overlay-dimmer">
+        <VBox fx:id="detailOverlayModal" styleClass="notification-overlay-modal" StackPane.alignment="CENTER">
+            <!-- Contenu dynamique généré en Java -->
+        </VBox>
+    </StackPane>
+</StackPane>

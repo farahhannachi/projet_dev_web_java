@@ -219,6 +219,145 @@ public class QuestionService {
         return 0;
     }
 
+    public Question getQuestionForUserById(int questionId, int userId) {
+        String userCol = getUserFkColumn();
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT q.id_question, q.type_ticket, q.objet, q.description, q.priorite, q.statut, ");
+        sql.append("q.file_name, q.file_path, q.file_type, q.file_size, q.created_at, ");
+        sql.append("q.").append(userCol).append(" AS utilisateur_id, ");
+        sql.append("CONCAT(IFNULL(u.prenom, ''), ' ', IFNULL(u.nom, '')) AS utilisateur_nom, ");
+        sql.append("u.email AS utilisateur_email ");
+        sql.append("FROM question q ");
+        sql.append("LEFT JOIN utilisateur u ON q.").append(userCol).append(" = u.id_utilisateur ");
+        sql.append("WHERE q.id_question = ? AND q.").append(userCol).append(" = ?");
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            stmt.setInt(1, questionId);
+            stmt.setInt(2, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapRow(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean updateQuestionForUser(int questionId,
+                                         int userId,
+                                         String typeTicket,
+                                         String objet,
+                                         String description,
+                                         String priorite,
+                                         String statut,
+                                         String fileName,
+                                         String filePath,
+                                         String fileType,
+                                         Integer fileSize) {
+        String userCol = getUserFkColumn();
+        String sql = "UPDATE question SET type_ticket = ?, objet = ?, description = ?, priorite = ?, statut = ?, " +
+                "file_name = ?, file_path = ?, file_type = ?, file_size = ? " +
+                "WHERE id_question = ? AND " + userCol + " = ?";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, typeTicket);
+            stmt.setString(2, objet);
+            stmt.setString(3, description);
+            stmt.setString(4, priorite);
+            stmt.setString(5, statut);
+            stmt.setString(6, fileName);
+            stmt.setString(7, filePath);
+            stmt.setString(8, fileType);
+            if (fileSize == null) {
+                stmt.setNull(9, java.sql.Types.INTEGER);
+            } else {
+                stmt.setInt(9, fileSize);
+            }
+            stmt.setInt(10, questionId);
+            stmt.setInt(11, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteQuestionForUser(int questionId, int userId) {
+        String userCol = getUserFkColumn();
+        String deleteQuestionSql = "DELETE FROM question WHERE id_question = ? AND " + userCol + " = ?";
+        String deleteResponsesSql = "DELETE FROM response_question WHERE " + getResponseQuestionFkColumn() + " = ?";
+
+        Connection conn = null;
+        try {
+            conn = DatabaseUtil.getConnection();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement verifyStmt = conn.prepareStatement(
+                    "SELECT id_question FROM question WHERE id_question = ? AND " + userCol + " = ?")) {
+                verifyStmt.setInt(1, questionId);
+                verifyStmt.setInt(2, userId);
+                try (ResultSet rs = verifyStmt.executeQuery()) {
+                    if (!rs.next()) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            }
+
+            try (PreparedStatement deleteResponsesStmt = conn.prepareStatement(deleteResponsesSql)) {
+                deleteResponsesStmt.setInt(1, questionId);
+                deleteResponsesStmt.executeUpdate();
+            }
+
+            try (PreparedStatement deleteQuestionStmt = conn.prepareStatement(deleteQuestionSql)) {
+                deleteQuestionStmt.setInt(1, questionId);
+                deleteQuestionStmt.setInt(2, userId);
+                boolean deleted = deleteQuestionStmt.executeUpdate() > 0;
+                if (!deleted) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException ignored) {
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean updateQuestionStatus(int questionId, String statut) {
+        String sql = "UPDATE question SET statut = ? WHERE id_question = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, statut);
+            stmt.setInt(2, questionId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private Question mapRow(ResultSet rs) throws SQLException {
         java.sql.Timestamp createdAt = rs.getTimestamp("created_at");
         Question q = new Question(

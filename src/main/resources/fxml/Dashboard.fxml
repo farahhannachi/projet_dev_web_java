@@ -17,7 +17,7 @@
                 <Button text="Coupons" onAction="#showCoupons" styleClass="sidebar-item"/>
                 <Button text="Dépôts" onAction="#showDepots" styleClass="sidebar-item"/>
                 <Button text="Stocks" onAction="#showStocks" styleClass="sidebar-item"/>
-                <Button text="Réponses" onAction="#showResponseQuestions" styleClass="sidebar-item"/>
+                <Button text="&#9993; Contact" onAction="#showResponseQuestions" styleClass="sidebar-item"/>
             </VBox>
             <Region VBox.vgrow="ALWAYS"/>
             <Button fx:id="frontOfficeBtn" text="← Back" onAction="#goToFrontOffice" styleClass="sidebar-button-bottom"/>

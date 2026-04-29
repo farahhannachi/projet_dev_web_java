@@ -49,18 +49,21 @@
         </StackPane>
     </HBox>
 
-    <VBox styleClass="main-content" VBox.vgrow="ALWAYS" spacing="20">
+    <VBox styleClass="messages-page-content" VBox.vgrow="ALWAYS" spacing="20">
         <VBox.margin>
             <Insets top="30" left="40" right="40" bottom="30"/>
         </VBox.margin>
-        <Label text="Mes reponses" styleClass="main-title" />
-        <TableView fx:id="messagesTable" styleClass="modern-table" VBox.vgrow="ALWAYS">
+        <Label text="Mes reponses" styleClass="messages-page-title" />
+        <TableView fx:id="messagesTable" styleClass="messages-table" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn fx:id="questionColumn" text="Question" prefWidth="260" />
                 <TableColumn fx:id="responseColumn" text="Reponse" prefWidth="360" />
                 <TableColumn fx:id="roleColumn" text="Role" prefWidth="120" />
                 <TableColumn fx:id="createdAtColumn" text="Cree le" prefWidth="140" />
             </columns>
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+            </columnResizePolicy>
         </TableView>
     </VBox>
 </VBox>

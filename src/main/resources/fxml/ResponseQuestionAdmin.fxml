@@ -4,20 +4,28 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.example.controller.ResponseQuestionAdminController"
-            styleClass="admin-dashboard-root">
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="org.example.controller.ResponseQuestionAdminController"
+           fx:id="adminRootStack">
 
-    <!-- Top header (simple & pro) -->
+<BorderPane styleClass="admin-dashboard-root">
+
+    <!-- ═══════════════════════════════════════════
+         TOP: Header + Search/Filter bar
+    ═══════════════════════════════════════════ -->
     <top>
-        <VBox spacing="12">
+        <VBox spacing="14">
+            <padding><Insets top="4" right="0" bottom="4" left="0"/></padding>
+
+            <!-- Title row -->
             <HBox alignment="CENTER_LEFT" spacing="16">
                 <VBox spacing="2">
-                    <Label text="Support - Questions &amp; Réponses" styleClass="admin-title" />
+                    <Label text="Support — Questions &amp; Contact" styleClass="admin-title" />
                     <Label text="Gérez les tickets clients : recherchez, filtrez et répondez." styleClass="admin-subtitle" />
                 </VBox>
                 <Region HBox.hgrow="ALWAYS" />
-                <Button text="Exporter PDF" onAction="#handleExportPdf" styleClass="btn-admin-primary" />
+                <Button text="✨  Résumé IA" onAction="#handleSummarizeByPriority" styleClass="btn-admin-ai" />
+                <Button text="📄  Exporter PDF" onAction="#handleExportPdf" styleClass="btn-admin-primary" />
             </HBox>
 
             <!-- Search / filter bar -->
@@ -36,12 +44,14 @@
         </VBox>
     </top>
 
-    <!-- Center: split between list and reply panel -->
+    <!-- ═══════════════════════════════════════════
+         CENTER: Split → Table + Reply panel
+    ═══════════════════════════════════════════ -->
     <center>
-        <SplitPane dividerPositions="0.70" styleClass="admin-split">
+        <SplitPane fx:id="mainSplitPane" dividerPositions="0.70" styleClass="admin-split">
 
-            <!-- LEFT: Questions table -->
-            <VBox spacing="12">
+            <!-- ── LEFT: Questions table ── -->
+            <VBox spacing="12" minWidth="500" minHeight="400">
 
                 <VBox styleClass="admin-card" VBox.vgrow="ALWAYS">
                     <HBox alignment="CENTER_LEFT" spacing="10" styleClass="admin-card-header">
@@ -50,7 +60,7 @@
                         <Label fx:id="questionsCountLabel" text="" styleClass="badge-gray" />
                     </HBox>
 
-                    <TableView fx:id="questionTable" styleClass="table-modern" VBox.vgrow="ALWAYS">
+                    <TableView fx:id="questionTable" styleClass="table-modern" VBox.vgrow="ALWAYS" prefHeight="400" minHeight="200">
                         <columns>
                             <TableColumn fx:id="clientColumn" text="CLIENT" prefWidth="180" />
                             <TableColumn fx:id="objetColumn" text="OBJET" prefWidth="240" />
@@ -68,75 +78,135 @@
 
             </VBox>
 
-            <!-- RIGHT: Reply panel (embedded, no new window) -->
+            <!-- ── RIGHT: Reply panel (premium form) ── -->
             <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="admin-form-scroll">
-                <VBox fx:id="replyPanel" styleClass="admin-form-card" spacing="12">
-                    <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Label text="Répondre" styleClass="admin-section-title" />
-                        <Label fx:id="replyModeLabel" text="" styleClass="badge-gray" />
+                <VBox fx:id="replyPanel" styleClass="admin-reply-panel" spacing="0">
+
+                    <!-- Panel Header -->
+                    <HBox alignment="CENTER_LEFT" spacing="10" styleClass="reply-panel-header">
+                        <StackPane styleClass="reply-panel-icon">
+                            <Label text="✎" style="-fx-text-fill: white; -fx-font-size: 16;"/>
+                        </StackPane>
+                        <VBox spacing="1">
+                            <Label text="Répondre" styleClass="reply-panel-title" />
+                            <Label fx:id="replyModeLabel" text="" styleClass="reply-panel-mode" />
+                        </VBox>
                         <Region HBox.hgrow="ALWAYS" />
-                        <Button text="✕" onAction="#handleCloseReplyPanel" styleClass="btn-icon-minimal" />
+                        <Button text="✕" onAction="#handleCloseReplyPanel" styleClass="btn-close-panel" />
                     </HBox>
 
-                    <!-- Question details -->
-                    <VBox spacing="8" styleClass="admin-details-card">
-                        <Label text="Détails de la question" styleClass="admin-card-title" />
+                    <!-- ── Question Details Card ── -->
+                    <VBox spacing="10" styleClass="reply-detail-card">
+                        <VBox.margin><Insets top="16" left="16" right="16" bottom="0"/></VBox.margin>
+                        <Label text="Détails du ticket" styleClass="reply-section-label" />
 
-                        <HBox spacing="10">
-                            <Label text="Client:" styleClass="form-label" />
-                            <Label fx:id="detailClientLabel" text="-" styleClass="text-secondary" />
+                        <HBox spacing="14">
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="CLIENT" styleClass="reply-field-label" />
+                                <Label fx:id="detailClientLabel" text="-" styleClass="reply-field-value" />
+                            </VBox>
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="TYPE" styleClass="reply-field-label" />
+                                <Label fx:id="detailTypeLabel" text="-" styleClass="reply-field-value" />
+                            </VBox>
                         </HBox>
-                        <HBox spacing="10">
-                            <Label text="Objet:" styleClass="form-label" />
-                            <Label fx:id="detailObjetLabel" text="-" styleClass="text-secondary" wrapText="true" />
+
+                        <VBox spacing="4">
+                            <Label text="OBJET" styleClass="reply-field-label" />
+                            <Label fx:id="detailObjetLabel" text="-" styleClass="reply-field-value" wrapText="true" />
+                        </VBox>
+
+                        <HBox spacing="14">
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="PRIORITÉ" styleClass="reply-field-label" />
+                                <Label fx:id="detailPrioriteLabel" text="-" styleClass="reply-field-value" />
+                            </VBox>
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="PIÈCE JOINTE" styleClass="reply-field-label" />
+                                <Label fx:id="detailFileLabel" text="Aucun" styleClass="reply-field-value" />
+                            </VBox>
                         </HBox>
-                        <HBox spacing="10">
-                            <Label text="Type:" styleClass="form-label" />
-                            <Label fx:id="detailTypeLabel" text="-" styleClass="text-secondary" />
+
+                        <!-- Analyze Image button (visible when file is an image) -->
+                        <Button text="🔍  Analyser Image IA" onAction="#handleAnalyzeImage" styleClass="btn-admin-ai" />
+
+                        <VBox spacing="4">
+                            <Label text="DESCRIPTION" styleClass="reply-field-label" />
+                            <TextArea fx:id="detailDescriptionArea" editable="false" wrapText="true" prefRowCount="4" styleClass="reply-description-area" />
+                        </VBox>
+                    </VBox>
+
+                    <!-- ── Response Form ── -->
+                    <VBox spacing="14" styleClass="reply-form-section">
+                        <VBox.margin><Insets top="12" left="16" right="16" bottom="0"/></VBox.margin>
+                        <Label text="Formulaire de réponse" styleClass="reply-section-label" />
+
+                        <HBox spacing="12">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="Auteur Type" styleClass="reply-form-label" />
+                                <ComboBox fx:id="auteurTypeCombo" styleClass="reply-form-combo" maxWidth="Infinity" />
+                            </VBox>
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="Rôle" styleClass="reply-form-label" />
+                                <ComboBox fx:id="reponseRoleCombo" styleClass="reply-form-combo" maxWidth="Infinity" />
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="12">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="Action" styleClass="reply-form-label" />
+                                <ComboBox fx:id="actionTypeCombo" styleClass="reply-form-combo" maxWidth="Infinity" />
+                            </VBox>
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="Impact" styleClass="reply-form-label" />
+                                <ComboBox fx:id="impactStatutCombo" styleClass="reply-form-combo" maxWidth="Infinity" />
+                            </VBox>
+                        </HBox>
+
+                        <VBox spacing="5">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Réponse" styleClass="reply-form-label" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Button fx:id="aiSuggestButton" text="✨ Suggestion IA" onAction="#handleSuggestResponseAi" styleClass="btn-ai-suggest" />
+                                <Label fx:id="aiSuggestionStatusLabel" text="" styleClass="badge-ai-status" />
+                            </HBox>
+                            <TextArea fx:id="reponseTextArea" prefRowCount="6" styleClass="reply-form-textarea" promptText="Tapez votre réponse..." />
+                        </VBox>
+
+                        <!-- File attachment -->
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="reply-file-row">
+                            <Label text="📎" style="-fx-font-size: 16;" />
+                            <Label fx:id="fileInfoLabel" text="Aucun fichier" styleClass="reply-file-name" />
                             <Region HBox.hgrow="ALWAYS" />
-                            <Label text="Priorité:" styleClass="form-label" />
-                            <Label fx:id="detailPrioriteLabel" text="-" styleClass="text-secondary" />
+                            <Button fx:id="chooseFileButton" text="Choisir fichier" onAction="#handleChooseFile" styleClass="btn-admin-secondary" />
                         </HBox>
 
-                        <Label text="Description" styleClass="form-label" />
-                        <TextArea fx:id="detailDescriptionArea" editable="false" wrapText="true" prefRowCount="5" styleClass="form-input" />
+                        <!-- Error label -->
+                        <Label fx:id="formErrorLabel" text="" styleClass="reply-error-label" />
 
-                        <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Label text="Pièce jointe:" styleClass="form-label" />
-                            <Label fx:id="detailFileLabel" text="Aucun" styleClass="text-secondary" />
+                        <!-- Action buttons -->
+                        <HBox spacing="10" alignment="CENTER_RIGHT" styleClass="reply-action-row">
+                            <Button text="Reset" onAction="#handleResetForm" styleClass="btn-admin-secondary" />
+                            <Button fx:id="saveButton" text="Envoyer la réponse" onAction="#handleSave" styleClass="btn-admin-primary" />
                         </HBox>
                     </VBox>
 
-                    <Separator />
+                    <!-- ── Response History ── -->
+                    <VBox spacing="10" styleClass="reply-history-section">
+                        <VBox.margin><Insets top="12" left="16" right="16" bottom="16"/></VBox.margin>
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="Historique des réponses" styleClass="reply-section-label" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label fx:id="responsesCountLabel" text="" styleClass="badge-gray" />
+                        </HBox>
+                        <ListView fx:id="responsesList" prefHeight="120" styleClass="reply-history-list" />
+                        <HBox spacing="8" alignment="CENTER_RIGHT">
+                            <Button fx:id="previewResponseButton" text="Aperçu" onAction="#handlePreviewSelectedResponse" styleClass="btn-admin-secondary" />
+                            <Button fx:id="editResponseButton" text="Modifier" onAction="#handleEditSelectedResponse" styleClass="btn-admin-secondary" />
+                            <Button fx:id="deleteResponseButton" text="Supprimer" onAction="#handleDeleteSelectedResponse" styleClass="btn-admin-danger" />
+                        </HBox>
+                    </VBox>
 
-                    <!-- Response form -->
-                    <Label text="Auteur Type" styleClass="form-label" />
-                    <ComboBox fx:id="auteurTypeCombo" styleClass="form-combo" />
-
-                    <Label text="Rôle" styleClass="form-label" />
-                    <ComboBox fx:id="reponseRoleCombo" styleClass="form-combo" />
-
-                    <Label text="Action" styleClass="form-label" />
-                    <ComboBox fx:id="actionTypeCombo" styleClass="form-combo" />
-
-                    <Label text="Impact" styleClass="form-label" />
-                    <ComboBox fx:id="impactStatutCombo" styleClass="form-combo" />
-
-                    <Label text="Réponse" styleClass="form-label" />
-                    <TextArea fx:id="reponseTextArea" prefRowCount="6" styleClass="form-input" promptText="Tapez votre réponse..." />
-
-                    <Label text="Fichier (optionnel)" styleClass="form-label" />
-                    <HBox spacing="10" alignment="CENTER_LEFT">
-                        <Label fx:id="fileInfoLabel" text="Aucun fichier" styleClass="text-secondary" />
-                        <Button fx:id="chooseFileButton" text="Choisir" onAction="#handleChooseFile" styleClass="btn-admin-secondary" />
-                    </HBox>
-
-                    <Label fx:id="formErrorLabel" text="" styleClass="error-label" />
-
-                    <HBox spacing="10" alignment="CENTER_RIGHT">
-                        <Button fx:id="saveButton" text="Envoyer" onAction="#handleSave" styleClass="btn-admin-primary" />
-                        <Button text="Reset" onAction="#handleResetForm" styleClass="btn-admin-secondary" />
-                    </HBox>
                 </VBox>
             </ScrollPane>
 
@@ -144,3 +214,12 @@
     </center>
 </BorderPane>
 
+    <!-- AI Summary overlay (same dark style as notification popup) -->
+    <StackPane fx:id="aiSummaryOverlay" visible="false" managed="false" styleClass="notification-overlay-dimmer">
+        <VBox fx:id="aiSummaryModal" styleClass="notification-popup" StackPane.alignment="CENTER"
+              maxWidth="600" maxHeight="620">
+            <!-- Content built dynamically in Java -->
+        </VBox>
+    </StackPane>
+
+</StackPane>

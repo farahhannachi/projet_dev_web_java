@@ -5,15 +5,15 @@
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.example.controller.ContactQuestionController"
-      styleClass="support-card" prefWidth="520" maxWidth="520" spacing="16">
+      styleClass="support-card" prefWidth="560" maxWidth="560" spacing="18">
 
     <HBox alignment="CENTER_LEFT" spacing="12">
         <StackPane styleClass="support-icon-bubble">
             <Label text="&#x1F4E9;" styleClass="support-icon" />
         </StackPane>
         <VBox spacing="2">
-            <Label text="Nouveau Ticket" styleClass="support-card-title" />
-            <Label text="Décrivez votre problème en détail" styleClass="support-card-subtitle" />
+            <Label fx:id="formTitleLabel" text="Nouveau contact" styleClass="support-card-title" />
+            <Label fx:id="formSubtitleLabel" text="Décrivez votre demande clairement pour obtenir une réponse rapide." styleClass="support-card-subtitle" wrapText="true" />
         </VBox>
     </HBox>
 
@@ -23,7 +23,7 @@
         <Label text="Objet de la demande" styleClass="support-field-label" />
         <StackPane styleClass="support-input-wrap">
             <TextField fx:id="objetField" styleClass="support-input" promptText="Ex: Question sur ma commande" />
-            <Label text="&#x1F3A4;" styleClass="support-field-icon" StackPane.alignment="CENTER_RIGHT" />
+            <Button fx:id="objetMicButton" text="🎤" styleClass="support-mic-button icon-compact" onAction="#handleObjetMic" StackPane.alignment="CENTER_RIGHT" />
         </StackPane>
     </VBox>
 
@@ -32,7 +32,7 @@
         <StackPane styleClass="support-input-wrap">
             <TextArea fx:id="descriptionArea" styleClass="support-textarea" prefRowCount="5" wrapText="true"
                       promptText="Expliquez votre problème ou question en détail..." />
-            <Label text="&#x1F3A4;" styleClass="support-field-icon" StackPane.alignment="TOP_RIGHT" />
+            <Button fx:id="descriptionMicButton" text="🎤" styleClass="support-mic-button icon-compact" onAction="#handleDescriptionMic" StackPane.alignment="TOP_RIGHT" />
         </StackPane>
     </VBox>
 
@@ -54,13 +54,13 @@
     </VBox>
 
     <VBox spacing="8">
-        <Label text="Priorité" styleClass="support-field-label" />
-        <ComboBox fx:id="prioriteCombo" styleClass="support-combo" maxWidth="Infinity" />
+        <Label text="Priorité (auto)" styleClass="support-field-label" />
+        <Label fx:id="autoPriorityLabel" text="Automatique" styleClass="support-priority-badge" />
     </VBox>
 
     <Label fx:id="formErrorLabel" text="" styleClass="support-error" />
     <Label fx:id="formSuccessLabel" text="" styleClass="support-success" />
 
-    <Button text="Envoyer le ticket" onAction="#handleSubmit" styleClass="support-submit-button" maxWidth="Infinity" />
+    <Button fx:id="submitButton" text="Envoyer le ticket" onAction="#handleSubmit" styleClass="support-submit-button" maxWidth="Infinity" />
 
 </VBox>

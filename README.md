@@ -21,6 +21,36 @@ mvn clean compile
 mvn javafx:run
 ```
 
+## Speech-to-Text (Contact Form)
+
+This project uses Vosk for offline speech-to-text in the Contact form fields.
+
+1) Download a French Vosk model, for example:
+- https://alphacephei.com/vosk/models
+
+2) Extract the model to:
+- `models/vosk-model-small-fr-0.22`
+
+3) Or set a custom path:
+- `VOSK_MODEL_PATH` environment variable
+- or `-Dvosk.model.path=...` JVM property
+
+The mic button appears next to "Objet de la demande" and "Description détaillée".
+
+## Groq AI (Auto Priority + Admin Tools)
+
+Set your Groq API key as an environment variable (do not commit it):
+- `GROQ_API_KEY`
+
+Optional overrides:
+- `GROQ_MODEL` (default: `llama-3.1-8b-instant`)
+- `GROQ_BASE_URL` (default: `https://api.groq.com/openai/v1/chat/completions`)
+
+Features:
+- Auto-detect priority when submitting a ticket
+- Admin button "Résumé IA" (summary by priority)
+- Admin button "Suggestion IA" (AI response as placeholder until confirmation)
+
 ## Project Structure
 
 - `src/main/java/org/example/model/` - Data models

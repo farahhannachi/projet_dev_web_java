@@ -235,6 +235,72 @@ public class ResponseQuestionService {
         return 0;
     }
 
+    public int countUnreadResponsesForClient(int userId) {
+        String questionUserFk = getQuestionUserFkColumn();
+        String sql = "SELECT COUNT(*) FROM response_question rq " +
+                "JOIN question q ON rq." + getQuestionFkColumn() + " = q.id_question " +
+                "WHERE q." + questionUserFk + " = ? AND rq.lu_par_client = FALSE";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public List<ResponseQuestion> getLatestResponsesForClient(int userId, int limit) {
+        String questionUserFk = getQuestionUserFkColumn();
+        String sql = "SELECT rq.*, q.objet AS question_objet, " +
+                "CONCAT(IFNULL(u.prenom, ''), ' ', IFNULL(u.nom, '')) AS utilisateur_nom " +
+                "FROM response_question rq " +
+                "JOIN question q ON rq." + getQuestionFkColumn() + " = q.id_question " +
+                "LEFT JOIN utilisateur u ON rq." + getUserFkColumn() + " = u.id_utilisateur " +
+                "WHERE q." + questionUserFk + " = ? " +
+                "ORDER BY rq.lu_par_client ASC, rq.created_at DESC " +
+                (limit > 0 ? "LIMIT ?" : "");
+
+        List<ResponseQuestion> items = new ArrayList<>();
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            if (limit > 0) {
+                stmt.setInt(2, limit);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    items.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return items;
+    }
+
+    public boolean markAsSeenForClient(int responseId, int userId) {
+        String questionUserFk = getQuestionUserFkColumn();
+        String sql = "UPDATE response_question rq " +
+                "JOIN question q ON rq." + getQuestionFkColumn() + " = q.id_question " +
+                "SET rq.lu_par_client = TRUE " +
+                "WHERE rq.id_reponse = ? AND q." + questionUserFk + " = ? AND rq.lu_par_client = FALSE";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, responseId);
+            stmt.setInt(2, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private int count(ResponseQuestionFilter filter) {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT COUNT(*) FROM response_question rq ");

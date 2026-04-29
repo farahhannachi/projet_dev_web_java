@@ -78,7 +78,7 @@ public class MessagesPageController {
             messagesBadge.setManaged(false);
             return;
         }
-        int count = responseService.countResponsesForClient(currentUser.getId());
+        int count = responseService.countUnreadResponsesForClient(currentUser.getId());
         messagesBadge.setText(String.valueOf(count));
         messagesBadge.setVisible(count > 0);
         messagesBadge.setManaged(count > 0);
