@@ -804,7 +804,7 @@ public class TraitementController {
 
             // Règle 3 : détecter doublon exact — mêmes produits soumis dans les 24h
             // Construire la liste des IDs produits sélectionnés
-            java.util.List<Integer> spamProduitIds = new java.util.ArrayList<>();
+            java.util.List<Integer>  spamProduitIds = new java.util.ArrayList<>();
             for (String item : selectedProduits) {
                 try { spamProduitIds.add(Integer.parseInt(item.split(" - ")[0])); } catch (Exception ignored) {}
             }

@@ -727,16 +727,31 @@ public class MesOrdonnancesController {
         infoBox.setPadding(new Insets(10, 14, 10, 14));
         infoBox.setStyle("-fx-background-color: #fff8e1; -fx-background-radius: 8; " +
                 "-fx-border-color: #f39c12; -fx-border-width: 0 0 0 3; -fx-border-radius: 0 8 8 0;");
-        Label infoLbl = new Label("ℹ️  Une nouvelle ordonnance sera créée avec les mêmes traitements.\nElle sera soumise à validation par le pharmacien.");
+        Label infoLbl = new Label("ℹ️  L'ordonnance sera prolongée avec une nouvelle date d'expiration.\nLe statut passera à \"en_attente\" pour validation.");
         infoLbl.setStyle("-fx-font-size: 12; -fx-text-fill: #7f5200; -fx-wrap-text: true;");
         infoLbl.setWrapText(true);
         infoLbl.setMaxWidth(420);
         infoBox.getChildren().add(infoLbl);
 
-        // Traitements qui seront copiés
-        Label traitTitle = new Label("Traitements à renouveler :");
+        // Sélecteur de nouvelle date d'expiration
+        Label dateLbl = new Label("Nouvelle date d'expiration :");
+        dateLbl.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #333;");
+        javafx.scene.control.DatePicker newDatePicker = new javafx.scene.control.DatePicker(
+            java.time.LocalDate.now().plusMonths(3)); // Par défaut : +3 mois
+        newDatePicker.setMaxWidth(Double.MAX_VALUE);
+        newDatePicker.setStyle("-fx-font-size: 13;");
+        // Bloquer les dates passées
+        newDatePicker.setDayCellFactory(dp -> new javafx.scene.control.DateCell() {
+            @Override public void updateItem(java.time.LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                setDisable(empty || date.isBefore(java.time.LocalDate.now().plusDays(1)));
+            }
+        });
+
+        // Traitements qui seront conservés
+        Label traitTitle = new Label("Traitements associés :");
         traitTitle.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #333;");
-        body.getChildren().addAll(infoBox, traitTitle);
+        body.getChildren().addAll(infoBox, dateLbl, newDatePicker, traitTitle);
 
         for (QRCodeService.TraitementInfo t : traitements) {
             HBox row = new HBox(10);
@@ -788,78 +803,56 @@ public class MesOrdonnancesController {
         confirmBtn.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; " +
                 "-fx-background-radius: 20; -fx-padding: 10 24; -fx-cursor: hand; -fx-font-size: 13;");
         confirmBtn.setOnAction(e -> {
+            // Valider la date choisie
+            if (newDatePicker.getValue() == null || !newDatePicker.getValue().isAfter(java.time.LocalDate.now())) {
+                errLbl.setText("Choisissez une date d'expiration dans le futur.");
+                return;
+            }
             confirmBtn.setDisable(true);
             try {
                 Connection conn = DatabaseUtil.getInstance().getConnection();
 
-                // Générer un nouveau numéro
-                String newNumero = "ORD-" + java.time.LocalDate.now().getYear() +
-                        "-" + String.format("%04d", (int)(Math.random() * 10000));
+                // Mettre à jour l'ordonnance existante : nouvelle date d'expiration + statut en_attente
+                PreparedStatement psUpd = conn.prepareStatement(
+                    "UPDATE ordonnance SET date_expiration = ?, statut = 'en_attente', " +
+                    "note_medical = ? " +
+                    "WHERE numero_ordonnance = ? AND id_utilisateur_id = ?");
+                psUpd.setTimestamp(1, Timestamp.valueOf(newDatePicker.getValue().atTime(23, 59, 59)));
+                psUpd.setString(2, noteArea.getText() != null ? noteArea.getText().trim() : noteSource);
+                psUpd.setString(3, numeroSource);
+                psUpd.setInt(4, currentUser.getId());
+                int rows = psUpd.executeUpdate();
+                psUpd.close();
 
-                // Créer la nouvelle ordonnance en brouillon
-                PreparedStatement psNew = conn.prepareStatement(
-                    "INSERT INTO ordonnance (numero_ordonnance, date_ordonnance, date_expiration, " +
-                    "statut, note_medical, id_utilisateur_id) VALUES (?, ?, ?, ?, ?, ?)",
-                    java.sql.Statement.RETURN_GENERATED_KEYS);
-                psNew.setString(1, newNumero);
-                psNew.setTimestamp(2, Timestamp.valueOf(java.time.LocalDateTime.now()));
-                psNew.setTimestamp(3, Timestamp.valueOf(java.time.LocalDateTime.now().plusYears(1)));
-                psNew.setString(4, "en_attente");
-                psNew.setString(5, noteArea.getText() != null ? noteArea.getText().trim() : "");
-                psNew.setInt(6, currentUser.getId());
-                psNew.executeUpdate();
-
-                ResultSet gk = psNew.getGeneratedKeys();
-                int newOrdId = 0;
-                if (gk.next()) newOrdId = gk.getInt(1);
-                gk.close(); psNew.close();
-
-                // Copier les traitements de l'ordonnance source
-                if (newOrdId > 0) {
-                    PreparedStatement psSrc = conn.prepareStatement(
-                        "SELECT t.id_produit_id, t.dosage, t.frequence, t.repas, t.duree_jours " +
-                        "FROM traitement t JOIN ordonnance o ON t.id_ordonnance_id = o.id_ordonnance " +
-                        "WHERE o.numero_ordonnance = ? AND o.id_utilisateur_id = ?");
-                    psSrc.setString(1, numeroSource);
-                    psSrc.setInt(2, currentUser.getId());
-                    ResultSet rsSrc = psSrc.executeQuery();
-                    while (rsSrc.next()) {
-                        PreparedStatement psCopy = conn.prepareStatement(
-                            "INSERT INTO traitement (id_utilisateur_id, dosage, frequence, duree_jours, " +
-                            "date_debut, status, notes, id_ordonnance_id, id_produit_id, repas) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                        psCopy.setInt(1, currentUser.getId());
-                        psCopy.setString(2, rsSrc.getString("dosage"));
-                        psCopy.setString(3, rsSrc.getString("frequence"));
-                        psCopy.setInt(4, rsSrc.getInt("duree_jours"));
-                        psCopy.setTimestamp(5, Timestamp.valueOf(java.time.LocalDateTime.now()));
-                        psCopy.setString(6, "en_attente");
-                        psCopy.setString(7, "Renouvellement de " + numeroSource);
-                        psCopy.setInt(8, newOrdId);
-                        psCopy.setInt(9, rsSrc.getInt("id_produit_id"));
-                        psCopy.setString(10, rsSrc.getString("repas"));
-                        psCopy.executeUpdate();
-                        psCopy.close();
-                    }
-                    rsSrc.close(); psSrc.close();
+                if (rows == 0) {
+                    errLbl.setText("Ordonnance introuvable.");
+                    confirmBtn.setDisable(false);
+                    return;
                 }
+
+                // Audit
+                org.example.util.AuditService.getInstance().logCreation(
+                    "ordonnance", numeroSource,
+                    "Renouvellement : nouvelle expiration " + newDatePicker.getValue(),
+                    currentUser.getNom() != null ? currentUser.getNom() : currentUser.getEmail());
 
                 dialog.close();
 
                 // Confirmation succès
                 javafx.stage.Stage ok = new javafx.stage.Stage();
                 ok.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-                ok.setTitle("Renouvellement envoyé");
+                ok.setTitle("Renouvellement confirmé");
                 VBox okRoot = new VBox(16);
                 okRoot.setAlignment(Pos.CENTER);
                 okRoot.setPadding(new Insets(30, 40, 30, 40));
                 okRoot.setStyle("-fx-background-color: white;");
                 okRoot.setMinWidth(380);
                 Label okIcon = new Label("✅"); okIcon.setStyle("-fx-font-size: 48;");
-                Label okTitle = new Label("Renouvellement soumis !");
+                Label okTitle = new Label("Ordonnance prolongée !");
                 okTitle.setStyle("-fx-font-size: 17; -fx-font-weight: bold; -fx-text-fill: #e67e22;");
-                Label okSub = new Label("Votre nouvelle ordonnance\n" + newNumero +
-                    "\na été créée et soumise au pharmacien.");
+                Label okSub = new Label("L'ordonnance " + numeroSource +
+                    "\na été prolongée jusqu'au\n" + newDatePicker.getValue() +
+                    "\nElle est en attente de validation.");
                 okSub.setStyle("-fx-font-size: 12; -fx-text-fill: #555; -fx-text-alignment: center; -fx-wrap-text: true;");
                 okSub.setWrapText(true);
                 okSub.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);

@@ -121,17 +121,60 @@ public class BackTraitementController {
             }
             table.getColumns().add(c);
         }
-        loadData(table, null, null, "", "", "Tous les statuts", "Plus r\u00e9cent");
-        Runnable apply = () -> loadData(table, dd.getValue(), df.getValue(), cf.getText().trim(), pf.getText().trim(), sf.getValue(), tf2.getValue());
-        dd.valueProperty().addListener((o,a,b) -> apply.run()); df.valueProperty().addListener((o,a,b) -> apply.run());
-        cf.textProperty().addListener((o,a,b) -> apply.run()); pf.textProperty().addListener((o,a,b) -> apply.run());
-        sf.valueProperty().addListener((o,a,b) -> apply.run()); tf2.valueProperty().addListener((o,a,b) -> apply.run());
-        VBox tw = new VBox(table); tw.setPadding(new Insets(0, 30, 30, 30)); VBox.setVgrow(table, Priority.ALWAYS);
-        pageContainer.getChildren().addAll(greenBar, header, actionBar, filterCard, tw);
+        // ── Pagination ────────────────────────────────────────────────────
+        final int PAGE_SIZE = 4;
+        final int[] currentPage = {0};
+        final ObservableList<ObservableList<String>>[] allData = new ObservableList[]{FXCollections.observableArrayList()};
+
+        HBox pagBar = new HBox(10);
+        pagBar.setAlignment(Pos.CENTER);
+        pagBar.setPadding(new Insets(10, 30, 20, 30));
+        Button prevBtn = new Button("◀ Précédent");
+        prevBtn.setStyle("-fx-background-color: #1f6f5c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 7 18; -fx-cursor: hand;");
+        Button nextBtn = new Button("Suivant ▶");
+        nextBtn.setStyle("-fx-background-color: #1f6f5c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 7 18; -fx-cursor: hand;");
+        Label pageLabel = new Label("Page 1 / 1");
+        pageLabel.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #333;");
+        Label countLabel = new Label("0 traitement(s)");
+        countLabel.setStyle("-fx-font-size: 12; -fx-text-fill: #888;");
+        pagBar.getChildren().addAll(prevBtn, pageLabel, nextBtn, new Label("  "), countLabel);
+
+        Runnable showPage = () -> {
+            int total = allData[0].size();
+            int totalPages = Math.max(1, (int) Math.ceil((double) total / PAGE_SIZE));
+            if (currentPage[0] >= totalPages) currentPage[0] = totalPages - 1;
+            int from = currentPage[0] * PAGE_SIZE;
+            int to   = Math.min(from + PAGE_SIZE, total);
+            table.setItems(FXCollections.observableArrayList(allData[0].subList(from, to)));
+            pageLabel.setText("Page " + (currentPage[0] + 1) + " / " + totalPages);
+            countLabel.setText(total + " traitement(s)");
+            prevBtn.setDisable(currentPage[0] == 0);
+            nextBtn.setDisable(currentPage[0] >= totalPages - 1);
+            if (total == 0) table.setPlaceholder(new Label("Aucun traitement trouvé"));
+        };
+
+        prevBtn.setOnAction(e -> { currentPage[0]--; showPage.run(); });
+        nextBtn.setOnAction(e -> { currentPage[0]++; showPage.run(); });
+
+        Runnable apply = () -> {
+            currentPage[0] = 0;
+            allData[0] = loadDataPaged(dd.getValue(), df.getValue(), cf.getText().trim(), pf.getText().trim(), sf.getValue(), tf2.getValue());
+            showPage.run();
+        };
+        apply.run();
+        dd.valueProperty().addListener((o,a,b) -> apply.run());
+        df.valueProperty().addListener((o,a,b) -> apply.run());
+        cf.textProperty().addListener((o,a,b) -> apply.run());
+        pf.textProperty().addListener((o,a,b) -> apply.run());
+        sf.valueProperty().addListener((o,a,b) -> apply.run());
+        tf2.valueProperty().addListener((o,a,b) -> apply.run());
+
+        VBox tw = new VBox(table); tw.setPadding(new Insets(0, 30, 0, 30)); VBox.setVgrow(table, Priority.ALWAYS);
+        pageContainer.getChildren().addAll(greenBar, header, actionBar, filterCard, tw, pagBar);
     }
 
-    // Charger les données de la table avec filtres dynamiques, groupées par ordonnance
-    private void loadData(TableView<ObservableList<String>> table, LocalDate dD, LocalDate dF, String cl, String pr, String st, String tri) {
+    // Charge toutes les données filtrées et retourne la liste complète (pour la pagination)
+    private ObservableList<ObservableList<String>> loadDataPaged(LocalDate dD, LocalDate dF, String cl, String pr, String st, String tri) {
         ObservableList<ObservableList<String>> data = FXCollections.observableArrayList();
         try {
             // Requête groupée par ordonnance : concatène les produits, dosages, fréquences
@@ -177,8 +220,7 @@ public class BackTraitementController {
                 row.add(""); data.add(row);
             } rs.close(); ps.close();
         } catch (SQLException e) { System.out.println(e.getMessage()); }
-        table.setItems(data);
-        if (data.isEmpty()) table.setPlaceholder(new Label("Aucun traitement trouv\u00e9"));
+        return data;
     }
 
     // Afficher le formulaire d'ajout ou de modification d'un traitement (sélection multiple de produits)

@@ -138,17 +138,62 @@ public class BackOrdonnanceController {
             }
             table.getColumns().add(c);
         }
-        loadData(table, null, null, "", "Tous les statuts", "Date Ordonnance (Plus r\u00e9cent)");
-        Runnable apply = () -> loadData(table, dOrd.getValue(), dExp.getValue(), cf.getText().trim(), sf.getValue(), triF.getValue());
-        dOrd.valueProperty().addListener((o,a,b) -> apply.run()); dExp.valueProperty().addListener((o,a,b) -> apply.run());
-        cf.textProperty().addListener((o,a,b) -> apply.run()); sf.valueProperty().addListener((o,a,b) -> apply.run());
+        // ── Pagination ────────────────────────────────────────────────────
+        final int PAGE_SIZE = 4;
+        final int[] currentPage = {0}; // page courante (0-indexée)
+        final ObservableList<ObservableList<String>>[] allData = new ObservableList[]{FXCollections.observableArrayList()};
+
+        // Barre de pagination
+        HBox pagBar = new HBox(10);
+        pagBar.setAlignment(Pos.CENTER);
+        pagBar.setPadding(new Insets(10, 30, 20, 30));
+        Button prevBtn = new Button("◀ Précédent");
+        prevBtn.setStyle("-fx-background-color: #1f6f5c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 7 18; -fx-cursor: hand;");
+        Button nextBtn = new Button("Suivant ▶");
+        nextBtn.setStyle("-fx-background-color: #1f6f5c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 7 18; -fx-cursor: hand;");
+        Label pageLabel = new Label("Page 1 / 1");
+        pageLabel.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #333;");
+        Label countLabel = new Label("0 ordonnance(s)");
+        countLabel.setStyle("-fx-font-size: 12; -fx-text-fill: #888;");
+        pagBar.getChildren().addAll(prevBtn, pageLabel, nextBtn, new Label("  "), countLabel);
+
+        // Affiche la page courante dans le tableau
+        Runnable showPage = () -> {
+            int total = allData[0].size();
+            int totalPages = Math.max(1, (int) Math.ceil((double) total / PAGE_SIZE));
+            if (currentPage[0] >= totalPages) currentPage[0] = totalPages - 1;
+            int from = currentPage[0] * PAGE_SIZE;
+            int to   = Math.min(from + PAGE_SIZE, total);
+            table.setItems(FXCollections.observableArrayList(allData[0].subList(from, to)));
+            pageLabel.setText("Page " + (currentPage[0] + 1) + " / " + totalPages);
+            countLabel.setText(total + " ordonnance(s)");
+            prevBtn.setDisable(currentPage[0] == 0);
+            nextBtn.setDisable(currentPage[0] >= totalPages - 1);
+            if (total == 0) table.setPlaceholder(new Label("Aucune ordonnance trouvée"));
+        };
+
+        prevBtn.setOnAction(e -> { currentPage[0]--; showPage.run(); });
+        nextBtn.setOnAction(e -> { currentPage[0]++; showPage.run(); });
+
+        // Charger toutes les données puis afficher la page 1
+        Runnable apply = () -> {
+            currentPage[0] = 0;
+            allData[0] = loadDataPaged(dOrd.getValue(), dExp.getValue(), cf.getText().trim(), sf.getValue(), triF.getValue());
+            showPage.run();
+        };
+        apply.run();
+        dOrd.valueProperty().addListener((o,a,b) -> apply.run());
+        dExp.valueProperty().addListener((o,a,b) -> apply.run());
+        cf.textProperty().addListener((o,a,b) -> apply.run());
+        sf.valueProperty().addListener((o,a,b) -> apply.run());
         triF.valueProperty().addListener((o,a,b) -> apply.run());
-        VBox tw = new VBox(table); tw.setPadding(new Insets(0, 30, 30, 30)); VBox.setVgrow(table, Priority.ALWAYS);
-        pageContainer.getChildren().addAll(greenBar, header, actionBar, filterCard, tw);
+
+        VBox tw = new VBox(table); tw.setPadding(new Insets(0, 30, 0, 30)); VBox.setVgrow(table, Priority.ALWAYS);
+        pageContainer.getChildren().addAll(greenBar, header, actionBar, filterCard, tw, pagBar);
     }
 
-    // Charger les données de la table avec filtres dynamiques (PreparedStatement anti injection SQL)
-    private void loadData(TableView<ObservableList<String>> table, LocalDate dO, LocalDate dE, String cl, String st, String tri) {
+    // Charge toutes les données filtrées et retourne la liste complète (pour la pagination)
+    private ObservableList<ObservableList<String>> loadDataPaged(LocalDate dO, LocalDate dE, String cl, String st, String tri) {
         ObservableList<ObservableList<String>> data = FXCollections.observableArrayList();
         try {
             StringBuilder sql = new StringBuilder("SELECT o.id_ordonnance, o.numero_ordonnance, u.nom AS unom, o.date_ordonnance, o.date_expiration, o.statut, (SELECT COUNT(*) FROM traitement t WHERE t.id_ordonnance_id=o.id_ordonnance) AS nb_trait, o.signature_medecin FROM ordonnance o LEFT JOIN utilisateur u ON o.id_utilisateur_id=u.id_utilisateur WHERE 1=1 ");
@@ -181,8 +226,7 @@ public class BackOrdonnanceController {
                 row.add(""); data.add(row);
             } rs.close(); ps.close();
         } catch (SQLException e) { System.out.println(e.getMessage()); }
-        table.setItems(data);
-        if (data.isEmpty()) table.setPlaceholder(new Label("Aucune ordonnance trouv\u00e9e"));
+        return data;
     }
 
     // Afficher le formulaire d'ajout ou de modification d'une ordonnance
