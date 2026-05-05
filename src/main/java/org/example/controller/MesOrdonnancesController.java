@@ -23,6 +23,10 @@ import java.util.List;
 public class MesOrdonnancesController {
 
     @FXML private Button profileButton;
+    @FXML private javafx.scene.layout.HBox profileContainer;
+    @FXML private javafx.scene.shape.Circle navbarAvatarCircle;
+    @FXML private javafx.scene.control.Label navbarUsername;
+    @FXML private javafx.scene.control.Label navbarAvatarLabel;
     @FXML private Button triButton;
     @FXML private TextField searchField;
     @FXML private VBox cardsContainer;
@@ -48,6 +52,13 @@ public class MesOrdonnancesController {
         if (ordonnanceMenuContainer != null && ordonnanceDropdown != null) {
             ordonnanceMenuContainer.setOnMouseEntered(e -> { ordonnanceDropdown.setVisible(true); ordonnanceDropdown.setManaged(true); });
             ordonnanceMenuContainer.setOnMouseExited(e -> { ordonnanceDropdown.setVisible(false); ordonnanceDropdown.setManaged(false); });
+        }
+
+        // Charger le nom dans la navbar avatar
+        User currentUser = userService.getCurrentUser();
+        if (navbarUsername != null && currentUser != null) {
+            String nom = currentUser.getNom() != null ? currentUser.getNom() : currentUser.getEmail();
+            navbarUsername.setText(nom.split(" ")[0]);
         }
 
         // Vérification automatique des ordonnances qui expirent dans <= 7 jours
@@ -1105,36 +1116,48 @@ public class MesOrdonnancesController {
     }
 
     @FXML
-    private void handleLogout() throws IOException {
-        userService.logout();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) cardsContainer.getScene().getWindow();
-        stage.setScene(scene);
+    private void handleLogout() {
+        try {
+            userService.logout();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) cardsContainer.getScene().getWindow();
+            stage.setScene(scene);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
-    private void goToAccueil() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) cardsContainer.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+    private void goToAccueil() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) cardsContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
-    private void goToTraitement() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Traitement.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) cardsContainer.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+    private void goToTraitement() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Traitement.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) cardsContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -1143,13 +1166,32 @@ public class MesOrdonnancesController {
     }
 
     @FXML
-    private void goToCreerOrdonnance() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Ordonnance.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) cardsContainer.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+    private void goToCreerOrdonnance() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Ordonnance.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) cardsContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void goToProfil() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Profil.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) cardsContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

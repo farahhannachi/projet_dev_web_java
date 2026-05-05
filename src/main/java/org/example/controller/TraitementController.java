@@ -33,10 +33,17 @@ public class TraitementController {
     @FXML private Button addProduitBtn; // Bouton "+" pour ajouter un produit
     @FXML private CheckBox conditionsCheck; // Case à cocher conditions générales
     @FXML private Label errorLabel; // Label pour afficher les messages d'erreur
-    @FXML private Button profileButton; // Bouton profil dans la navbar
+    @FXML private Button profileButton; // Bouton profil dans la navbar (ancien, gardé pour compatibilité)
     @FXML private Button submitButton; // Bouton de soumission (anti double-clic)
     @FXML private StackPane ordonnanceMenuContainer; // Conteneur du menu déroulant ordonnance
     @FXML private VBox ordonnanceDropdown; // Menu déroulant ordonnance
+
+    // Nouveaux éléments navbar avatar
+    @FXML private javafx.scene.layout.HBox profileContainer;
+    @FXML private VBox profileDropdown;
+    @FXML private javafx.scene.shape.Circle navbarAvatarCircle;
+    @FXML private Label navbarUsername;
+    @FXML private Label navbarAvatarLabel;
 
     @FXML private VBox fdaInfoBox;
     @FXML private Label fdaTitleLabel;
@@ -116,8 +123,23 @@ public class TraitementController {
 
         // Gestion du menu déroulant ordonnance au survol
         if (ordonnanceMenuContainer != null && ordonnanceDropdown != null) {
-            ordonnanceMenuContainer.setOnMouseEntered(e -> { ordonnanceDropdown.setVisible(true); ordonnanceDropdown.setManaged(true); }); // Afficher au survol
-            ordonnanceMenuContainer.setOnMouseExited(e -> { ordonnanceDropdown.setVisible(false); ordonnanceDropdown.setManaged(false); }); // Masquer à la sortie
+            ordonnanceMenuContainer.setOnMouseEntered(e -> { ordonnanceDropdown.setVisible(true); ordonnanceDropdown.setManaged(true); });
+            ordonnanceMenuContainer.setOnMouseExited(e -> { ordonnanceDropdown.setVisible(false); ordonnanceDropdown.setManaged(false); });
+        }
+
+        // Charger le nom de l'utilisateur dans la navbar avatar
+        if (navbarUsername != null && currentUser != null) {
+            String nom = currentUser.getNom() != null ? currentUser.getNom() : currentUser.getEmail();
+            navbarUsername.setText(nom.split(" ")[0]);
+        }
+
+        // Toggle dropdown profil
+        if (profileContainer != null && profileDropdown != null) {
+            profileContainer.setOnMouseClicked(e -> {
+                boolean visible = profileDropdown.isVisible();
+                profileDropdown.setVisible(!visible);
+                profileDropdown.setManaged(!visible);
+            });
         }
     }
 
@@ -1026,14 +1048,16 @@ public class TraitementController {
 
     // Navigation vers la page d'accueil
     @FXML
-    private void goToAccueil() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml")); // Charger le FXML
-        Parent root = loader.load(); // Charger le noeud racine
-        Scene scene = new Scene(root); // Créer la scène
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm()); // Ajouter le CSS
-        Stage stage = (Stage) nomPrenomField.getScene().getWindow(); // Récupérer la fenêtre
-        stage.setScene(scene); // Changer la scène
-        stage.setFullScreen(true); // Plein écran
+    private void goToAccueil() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) nomPrenomField.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
     // Déjà sur la page traitement
@@ -1044,39 +1068,83 @@ public class TraitementController {
 
     // Navigation vers la page "Mes Ordonnances"
     @FXML
-    private void goToMesOrdonnances() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MesOrdonnances.fxml")); // Charger le FXML
-        Parent root = loader.load(); // Charger
-        Scene scene = new Scene(root); // Créer la scène
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm()); // CSS
-        Stage stage = (Stage) nomPrenomField.getScene().getWindow(); // Fenêtre
-        stage.setScene(scene); // Changer
-        stage.setFullScreen(true); // Plein écran
+    private void goToMesOrdonnances() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MesOrdonnances.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) nomPrenomField.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
     // Navigation vers la page de création d'ordonnance
     @FXML
-    private void goToCreerOrdonnance() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Ordonnance.fxml")); // Charger le FXML
-        Parent root = loader.load(); // Charger
-        Scene scene = new Scene(root); // Créer la scène
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm()); // CSS
-        Stage stage = (Stage) nomPrenomField.getScene().getWindow(); // Fenêtre
-        stage.setScene(scene); // Changer
-        stage.setFullScreen(true); // Plein écran
+    private void goToCreerOrdonnance() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Ordonnance.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) nomPrenomField.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
     // Navigation vers la page ordonnance avec passage de paramètres (traitement + ordonnance)
-    private void goToOrdonnance(int traitementId, int ordonnanceId, String numeroOrdonnance) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Ordonnance.fxml")); // Charger le FXML
-        Parent root = loader.load(); // Charger le noeud racine
-        OrdonnanceController controller = loader.getController(); // Récupérer le contrôleur de la page ordonnance
-        controller.setTraitementId(traitementId); // Passer l'ID du traitement
-        controller.setOrdonnanceId(ordonnanceId, numeroOrdonnance); // Passer l'ID et le numéro de l'ordonnance
-        Scene scene = new Scene(root); // Créer la scène
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm()); // CSS
-        Stage stage = (Stage) nomPrenomField.getScene().getWindow(); // Fenêtre
-        stage.setScene(scene); // Changer
-        stage.setFullScreen(true); // Plein écran
+    private void goToOrdonnance(int traitementId, int ordonnanceId, String numeroOrdonnance) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Ordonnance.fxml"));
+            Parent root = loader.load();
+            OrdonnanceController controller = loader.getController();
+            controller.setTraitementId(traitementId);
+            controller.setOrdonnanceId(ordonnanceId, numeroOrdonnance);
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) nomPrenomField.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    // Navigation vers la page Profil
+    @FXML
+    private void goToProfil() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Profil.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) nomPrenomField.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    // Toggle dropdown profil navbar
+    @FXML
+    private void toggleProfileDropdown() {
+        if (profileDropdown != null) {
+            boolean visible = profileDropdown.isVisible();
+            profileDropdown.setVisible(!visible);
+            profileDropdown.setManaged(!visible);
+        }
+    }
+
+    // Déconnexion
+    @FXML
+    private void logout() {
+        try {
+            userService.logout();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) nomPrenomField.getScene().getWindow();
+            stage.setScene(scene);
+        } catch (IOException e) { e.printStackTrace(); }
     }
 }

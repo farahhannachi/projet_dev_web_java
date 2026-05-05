@@ -111,6 +111,12 @@
       <artifactId>javase</artifactId>
       <version>3.5.3</version>
     </dependency>
+    <!-- SLF4J simple logger to suppress NOP warning -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.7.36</version>
+    </dependency>
   </dependencies>
 
   <build>

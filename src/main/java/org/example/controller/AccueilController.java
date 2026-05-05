@@ -5,6 +5,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -14,23 +16,56 @@ import java.io.IOException;
 
 public class AccueilController {
 
-    @FXML private Button profileButton;
     @FXML private VBox profileDropdown;
     @FXML private Button dashboardMenuItem;
     @FXML private StackPane ordonnanceMenuContainer;
     @FXML private VBox ordonnanceDropdown;
+    @FXML private HBox profileContainer;
+    @FXML private javafx.scene.shape.Circle navbarAvatarCircle;
+    @FXML private Label navbarUsername;
 
     private UserService userService = UserService.getInstance();
 
+    // Méthode utilitaire pour récupérer la Stage depuis n'importe quel nœud lié
+    private Stage getStage() {
+        if (navbarUsername != null && navbarUsername.getScene() != null) {
+            return (Stage) navbarUsername.getScene().getWindow();
+        }
+        if (profileContainer != null && profileContainer.getScene() != null) {
+            return (Stage) profileContainer.getScene().getWindow();
+        }
+        return null;
+    }
+
+    private void nav(String fxml) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = getStage();
+            if (stage != null) {
+                stage.setScene(scene);
+                stage.setFullScreen(true);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     @FXML
     public void initialize() {
-        // Show/hide Dashboard option based on user type
         if (dashboardMenuItem != null) {
             dashboardMenuItem.setVisible(userService.isAdmin());
             dashboardMenuItem.setManaged(userService.isAdmin());
         }
 
-        // Ordonnance hover dropdown
+        org.example.model.User currentUser = userService.getCurrentUser();
+        if (navbarUsername != null && currentUser != null) {
+            String nom = currentUser.getNom() != null ? currentUser.getNom() : currentUser.getEmail();
+            navbarUsername.setText(nom.split(" ")[0]);
+        }
+
         if (ordonnanceMenuContainer != null && ordonnanceDropdown != null) {
             ordonnanceMenuContainer.setOnMouseEntered(e -> {
                 ordonnanceDropdown.setVisible(true);
@@ -50,87 +85,53 @@ public class AccueilController {
 
     @FXML
     private void toggleProfileDropdown() {
-        boolean isVisible = profileDropdown.isVisible();
-        profileDropdown.setVisible(!isVisible);
-        profileDropdown.setManaged(!isVisible);
+        if (profileDropdown != null) {
+            boolean isVisible = profileDropdown.isVisible();
+            profileDropdown.setVisible(!isVisible);
+            profileDropdown.setManaged(!isVisible);
+        }
     }
 
     @FXML
     private void showProfile() {
-        System.out.println("Profile clicked");
-        // Hide dropdown
-        profileDropdown.setVisible(false);
-        profileDropdown.setManaged(false);
+        if (profileDropdown != null) {
+            profileDropdown.setVisible(false);
+            profileDropdown.setManaged(false);
+        }
+        nav("/fxml/Profil.fxml");
     }
 
     @FXML
     private void goToTraitement() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Traitement.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) profileButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        nav("/fxml/Traitement.fxml");
     }
 
     @FXML
     private void showCreerOrdonnance() {
-        try {
+        if (ordonnanceDropdown != null) {
             ordonnanceDropdown.setVisible(false);
             ordonnanceDropdown.setManaged(false);
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Ordonnance.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) profileButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+        nav("/fxml/Ordonnance.fxml");
     }
 
     @FXML
     private void showMesOrdonnances() {
-        try {
+        if (ordonnanceDropdown != null) {
             ordonnanceDropdown.setVisible(false);
             ordonnanceDropdown.setManaged(false);
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MesOrdonnances.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) profileButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+        nav("/fxml/MesOrdonnances.fxml");
     }
 
     @FXML
-    private void goToDashboard() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Dashboard.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) profileButton.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+    private void goToDashboard() {
+        nav("/fxml/Dashboard.fxml");
     }
 
     @FXML
-    private void logout() throws IOException {
+    private void logout() {
         userService.logout();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) profileButton.getScene().getWindow();
-        stage.setScene(scene);
+        nav("/fxml/Login.fxml");
     }
 }

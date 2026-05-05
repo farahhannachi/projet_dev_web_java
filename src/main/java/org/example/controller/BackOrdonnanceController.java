@@ -1001,13 +1001,15 @@ public class BackOrdonnanceController {
         return card;
     }
 
-    @FXML private void goToDashboard() throws IOException { nav("/fxml/Dashboard.fxml"); } // Navigation vers le tableau de bord
-    @FXML private void goToTraitements() throws IOException { nav("/fxml/BackTraitement.fxml"); } // Navigation vers la gestion des traitements
-    @FXML private void logout() throws IOException { nav("/fxml/Login.fxml"); } // Déconnexion et retour au login
-    // Méthode utilitaire de navigation entre les pages
-    private void nav(String fxml) throws IOException {
-        Parent root = FXMLLoader.load(getClass().getResource(fxml));
-        Scene scene = new Scene(root); scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) pageContainer.getScene().getWindow(); stage.setScene(scene); stage.setFullScreen(true);
+    @FXML private void goToDashboard() { nav("/fxml/Dashboard.fxml"); }
+    @FXML private void goToTraitements() { nav("/fxml/BackTraitement.fxml"); }
+    @FXML private void goToClients() { nav("/fxml/UserManagement.fxml"); }
+    @FXML private void logout() { nav("/fxml/Login.fxml"); }
+    private void nav(String fxml) {
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource(fxml));
+            Scene scene = new Scene(root); scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) pageContainer.getScene().getWindow(); stage.setScene(scene); stage.setFullScreen(true);
+        } catch (IOException e) { e.printStackTrace(); }
     }
 }

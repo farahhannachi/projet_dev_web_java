@@ -7,7 +7,7 @@
         <VBox styleClass="sidebar" spacing="15">
             <Label text="CuraVita" styleClass="sidebar-logo"/>
             <VBox spacing="10">
-                <Button text="Clients" styleClass="sidebar-item"/>
+                <Button text="Clients" onAction="#goToClients" styleClass="sidebar-item"/>
                 <Button text="Produits" styleClass="sidebar-item"/>
                 <Button text="Commandes" styleClass="sidebar-item"/>
                 <Button text="Promotions" styleClass="sidebar-item"/>

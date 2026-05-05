@@ -94,6 +94,8 @@ public class ProfilController {
     @FXML private VBox profileDropdown;
     @FXML private Circle navbarAvatarCircle;
     @FXML private Label navbarUsername;
+    @FXML private StackPane ordonnanceMenuContainer;
+    @FXML private VBox ordonnanceDropdownNav;
 
     @FXML private Button styleCartoon;
     @FXML private Button styleNeutral;
@@ -103,7 +105,7 @@ public class ProfilController {
     @FXML private Button styleLorelei;
     @FXML private Button styleRobot;
 
-    private final UserService userService = new UserService();
+    private final UserService userService = UserService.getInstance();
     private final TwoFactorAuthService twoFactorAuthService = new TwoFactorAuthService();
     private final OpenRouterService aiAssistantService = new OpenRouterService();
     private User currentUser;
@@ -149,6 +151,18 @@ public class ProfilController {
             pulse.setAutoReverse(true);
             pulse.setCycleCount(Animation.INDEFINITE);
             pulse.play();
+        }
+
+        // Hover dropdown Ordonnance
+        if (ordonnanceMenuContainer != null && ordonnanceDropdownNav != null) {
+            ordonnanceMenuContainer.setOnMouseEntered(e -> {
+                ordonnanceDropdownNav.setVisible(true);
+                ordonnanceDropdownNav.setManaged(true);
+            });
+            ordonnanceMenuContainer.setOnMouseExited(e -> {
+                ordonnanceDropdownNav.setVisible(false);
+                ordonnanceDropdownNav.setManaged(false);
+            });
         }
     }
 
@@ -846,30 +860,42 @@ public class ProfilController {
     }
 
     @FXML
-    private void goBack() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) mainStack.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+    private void goBack() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) mainStack.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
-    private void goToAccueil() throws IOException {
-        goBack();
+    private void goToAccueil() {
+        try {
+            goBack();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
-    private void goToDashboard() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Dashboard.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) profileContainer.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+    private void goToDashboard() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Dashboard.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) profileContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -915,13 +941,62 @@ public class ProfilController {
     }
 
     @FXML
-    private void logout() throws IOException {
-        userService.logout();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) profileContainer.getScene().getWindow();
-        stage.setScene(scene);
+    private void logout() {
+        try {
+            userService.logout();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) profileContainer.getScene().getWindow();
+            stage.setScene(scene);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void goToTraitement() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Traitement.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) profileContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void goToCreerOrdonnance() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Ordonnance.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) profileContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void goToMesOrdonnances() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MesOrdonnances.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) profileContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

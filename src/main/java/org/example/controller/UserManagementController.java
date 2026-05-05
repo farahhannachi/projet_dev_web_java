@@ -71,7 +71,7 @@ public class UserManagementController {
     @FXML private Label deleteConfirmMessage;
     @FXML private Label successMessage;
 
-    private UserService userService = new UserService();
+    private UserService userService = UserService.getInstance();
     private ObservableList<User> userList = FXCollections.observableArrayList();
     private ObservableList<User> originalUserList = FXCollections.observableArrayList();
     private FilteredList<User> filteredData;
@@ -210,7 +210,7 @@ public class UserManagementController {
     }
 
     @FXML
-    private void handleAddClient() {
+    public void handleAddClient() {
         addModalErrorLabel.setText("");
         addModalNameField.clear();
         addModalEmailField.clear();
@@ -555,13 +555,15 @@ public class UserManagementController {
     }
 
     @FXML
-    private void goBackToDashboard() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Dashboard.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) userTable.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+    private void goBackToDashboard() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Dashboard.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) userTable.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) { e.printStackTrace(); }
     }
 }

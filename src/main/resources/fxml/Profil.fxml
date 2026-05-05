@@ -25,8 +25,17 @@
                 <Button text="Accueil" styleClass="menu-item" onAction="#goToAccueil"/>
                 <Button text="Produits" styleClass="menu-item"/>
                 <Button text="Commandes" styleClass="menu-item"/>
-                <Button text="Ordonnance" styleClass="menu-item"/>
-                <Button text="Traitement" styleClass="menu-item"/>
+                <Button text="Traitement" styleClass="menu-item" onAction="#goToTraitement"/>
+                <StackPane fx:id="ordonnanceMenuContainer">
+                    <Button text="Ordonnance &#9662;" styleClass="menu-item"/>
+                    <VBox fx:id="ordonnanceDropdownNav" styleClass="nav-dropdown" visible="false" managed="false">
+                        <StackPane.margin>
+                            <Insets top="45"/>
+                        </StackPane.margin>
+                        <Button text="Créer une ordonnance" styleClass="dropdown-item" onAction="#goToCreerOrdonnance"/>
+                        <Button text="Mes ordonnances" styleClass="dropdown-item" onAction="#goToMesOrdonnances"/>
+                    </VBox>
+                </StackPane>
                 <Button text="Guide Santé" styleClass="menu-item"/>
                 <Button text="Contact" styleClass="menu-item"/>
                 <Button text="À propos" styleClass="menu-item"/>

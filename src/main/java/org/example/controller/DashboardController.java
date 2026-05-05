@@ -50,7 +50,6 @@ public class DashboardController {
 
     @FXML
     public void initialize() {
-        addSampleData();
         loadStats();
     }
 
@@ -99,8 +98,19 @@ public class DashboardController {
 
     @FXML
     private void handleNouveauClient() {
-        // Open new client form
-        System.out.println("Nouveau Client clicked");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/UserManagement.fxml"));
+            Parent root = loader.load();
+            UserManagementController ctrl = loader.getController();
+            ctrl.handleAddClient();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) nouveauClientBtn.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) {
+            System.out.println("Erreur: " + e.getMessage());
+        }
     }
 
     @FXML
@@ -150,20 +160,33 @@ public class DashboardController {
     }
 
     @FXML
-    private void goToFrontOffice() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) frontOfficeBtn.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+    private void goToFrontOffice() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) frontOfficeBtn.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) {
+            System.out.println("Erreur goToFrontOffice: " + e.getMessage());
+        }
     }
 
     @FXML
     private void showClients() {
-        // Switch to clients view
-        System.out.println("Show Clients");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/UserManagement.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) frontOfficeBtn.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) {
+            System.out.println("Erreur UserManagement: " + e.getMessage());
+        }
     }
 
     @FXML
@@ -241,13 +264,17 @@ public class DashboardController {
     }
 
     @FXML
-    private void logout() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) frontOfficeBtn.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+    private void logout() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) frontOfficeBtn.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+        } catch (IOException e) {
+            System.out.println("Erreur logout: " + e.getMessage());
+        }
     }
 }

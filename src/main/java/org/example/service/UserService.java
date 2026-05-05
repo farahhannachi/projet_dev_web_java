@@ -15,7 +15,7 @@ public class UserService {
     private static User currentUser = null;
     private static ClientService clientService = new ClientService();
 
-    private UserService() {
+    public UserService() {
     }
 
     public static UserService getInstance() {
@@ -127,9 +127,16 @@ public class UserService {
                     
                     String nom = rs.getString("nom") != null ? rs.getString("nom") : "";
                     String prenom = rs.getString("prenom") != null ? rs.getString("prenom") : "";
-                    String fullName = prenom + " " + nom;
+                    String fullName = prenom.isBlank() ? nom : (prenom + " " + nom).trim();
                     
                     currentUser = new User(rs.getInt("id_utilisateur"), email, storedPassword, userType, fullName.trim());
+                    currentUser.setTelephone(rs.getString("telephone"));
+                    currentUser.setBlocked("bloqué".equals(rs.getString("etat_compte")) || "bloque".equals(rs.getString("etat_compte")));
+                    currentUser.setTotpEnabled(rs.getBoolean("totp_enabled"));
+                    currentUser.setTotpSecret(rs.getString("totp_secret"));
+                    currentUser.setAvatarConfig(rs.getString("avatar_seed"));
+                    if (rs.getTimestamp("date_creation") != null)
+                        currentUser.setCreatedAt(rs.getTimestamp("date_creation").toLocalDateTime().toLocalDate().toString());
                     return currentUser;
                 }
             }
@@ -266,6 +273,14 @@ public class UserService {
                     userType,
                     fullName.trim()
                 );
+                // Champs supplémentaires
+                user.setTelephone(rs.getString("telephone"));
+                user.setBlocked("bloqué".equals(rs.getString("etat_compte")) || "bloque".equals(rs.getString("etat_compte")));
+                user.setTotpEnabled(rs.getBoolean("totp_enabled"));
+                user.setTotpSecret(rs.getString("totp_secret"));
+                user.setAvatarConfig(rs.getString("avatar_seed"));
+                if (rs.getTimestamp("date_creation") != null)
+                    user.setCreatedAt(rs.getTimestamp("date_creation").toLocalDateTime().toLocalDate().toString());
                 users.add(user);
             }
         } catch (SQLException e) {
@@ -280,5 +295,123 @@ public class UserService {
      */
     public static boolean isDatabaseConnected() {
         return DatabaseUtil.getInstance().isDatabaseAvailable();
+    }
+
+    /**
+     * Delete a user account by ID
+     */
+    public boolean deleteUser(int userId) {
+        String sql = "DELETE FROM utilisateur WHERE id_utilisateur = ?";
+        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[UserService] deleteUser error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Update user profile (name, email, password, type)
+     */
+    public boolean updateUser(int userId, String nom, String email, String password, String type) {
+        // On stocke le nom complet dans la colonne 'nom' et on vide 'prenom'
+        // pour que le login recharge correctement le nom complet
+        String sql = "UPDATE utilisateur SET nom = ?, prenom = '', email = ?, mot_de_passe = ? WHERE id_utilisateur = ?";
+        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, nom);
+            stmt.setString(2, email);
+            stmt.setString(3, password);
+            stmt.setInt(4, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[UserService] updateUser error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Update user avatar configuration (JSON string)
+     */
+    public boolean updateUserAvatar(int userId, String avatarJson) {
+        String sql = "UPDATE utilisateur SET avatar_seed = ? WHERE id_utilisateur = ?";
+        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, avatarJson);
+            stmt.setInt(2, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[UserService] updateUserAvatar error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Enable 2FA for a user
+     */
+    public boolean updateUserTwoFactor(int userId, String secret, boolean enabled) {
+        String sql = "UPDATE utilisateur SET totp_secret = ?, totp_enabled = ? WHERE id_utilisateur = ?";
+        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, secret);
+            stmt.setBoolean(2, enabled);
+            stmt.setInt(3, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[UserService] updateUserTwoFactor error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Disable 2FA for a user
+     */
+    public boolean disableUserTwoFactor(int userId) {
+        String sql = "UPDATE utilisateur SET totp_secret = NULL, totp_enabled = 0 WHERE id_utilisateur = ?";
+        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[UserService] disableUserTwoFactor error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Add a new user (used by UserManagementController)
+     */
+    public boolean addUser(String nom, String email, String password, String type) {
+        String roles = "admin".equals(type) ? "[\"ROLE_ADMIN\"]" : "[\"ROLE_USER\"]";
+        String sql = "INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, etat_compte, date_creation, roles) VALUES (?, '', ?, ?, 'actif', NOW(), ?)";
+        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, nom);
+            stmt.setString(2, email);
+            stmt.setString(3, org.mindrot.jbcrypt.BCrypt.hashpw(password, org.mindrot.jbcrypt.BCrypt.gensalt()));
+            stmt.setString(4, roles);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[UserService] addUser error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Block or unblock a user
+     */
+    public boolean updateUserBlocked(int userId, boolean blocked) {
+        String sql = "UPDATE utilisateur SET etat_compte = ? WHERE id_utilisateur = ?";
+        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, blocked ? "bloqué" : "actif");
+            stmt.setInt(2, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[UserService] updateUserBlocked error: " + e.getMessage());
+            return false;
+        }
     }
 }
