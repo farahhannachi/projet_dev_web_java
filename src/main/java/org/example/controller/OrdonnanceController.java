@@ -226,13 +226,10 @@ public class OrdonnanceController {
                 "Votre ordonnance " + numeroOrdonnance + " a été envoyée avec succès.\nElle sera traitée par notre équipe sous 24h."
             );
 
-            goToMesOrdonnances(); // Rediriger vers la page "Mes Ordonnances"
-        } catch (SQLException e) { // En cas d'erreur SQL
-            errorLabel.setText("Erreur: " + e.getMessage()); // Afficher l'erreur
-            submitButton.setDisable(false); // Réactiver le bouton
-        } catch (IOException e) { // En cas d'erreur de navigation
-            e.printStackTrace(); // Log de l'erreur
-            submitButton.setDisable(false); // Réactiver le bouton
+            goToMesOrdonnances();
+        } catch (SQLException e) {
+            errorLabel.setText("Erreur: " + e.getMessage());
+            submitButton.setDisable(false);
         }
     }
 

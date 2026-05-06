@@ -905,13 +905,10 @@ public class TraitementController {
                 ps.close(); // Fermer le PreparedStatement
             }
 
-            goToOrdonnance(firstTraitementId, newOrdonnanceId, tempNumero); // Rediriger vers la page ordonnance avec les paramètres
-        } catch (SQLException e) { // En cas d'erreur SQL
-            errorLabel.setText("Erreur lors de l'enregistrement: " + e.getMessage()); // Afficher l'erreur
-            submitButton.setDisable(false); // Réactiver le bouton
-        } catch (IOException e) { // En cas d'erreur de navigation
-            e.printStackTrace(); // Log
-            submitButton.setDisable(false); // Réactiver
+            goToOrdonnance(firstTraitementId, newOrdonnanceId, tempNumero);
+        } catch (SQLException e) {
+            errorLabel.setText("Erreur lors de l'enregistrement: " + e.getMessage());
+            submitButton.setDisable(false);
         }
     }
 
@@ -950,7 +947,7 @@ public class TraitementController {
                 "-fx-background-radius: 20; -fx-padding: 12 45; -fx-cursor: hand; -fx-font-size: 14;");
         comprisBtn.setOnAction(ev -> {
             dialog.close();
-            try { goToAccueil(); } catch (IOException ex) { ex.printStackTrace(); }
+            goToAccueil();
         });
 
         root.getChildren().addAll(iconLabel, titleLabel, msgLabel, infoLabel, comprisBtn);
@@ -1039,11 +1036,7 @@ public class TraitementController {
     // Annuler et retourner à l'accueil
     @FXML
     private void handleCancel() {
-        try {
-            goToAccueil(); // Naviguer vers l'accueil
-        } catch (IOException e) {
-            e.printStackTrace(); // Log de l'erreur
-        }
+        goToAccueil();
     }
 
     // Navigation vers la page d'accueil

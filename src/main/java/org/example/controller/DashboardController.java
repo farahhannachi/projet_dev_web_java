@@ -115,14 +115,12 @@ public class DashboardController {
 
     @FXML
     private void handleAjouterProduit() {
-        // Open add product form
-        System.out.println("Ajouter Produit clicked");
+        org.example.util.DialogService.showSuccess("Ajouter Produit", "Fonctionnalité disponible dans la section Produits (à venir).");
     }
 
     @FXML
     private void handleNouvelleCommande() {
-        // Open new order form
-        System.out.println("Nouvelle Commande clicked");
+        org.example.util.DialogService.showSuccess("Nouvelle Commande", "Fonctionnalité disponible dans la section Commandes (à venir).");
     }
 
     @FXML
@@ -191,38 +189,32 @@ public class DashboardController {
 
     @FXML
     private void showProduits() {
-        // Switch to products view
-        System.out.println("Show Produits");
+        org.example.util.DialogService.showSuccess("Produits", "Section Produits en cours de développement.");
     }
 
     @FXML
     private void showCommandes() {
-        // Switch to orders view
-        System.out.println("Show Commandes");
+        org.example.util.DialogService.showSuccess("Commandes", "Section Commandes en cours de développement.");
     }
 
     @FXML
     private void showPromotions() {
-        // Switch to promotions view
-        System.out.println("Show Promotions");
+        org.example.util.DialogService.showSuccess("Promotions", "Section Promotions en cours de développement.");
     }
 
     @FXML
     private void showCoupons() {
-        // Switch to coupons view
-        System.out.println("Show Coupons");
+        org.example.util.DialogService.showSuccess("Coupons", "Section Coupons en cours de développement.");
     }
 
     @FXML
     private void showDepots() {
-        // Switch to depots view
-        System.out.println("Show Depots");
+        org.example.util.DialogService.showSuccess("Dépôts", "Section Dépôts en cours de développement.");
     }
 
     @FXML
     private void showStocks() {
-        // Switch to stocks view
-        System.out.println("Show Stocks");
+        org.example.util.DialogService.showSuccess("Stocks", "Section Stocks en cours de développement.");
     }
 
     // =============================================

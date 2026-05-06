@@ -1,8 +1,8 @@
 package org.example.util;
 
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.*;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import java.util.Properties;
 
 /**
@@ -30,50 +30,58 @@ public class EmailUtil {
      * @return true if email sent successfully
      */
     public static boolean sendPasswordResetEmail(String toEmail, String resetToken) {
+        // Try port 587 (STARTTLS) first, then 465 (SSL), then 25
+        int[] ports = {587, 465, 25};
+        for (int port : ports) {
+            if (trySend(toEmail, resetToken, port)) return true;
+        }
+        System.err.println("[Email] Tous les ports SMTP ont échoué (587, 465, 25).");
+        return false;
+    }
+
+    private static boolean trySend(String toEmail, String resetToken, int port) {
         try {
-            // Setup SMTP properties
             Properties props = new Properties();
             props.put("mail.smtp.host", SMTP_HOST);
-            props.put("mail.smtp.port", SMTP_PORT);
+            props.put("mail.smtp.port", String.valueOf(port));
             props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.starttls.enable", "true");
-            props.put("mail.smtp.starttls.required", "true");
-            props.put("mail.smtp.connectiontimeout", "5000");
-            props.put("mail.smtp.timeout", "5000");
-            
-            // Create authenticator
+            props.put("mail.smtp.connectiontimeout", "8000");
+            props.put("mail.smtp.timeout", "8000");
+
+            if (port == 465) {
+                // SSL
+                props.put("mail.smtp.ssl.enable", "true");
+                props.put("mail.smtp.socketFactory.port", "465");
+                props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            } else {
+                // STARTTLS (587 ou 25)
+                props.put("mail.smtp.starttls.enable", "true");
+                props.put("mail.smtp.starttls.required", "true");
+            }
+
             Authenticator auth = new Authenticator() {
                 protected PasswordAuthentication getPasswordAuthentication() {
                     return new PasswordAuthentication(FROM_EMAIL, EMAIL_PASSWORD);
                 }
             };
-            
-            // Get session
+
             Session session = Session.getInstance(props, auth);
-            session.setDebug(false); // Set to true for debugging
-            
-            // Create message
+
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(FROM_EMAIL));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             message.setSubject("Password Reset - CuraVita Pharmacy");
-            
-            // Create email content - use HTTP link for clickability + custom scheme as fallback
+
             String httpLink = "http://localhost:8080/reset?token=" + resetToken;
             String customLink = "curavita://reset?token=" + resetToken;
-            String htmlContent = buildResetEmailHTML(httpLink, customLink);
-            
-            message.setContent(htmlContent, "text/html; charset=utf-8");
-            
-            // Send email
+            message.setContent(buildResetEmailHTML(httpLink, customLink), "text/html; charset=utf-8");
+
             Transport.send(message);
-            
-            System.out.println("[EMAIL] Password reset email sent to: " + toEmail);
+            System.out.println("[Email] Email envoyé via port " + port + " à : " + toEmail);
             return true;
-            
+
         } catch (MessagingException e) {
-            System.err.println("[EMAIL ERROR] Failed to send email: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("[Email] Erreur port " + port + " : " + e.getMessage());
             return false;
         }
     }

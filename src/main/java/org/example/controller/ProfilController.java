@@ -756,13 +756,7 @@ public class ProfilController {
             showSuccess("Compte supprime avec succes!");
             closeModal();
             PauseTransition pause = new PauseTransition(Duration.seconds(2));
-            pause.setOnFinished(event -> {
-                try {
-                    goBack();
-                } catch (IOException exception) {
-                    exception.printStackTrace();
-                }
-            });
+            pause.setOnFinished(event -> goBack());
             pause.play();
         } else {
             showSuccess("Erreur lors de la suppression");
