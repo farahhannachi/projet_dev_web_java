@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="org.example.controller.AccueilController" styleClass="root">
+    
+    <!-- ============================================
+         NAVBAR (TOP)
+    ============================================ -->
+    <HBox styleClass="navbar-pill" alignment="CENTER">
+        <VBox.margin>
+            <Insets top="20" left="40" right="40" bottom="0"/>
+        </VBox.margin>
+        
+        <!-- LEFT: Logo -->
+        <Label text="CuraVita" styleClass="logo-text"/>
+        
+        <!-- Spacer -->
+        <Region HBox.hgrow="SOMETIMES"/>
+        
+        <!-- CENTER: Menu Items -->
+        <HBox styleClass="menu-container" alignment="CENTER">
+            <Button text="Accueil" styleClass="menu-item"/>
+            <Button text="Dépôts" styleClass="menu-item" onAction="#showDepots"/>
+            <Button text="Stocks" styleClass="menu-item" onAction="#showStocks"/>
+            <Button text="Services" styleClass="menu-item" onAction="#showServices"/>
+            <Button text="Produits" styleClass="menu-item"/>
+            <Button text="Commandes" styleClass="menu-item"/>
+            <Button text="Ordonnance" styleClass="menu-item"/>
+            <Button text="Traitement" styleClass="menu-item"/>
+            <Button text="Guide Sant&#233;" styleClass="menu-item"/>
+            <Button text="Contact" styleClass="menu-item"/>
+            <Button text="&#192; propos" styleClass="menu-item"/>
+        </HBox>
+        
+        <!-- Spacer -->
+        <Region HBox.hgrow="SOMETIMES"/>
+        
+        <!-- RIGHT: Icons -->
+        <StackPane>
+            <HBox styleClass="icon-container" alignment="CENTER">
+                <Button text="&#128269;" styleClass="icon-button" onAction="#handleSearch"/>
+                <Button fx:id="profileButton" text="&#128100;" styleClass="icon-button" onAction="#toggleProfileDropdown"/>
+            </HBox>
+            
+            <!-- Profile Dropdown -->
+            <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false">
+                <VBox.margin>
+                    <Insets top="45" right="0" bottom="0" left="0"/>
+                </VBox.margin>
+                <Button text="Profil" styleClass="dropdown-item" onAction="#showProfile"/>
+                <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                <Button text="Logout" styleClass="dropdown-item" onAction="#logout"/>
+            </VBox>
+        </StackPane>
+    </HBox>
+    
+    <!-- ============================================
+         MAIN CONTENT AREA
+    ============================================ -->
+    <VBox styleClass="main-content" VBox.vgrow="ALWAYS">
+        
+        <!-- ============================================
+             HERO SECTION (GREEN)
+        ============================================ -->
+        <VBox styleClass="hero-section" alignment="CENTER">
+            <Label text="Bienvenue sur CuraVita" styleClass="hero-title"/>
+            <Label text="Votre solution moderne pour la gestion de pharmacie" styleClass="hero-subtitle"/>
+        </VBox>
+        
+        <!-- ============================================
+             CARDS SECTION
+        ============================================ -->
+        <HBox styleClass="cards-section" alignment="CENTER">
+            <VBox.margin>
+                <Insets top="40" left="40" right="40" bottom="40"/>
+            </VBox.margin>
+            
+            <!-- Card 1: Nos Produits -->
+            <VBox styleClass="card">
+                <VBox styleClass="card-icon-container" alignment="CENTER">
+                    <Label text="&#128230;" styleClass="card-icon"/>
+                </VBox>
+                <Label text="Nos Produits" styleClass="card-title"/>
+                <Label text="D&#233;couvrez notre large gamme de produits pharmaceutiques de qualit&#233;" styleClass="card-description"/>
+            </VBox>
+            
+            <!-- Spacer -->
+            <Region prefWidth="30"/>
+            
+            <!-- Card 2: Nos Stocks -->
+            <VBox styleClass="card" onMouseClicked="#showStocks">
+                <VBox styleClass="card-icon-container" alignment="CENTER">
+                    <Label text="&#128230;" styleClass="card-icon"/>
+                </VBox>
+                <Label text="Nos Stocks" styleClass="card-title"/>
+                <Label text="Consultez l'&#233;tat de nos stocks et leur disponibilit&#233;" styleClass="card-description"/>
+            </VBox>
+
+            <!-- Spacer -->
+            <Region prefWidth="30"/>
+
+            <!-- Card 3: Nos Dépôts -->
+            <VBox styleClass="card" onMouseClicked="#showDepots">
+                <VBox styleClass="card-icon-container" alignment="CENTER">
+                    <Label text="&#127969;" styleClass="card-icon"/>
+                </VBox>
+                <Label text="Nos Dépôts" styleClass="card-title"/>
+                <Label text="D&#233;couvrez nos entrep&#244;ts et centres de distribution" styleClass="card-description"/>
+            </VBox>
+
+            <!-- Spacer -->
+            <Region prefWidth="30"/>
+
+            <!-- Card 4: Commandes -->
+            <VBox styleClass="card">
+                <VBox styleClass="card-icon-container" alignment="CENTER">
+                    <Label text="&#128203;" styleClass="card-icon"/>
+                </VBox>
+                <Label text="Commandes" styleClass="card-title"/>
+                <Label text="G&#233;rez vos commandes facilement etSuivez votre historique" styleClass="card-description"/>
+            </VBox>
+            
+            <!-- Spacer -->
+            <Region prefWidth="30"/>
+            
+            <!-- Card 5: Promotions -->
+            <VBox styleClass="card">
+                <VBox styleClass="card-icon-container" alignment="CENTER">
+                    <Label text="&#127881;" styleClass="card-icon"/>
+                </VBox>
+                <Label text="Promotions" styleClass="card-title"/>
+                <Label text="B&#233;n&#233;ficiez de nos offres sp&#233;ciales et r&#233;ductions exclusives" styleClass="card-description"/>
+            </VBox>
+            
+        </HBox>
+        
+    </VBox>
+    
+</VBox>
