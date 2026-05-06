@@ -26,35 +26,32 @@ public class LoginController {
     @FXML private PasswordField signupPassword;
     @FXML private Label signupError;
 
-    @FXML private StackPane signInPanel;
-    @FXML private StackPane signUpPanel;
+    @FXML private javafx.scene.layout.VBox signInPanel;
+    @FXML private javafx.scene.layout.VBox signUpPanel;
     @FXML private StackPane backgroundPane;
 
-    private UserService userService = new UserService();
+    private UserService userService = UserService.getInstance();
     private boolean isSignInMode = true;
     private boolean isAnimating = false;
 
     @FXML
     private void initialize() {
-        // Check database connection on startup
         if (!UserService.isDatabaseConnected()) {
             loginError.setText("⚠️ Database not connected. Please start MySQL.");
             loginError.setStyle("-fx-text-fill: #F39C12;");
         }
-        
-        // Initialize: Sign In is visible, Sign Up is to the right (off-screen)
-        // Sign In panel is at translateX = 0
-        // Sign Up panel is at translateX = 428 (to the right)
+        // Sign Up panel is fully hidden at startup
         if (signUpPanel != null) {
-            signUpPanel.setTranslateX(428);
+            signUpPanel.setVisible(false);
+            signUpPanel.setManaged(false);
+            signUpPanel.setOpacity(0);
+            signUpPanel.setTranslateX(1200);
         }
+        // Sign In panel centered
         if (signInPanel != null) {
             signInPanel.setTranslateX(0);
             signInPanel.setOpacity(1);
         }
-        
-        // Start background animation
-        startBackgroundAnimation();
     }
     
     private void startBackgroundAnimation() {
@@ -188,81 +185,79 @@ public class LoginController {
     @FXML
     private void showSignUp() {
         if (!isSignInMode || isAnimating) return;
-        
         isAnimating = true;
         isSignInMode = false;
-        
-        // Slide Sign In panel to the LEFT (fade out)
-        TranslateTransition signInSlideOut = new TranslateTransition(Duration.millis(500), signInPanel);
-        signInSlideOut.setToX(-428);
-        signInSlideOut.setInterpolator(Interpolator.EASE_BOTH);
-        
-        FadeTransition signInFadeOut = new FadeTransition(Duration.millis(300), signInPanel);
-        signInFadeOut.setToValue(0);
-        
-        // Slide Sign Up panel from RIGHT to CENTER (fade in)
-        TranslateTransition signUpSlideIn = new TranslateTransition(Duration.millis(500), signUpPanel);
-        signUpSlideIn.setFromX(428);
-        signUpSlideIn.setToX(0);
-        signUpSlideIn.setInterpolator(Interpolator.EASE_BOTH);
-        
-        FadeTransition signUpFadeIn = new FadeTransition(Duration.millis(300), signUpPanel);
-        signUpFadeIn.setFromValue(0);
-        signUpFadeIn.setToValue(1);
-        
-        // Run animations in parallel
-        ParallelTransition parallelOut = new ParallelTransition(signInSlideOut, signInFadeOut);
-        ParallelTransition parallelIn = new ParallelTransition(signUpSlideIn, signUpFadeIn);
-        
-        SequentialTransition sequential = new SequentialTransition();
-        sequential.getChildren().add(parallelOut);
-        sequential.getChildren().add(parallelIn);
-        
-        sequential.setOnFinished(e -> {
+
+        // Make Sign Up panel visible before animating
+        signUpPanel.setVisible(true);
+        signUpPanel.setManaged(true);
+        signUpPanel.setTranslateX(1200);
+        signUpPanel.setOpacity(0);
+
+        // Sign In slides left and fades out
+        TranslateTransition signInOut = new TranslateTransition(Duration.millis(400), signInPanel);
+        signInOut.setToX(-500);
+        signInOut.setInterpolator(Interpolator.EASE_BOTH);
+        FadeTransition signInFade = new FadeTransition(Duration.millis(350), signInPanel);
+        signInFade.setToValue(0);
+
+        // Sign Up slides in from right and fades in
+        TranslateTransition signUpIn = new TranslateTransition(Duration.millis(400), signUpPanel);
+        signUpIn.setFromX(1200);
+        signUpIn.setToX(0);
+        signUpIn.setInterpolator(Interpolator.EASE_BOTH);
+        FadeTransition signUpFade = new FadeTransition(Duration.millis(400), signUpPanel);
+        signUpFade.setFromValue(0);
+        signUpFade.setToValue(1);
+
+        ParallelTransition out = new ParallelTransition(signInOut, signInFade);
+        ParallelTransition in = new ParallelTransition(signUpIn, signUpFade);
+        SequentialTransition seq = new SequentialTransition(out, in);
+        seq.setOnFinished(e -> {
+            signInPanel.setVisible(false);
+            signInPanel.setManaged(false);
             isAnimating = false;
         });
-        
-        sequential.play();
+        seq.play();
     }
 
     @FXML
     private void showSignIn() {
         if (isSignInMode || isAnimating) return;
-        
         isAnimating = true;
         isSignInMode = true;
-        
-        // Slide Sign Up panel to the LEFT (fade out)
-        TranslateTransition signUpSlideOut = new TranslateTransition(Duration.millis(500), signUpPanel);
-        signUpSlideOut.setToX(-428);
-        signUpSlideOut.setInterpolator(Interpolator.EASE_BOTH);
-        
-        FadeTransition signUpFadeOut = new FadeTransition(Duration.millis(300), signUpPanel);
-        signUpFadeOut.setToValue(0);
-        
-        // Slide Sign In panel from LEFT to CENTER (fade in)
-        TranslateTransition signInSlideIn = new TranslateTransition(Duration.millis(500), signInPanel);
-        signInSlideIn.setFromX(-428);
-        signInSlideIn.setToX(0);
-        signInSlideIn.setInterpolator(Interpolator.EASE_BOTH);
-        
-        FadeTransition signInFadeIn = new FadeTransition(Duration.millis(300), signInPanel);
-        signInFadeIn.setFromValue(0);
-        signInFadeIn.setToValue(1);
-        
-        // Run animations in parallel
-        ParallelTransition parallelOut = new ParallelTransition(signUpSlideOut, signUpFadeOut);
-        ParallelTransition parallelIn = new ParallelTransition(signInSlideIn, signInFadeIn);
-        
-        SequentialTransition sequential = new SequentialTransition();
-        sequential.getChildren().add(parallelOut);
-        sequential.getChildren().add(parallelIn);
-        
-        sequential.setOnFinished(e -> {
+
+        // Make Sign In panel visible before animating
+        signInPanel.setVisible(true);
+        signInPanel.setManaged(true);
+        signInPanel.setTranslateX(-500);
+        signInPanel.setOpacity(0);
+
+        // Sign Up slides right and fades out
+        TranslateTransition signUpOut = new TranslateTransition(Duration.millis(400), signUpPanel);
+        signUpOut.setToX(1200);
+        signUpOut.setInterpolator(Interpolator.EASE_BOTH);
+        FadeTransition signUpFade = new FadeTransition(Duration.millis(350), signUpPanel);
+        signUpFade.setToValue(0);
+
+        // Sign In slides in from left and fades in
+        TranslateTransition signInIn = new TranslateTransition(Duration.millis(400), signInPanel);
+        signInIn.setFromX(-500);
+        signInIn.setToX(0);
+        signInIn.setInterpolator(Interpolator.EASE_BOTH);
+        FadeTransition signInFade = new FadeTransition(Duration.millis(400), signInPanel);
+        signInFade.setFromValue(0);
+        signInFade.setToValue(1);
+
+        ParallelTransition out = new ParallelTransition(signUpOut, signUpFade);
+        ParallelTransition in = new ParallelTransition(signInIn, signInFade);
+        SequentialTransition seq = new SequentialTransition(out, in);
+        seq.setOnFinished(e -> {
+            signUpPanel.setVisible(false);
+            signUpPanel.setManaged(false);
             isAnimating = false;
         });
-        
-        sequential.play();
+        seq.play();
     }
 
     private void goToNextPage(User user) throws IOException {
@@ -287,6 +282,21 @@ public class LoginController {
             e.printStackTrace();
             loginError.setText("❌ Error: " + e.getMessage());
             loginError.setStyle("-fx-text-fill: #E74C3C;");
+        }
+    }
+
+    @FXML
+    private void handleForgotPassword() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ResetPassword.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            Stage stage = (Stage) loginEmail.getScene().getWindow();
+            stage.setScene(scene);
+        } catch (Exception e) {
+            e.printStackTrace();
+            loginError.setText("❌ Erreur navigation : " + e.getMessage());
         }
     }
 }

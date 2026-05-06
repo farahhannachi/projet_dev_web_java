@@ -37,3 +37,6 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Credentials sensibles - NE PAS PUSHER ###
+src/main/java/org/example/util/SmsService.java

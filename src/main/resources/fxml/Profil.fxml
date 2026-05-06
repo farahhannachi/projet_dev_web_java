@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.control.ScrollPane?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="org.example.controller.ProfilController"
+           fx:id="mainStack" styleClass="profil-root">
+
+    <VBox>
+        <HBox styleClass="navbar-pill" alignment="CENTER" minHeight="60">
+            <VBox.margin>
+                <Insets top="10" left="40" right="40" bottom="10"/>
+            </VBox.margin>
+
+            <Label text="CuraVita" styleClass="logo-text"/>
+            <Region HBox.hgrow="SOMETIMES"/>
+
+            <HBox styleClass="menu-container" alignment="CENTER" spacing="5">
+                <Button text="Accueil" styleClass="menu-item" onAction="#goToAccueil"/>
+                <Button text="Produits" styleClass="menu-item"/>
+                <Button text="Commandes" styleClass="menu-item"/>
+                <Button text="Traitement" styleClass="menu-item" onAction="#goToTraitement"/>
+                <StackPane fx:id="ordonnanceMenuContainer">
+                    <Button text="Ordonnance &#9662;" styleClass="menu-item"/>
+                    <VBox fx:id="ordonnanceDropdownNav" styleClass="nav-dropdown" visible="false" managed="false">
+                        <StackPane.margin>
+                            <Insets top="45"/>
+                        </StackPane.margin>
+                        <Button text="Créer une ordonnance" styleClass="dropdown-item" onAction="#goToCreerOrdonnance"/>
+                        <Button text="Mes ordonnances" styleClass="dropdown-item" onAction="#goToMesOrdonnances"/>
+                    </VBox>
+                </StackPane>
+                <Button text="Guide Santé" styleClass="menu-item"/>
+                <Button text="Contact" styleClass="menu-item"/>
+                <Button text="À propos" styleClass="menu-item"/>
+            </HBox>
+
+            <Region HBox.hgrow="SOMETIMES"/>
+
+            <HBox styleClass="navbar-right-section" alignment="CENTER" spacing="15">
+                <Button text="&#128269;" styleClass="navbar-search-btn"/>
+
+                <StackPane>
+                    <HBox fx:id="profileContainer" styleClass="navbar-profile-container"
+                          alignment="CENTER" spacing="10" onMouseClicked="#toggleProfileDropdown">
+                        <StackPane styleClass="navbar-avatar-container">
+                            <Circle fx:id="navbarAvatarCircle" radius="18" styleClass="navbar-avatar-circle"/>
+                            <Label fx:id="navbarAvatarLabel" text="&#128100;" styleClass="navbar-avatar-emoji" alignment="CENTER"/>
+                            <Circle radius="4" styleClass="online-dot" StackPane.alignment="BOTTOM_RIGHT"/>
+                        </StackPane>
+
+                        <Label fx:id="navbarUsername" text="Utilisateur" styleClass="navbar-username"/>
+                        <Label text="&#9660;" styleClass="navbar-dropdown-arrow"/>
+                    </HBox>
+
+                    <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false" StackPane.alignment="TOP_RIGHT">
+                        <VBox.margin>
+                            <Insets top="52"/>
+                        </VBox.margin>
+                        <Button text="Mon Profil" styleClass="dropdown-item" onAction="#closeDropdownIfOpen"/>
+                        <Button text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                        <Button text="Déconnexion" styleClass="dropdown-item" onAction="#logout"/>
+                    </VBox>
+                </StackPane>
+            </HBox>
+        </HBox>
+
+        <ScrollPane fitToWidth="true" styleClass="profil-scroll-pane" VBox.vgrow="ALWAYS">
+            <VBox styleClass="profil-content-container" spacing="24">
+                <padding>
+                    <Insets top="18" left="38" right="38" bottom="40"/>
+                </padding>
+
+                <StackPane styleClass="profile-header-card">
+                    <StackPane fx:id="heroSection" styleClass="hero-section-calvino" minHeight="260" prefHeight="260" maxHeight="260">
+                        <ImageView fx:id="heroBackgroundImage" styleClass="hero-background-image"
+                                   preserveRatio="false" fitWidth="1400" fitHeight="260"/>
+
+                        <Rectangle arcWidth="28" arcHeight="28" styleClass="hero-gradient-overlay-animated">
+                            <width>1400</width>
+                            <height>260</height>
+                        </Rectangle>
+
+                        <HBox styleClass="hero-content-calvino" alignment="CENTER_LEFT">
+                            <padding>
+                                <Insets top="26" right="34" bottom="26" left="34"/>
+                            </padding>
+
+                            <HBox alignment="CENTER_LEFT" spacing="26" HBox.hgrow="ALWAYS">
+                                <StackPane styleClass="profile-avatar-wrapper-modern">
+                                    <StackPane fx:id="heroAvatarFrame" styleClass="profile-avatar-modern">
+                                        <Circle radius="82" styleClass="avatar-border-circle"/>
+                                        <ImageView fx:id="heroAvatarImage" styleClass="hero-avatar-image-calvino"
+                                                   fitHeight="148" fitWidth="148" preserveRatio="false"/>
+                                    </StackPane>
+
+                                    <Button fx:id="editAvatarOverlayBtn" styleClass="avatar-edit-btn-calvino"
+                                            text="✎" onAction="#handleChangeAvatar" StackPane.alignment="BOTTOM_RIGHT">
+                                        <StackPane.margin>
+                                            <Insets bottom="6" right="6"/>
+                                        </StackPane.margin>
+                                    </Button>
+                                </StackPane>
+
+                                <VBox styleClass="hero-text-calvino" spacing="8" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                                    <Label fx:id="heroNameLabel" styleClass="hero-name-calvino" text="My name is Nom Complet" wrapText="true"/>
+                                    <Label fx:id="heroRoleLabel" styleClass="hero-role-calvino" text="Digital Product Designer"/>
+                                    <Label fx:id="heroEmailLabel" styleClass="hero-email-calvino" text="email@exemple.com" wrapText="true"/>
+                                    <Label fx:id="heroStatusBadge" styleClass="status-badge-calvino" text="ACTIF"/>
+                                </VBox>
+                            </HBox>
+
+                            <VBox alignment="CENTER_RIGHT" spacing="12">
+                                <VBox styleClass="meta-card-modern">
+                                    <Label text="Compte" styleClass="meta-card-label"/>
+                                    <Label fx:id="infoRoleLabel" text="N/A" styleClass="meta-card-value"/>
+                                </VBox>
+
+                                <VBox styleClass="meta-card-modern">
+                                    <Label text="Email" styleClass="meta-card-label"/>
+                                    <Label fx:id="infoEmailLabel" text="N/A" styleClass="meta-card-value meta-card-value-small" wrapText="true"/>
+                                </VBox>
+                            </VBox>
+                        </HBox>
+                    </StackPane>
+                </StackPane>
+
+                <HBox spacing="15" alignment="CENTER" styleClass="profile-primary-actions">
+                    <Button text="✎ Modifier le profil" styleClass="btn-edit-profile-web" onAction="#handleEditProfile"/>
+                </HBox>
+
+                <VBox styleClass="two-factor-card" spacing="14">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Authentification a deux facteurs" styleClass="two-factor-title"/>
+                            <Label fx:id="twoFactorDescriptionLabel" text="Protect your account with an authenticator app." styleClass="two-factor-description" wrapText="true"/>
+                        </VBox>
+                        <Label fx:id="twoFactorStatusLabel" text="Disabled" styleClass="two-factor-status off"/>
+                    </HBox>
+
+                    <VBox fx:id="twoFactorSetupBox" spacing="10" managed="false" visible="false">
+                        <VBox styleClass="two-factor-guide" spacing="6">
+                            <Label text="1. Add this key to Google Authenticator or Microsoft Authenticator." styleClass="two-factor-step"/>
+                            <TextField fx:id="twoFactorSecretField" editable="false" focusTraversable="false" styleClass="two-factor-secret"/>
+                        </VBox>
+                        <VBox styleClass="two-factor-guide" spacing="6">
+                            <Label text="2. Enter the 6-digit code to activate 2FA." styleClass="two-factor-step"/>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <TextField fx:id="twoFactorCodeField" promptText="123456" styleClass="profile-input two-factor-code-input" prefWidth="160"/>
+                                <Button text="Activer la 2FA" onAction="#handleEnableTwoFactor" styleClass="two-factor-button-primary"/>
+                            </HBox>
+                        </VBox>
+                        <Label fx:id="twoFactorMessageLabel" text="" styleClass="two-factor-message" wrapText="true"/>
+                    </VBox>
+
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Button fx:id="prepareTwoFactorButton" text="Configurer la 2FA" onAction="#handlePrepareTwoFactor" styleClass="two-factor-button-primary"/>
+                        <Button fx:id="disableTwoFactorButton" text="Desactiver la 2FA" onAction="#handleDisableTwoFactor" styleClass="two-factor-button-secondary" managed="false" visible="false"/>
+                    </HBox>
+                </VBox>
+
+                <VBox styleClass="profil-details-section">
+                    <Label text="Informations du compte" styleClass="profil-section-title"/>
+
+                    <GridPane styleClass="profil-details-grid" hgap="20" vgap="18">
+                        <VBox styleClass="info-card" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="👤" styleClass="info-card-icon"/>
+                                <Label text="Nom complet" styleClass="info-card-label"/>
+                            </HBox>
+                            <Label fx:id="infoNameLabel" text="N/A" styleClass="info-card-value"/>
+                        </VBox>
+
+                        <VBox styleClass="info-card" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="✉" styleClass="info-card-icon"/>
+                                <Label text="Email" styleClass="info-card-label"/>
+                            </HBox>
+                            <Label fx:id="emailInfoCardLabel" text="N/A" styleClass="info-card-value"/>
+                        </VBox>
+
+                        <VBox styleClass="info-card" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="🛡" styleClass="info-card-icon"/>
+                                <Label text="Rôle" styleClass="info-card-label"/>
+                            </HBox>
+                            <Label fx:id="roleInfoCardLabel" text="N/A" styleClass="info-card-value"/>
+                        </VBox>
+
+                        <VBox styleClass="info-card" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="●" styleClass="info-card-icon"/>
+                                <Label text="Statut" styleClass="info-card-label"/>
+                            </HBox>
+                            <Label fx:id="infoStatusLabel" text="ACTIF" styleClass="info-card-value status-value"/>
+                        </VBox>
+                    </GridPane>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </VBox>
+
+    <VBox fx:id="assistantPanel" managed="false" visible="false" styleClass="assistant-panel" StackPane.alignment="BOTTOM_RIGHT">
+        <StackPane styleClass="assistant-header">
+            <VBox spacing="4">
+                <Label fx:id="assistantTitleLabel" text="Cura Assistant" styleClass="assistant-title"/>
+                <Label text="Ask about products, profile, orders, or dashboard actions." styleClass="assistant-subtitle" wrapText="true"/>
+            </VBox>
+            <Button text="✕" onAction="#toggleAssistantPanel" styleClass="assistant-close-btn" StackPane.alignment="TOP_RIGHT"/>
+        </StackPane>
+
+        <ScrollPane fx:id="assistantScrollPane" fitToWidth="true" styleClass="assistant-scroll">
+            <VBox fx:id="assistantMessagesBox" spacing="10" styleClass="assistant-messages"/>
+        </ScrollPane>
+
+        <VBox spacing="10" styleClass="assistant-input-area">
+            <Label fx:id="assistantHintLabel" text="Set OPENROUTER_API_KEY environment variable to enable AI replies." styleClass="assistant-hint" wrapText="true"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <TextField fx:id="assistantInputField" promptText="How can I buy a product?" styleClass="assistant-input" HBox.hgrow="ALWAYS" onAction="#handleAssistantSend"/>
+                <Button fx:id="assistantSendButton" text="Send" onAction="#handleAssistantSend" styleClass="assistant-send-btn"/>
+            </HBox>
+        </VBox>
+        <StackPane.margin>
+            <Insets right="30" bottom="98"/>
+        </StackPane.margin>
+    </VBox>
+
+    <Button fx:id="assistantFloatingButton" text="AI" onAction="#toggleAssistantPanel" styleClass="assistant-floating-button" StackPane.alignment="BOTTOM_RIGHT">
+        <StackPane.margin>
+            <Insets right="28" bottom="28"/>
+        </StackPane.margin>
+    </Button>
+
+    <StackPane fx:id="overlayPane" visible="false" managed="false" styleClass="profil-overlay">
+        <VBox fx:id="avatarPanel" visible="false" managed="false" styleClass="avatar-generator-panel-modern" StackPane.alignment="CENTER">
+            <StackPane styleClass="avatar-panel-header">
+                <VBox alignment="CENTER" spacing="5">
+                    <Label text="Créer votre avatar" styleClass="avatar-panel-title"/>
+                    <Label text="Choisissez un style et générez un avatar plus propre" styleClass="avatar-panel-subtitle"/>
+                </VBox>
+                <Button text="✕" onAction="#closeAvatarPanel" styleClass="panel-close-btn-modern" StackPane.alignment="TOP_RIGHT">
+                    <StackPane.margin>
+                        <Insets top="10" right="15"/>
+                    </StackPane.margin>
+                </Button>
+            </StackPane>
+
+            <VBox alignment="CENTER" spacing="18" styleClass="avatar-panel-body">
+                <StackPane fx:id="previewAvatarFrame" styleClass="avatar-preview-circle">
+                    <Circle radius="78" styleClass="avatar-preview-ring"/>
+                    <ImageView fx:id="previewImageView" styleClass="avatar-imageview-preview" preserveRatio="false">
+                        <fitWidth>144</fitWidth>
+                        <fitHeight>144</fitHeight>
+                    </ImageView>
+                    <Circle radius="84" styleClass="avatar-glow-ring"/>
+                </StackPane>
+
+                <VBox alignment="CENTER" spacing="12" styleClass="style-selection-modern">
+                    <Label text="Styles" styleClass="style-label-modern"/>
+                    <FlowPane alignment="CENTER" hgap="10" vgap="10" prefWrapLength="320">
+                        <Button fx:id="styleCartoon" text="Cartoon" onAction="#selectStyle" styleClass="style-chip selected"/>
+                        <Button fx:id="styleNeutral" text="Neutral" onAction="#selectStyle" styleClass="style-chip"/>
+                        <Button fx:id="stylePixel" text="Pixel" onAction="#selectStyle" styleClass="style-chip"/>
+                        <Button fx:id="styleAdventure" text="Adventure" onAction="#selectStyle" styleClass="style-chip"/>
+                        <Button fx:id="styleEmoji" text="Emoji" onAction="#selectStyle" styleClass="style-chip"/>
+                        <Button fx:id="styleLorelei" text="Lorelei" onAction="#selectStyle" styleClass="style-chip"/>
+                        <Button fx:id="styleRobot" text="Robot" onAction="#selectStyle" styleClass="style-chip"/>
+                    </FlowPane>
+                </VBox>
+
+                <Button text="Générer un nouvel avatar" onAction="#generateRandomAvatar" styleClass="generate-btn-modern"/>
+
+                <HBox styleClass="panel-buttons-modern" spacing="15">
+                    <Button text="Confirmer" onAction="#handleAcceptAvatar" styleClass="panel-confirm-btn-modern"/>
+                    <Button text="Annuler" onAction="#closeAvatarPanel" styleClass="panel-cancel-btn-modern"/>
+                </HBox>
+            </VBox>
+        </VBox>
+
+        <VBox fx:id="editModal" visible="false" managed="false" styleClass="profil-modal" StackPane.alignment="CENTER">
+            <HBox styleClass="modal-header">
+                <Label text="Modifier le Profil" styleClass="modal-title"/>
+                <Pane HBox.hgrow="ALWAYS"/>
+                <Button text="✕" onAction="#closeModal" styleClass="modal-close-btn"/>
+            </HBox>
+            <Separator styleClass="modal-separator"/>
+
+            <VBox styleClass="modal-form" spacing="20">
+                <VBox spacing="8">
+                    <Label text="Nom complet *" styleClass="modal-label"/>
+                    <TextField fx:id="editNameField" promptText="Entrez votre nom" styleClass="modal-input"/>
+                </VBox>
+
+                <VBox spacing="8">
+                    <Label text="Email *" styleClass="modal-label"/>
+                    <TextField fx:id="editEmailField" promptText="Entrez votre email" styleClass="modal-input"/>
+                </VBox>
+
+                <VBox spacing="8">
+                    <Label text="Mot de passe (optionnel)" styleClass="modal-label"/>
+                    <Label text="Laissez vide pour conserver l'actuel" styleClass="modal-hint"/>
+                    <PasswordField fx:id="editPasswordField" promptText="......." styleClass="modal-input"/>
+                </VBox>
+
+                <Label fx:id="editErrorLabel" text="" styleClass="modal-error"/>
+            </VBox>
+
+            <HBox styleClass="modal-buttons" spacing="15">
+                <Button text="Sauvegarder" onAction="#handleSaveProfile" styleClass="modal-save-btn"/>
+                <Button text="Annuler" onAction="#closeModal" styleClass="modal-cancel-btn"/>
+            </HBox>
+        </VBox>
+
+        <VBox fx:id="deleteModal" visible="false" managed="false" styleClass="profil-modal profil-modal-danger" StackPane.alignment="CENTER">
+            <Label text="Confirmation" styleClass="modal-danger-title"/>
+            <Label text="Êtes-vous sûr de vouloir supprimer votre compte ?" styleClass="modal-danger-message"/>
+            <Label text="Cette action est irréversible et toutes vos données seront perdues." styleClass="modal-danger-hint"/>
+
+            <HBox styleClass="modal-buttons" spacing="15">
+                <Button text="Oui, supprimer" onAction="#handleConfirmDelete" styleClass="modal-delete-btn"/>
+                <Button text="Annuler" onAction="#closeModal" styleClass="modal-cancel-btn"/>
+            </HBox>
+        </VBox>
+
+        <VBox fx:id="successModal" visible="false" managed="false" styleClass="success-modal" StackPane.alignment="CENTER">
+            <Label text="✔" styleClass="success-icon-large"/>
+            <Label fx:id="successMessage" text="Succès!" styleClass="success-message-large"/>
+            <Button text="OK" onAction="#closeModal" styleClass="success-button-large"/>
+        </VBox>
+    </StackPane>
+
+</StackPane>
