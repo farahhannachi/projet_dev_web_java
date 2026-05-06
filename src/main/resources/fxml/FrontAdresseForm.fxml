@@ -18,6 +18,7 @@
                         <HBox styleClass="menu-container" alignment="CENTER">
                             <Button text="Accueil" styleClass="menu-item" onAction="#goHome"/>
                             <Button text="Produits" styleClass="menu-item" onAction="#showFrontProduits"/>
+                            <Button text="Services" styleClass="menu-item" onAction="#showFrontServices"/>
                             <Button text="Panier" styleClass="menu-item" onAction="#showFrontPanier"/>
                             <Button text="Adresses" styleClass="menu-item menu-item-active" onAction="#showFrontAddresses"/>
                             <Button text="Commandes" styleClass="menu-item" onAction="#showFrontTracking"/>

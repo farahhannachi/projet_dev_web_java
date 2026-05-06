@@ -524,6 +524,17 @@ public class FrontCommandeController {
     }
 
     @FXML
+    private void showFrontServices() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/FrontServices.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+        Stage stage = (Stage) cartTable.getScene().getWindow();
+        stage.setScene(scene);
+        stage.setFullScreen(true);
+    }
+
+    @FXML
     private void showFrontPanier() {
         // already on panier page
     }

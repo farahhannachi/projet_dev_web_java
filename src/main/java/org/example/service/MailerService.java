@@ -8,6 +8,8 @@ import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import org.example.model.Commande;
+import org.example.model.Reservation;
+import org.example.model.Service;
 
 import java.io.IOException;
 import java.net.URI;
@@ -198,6 +200,54 @@ public class MailerService {
         String html = buildMailLayout("Statut commande", "Mise a jour commande #" + commande.getId(), content);
 
         sendHtmlEmail(commande.getEmail(), subject, html);
+    }
+
+    public void sendReservationEmail(Reservation reservation) {
+        Service service = ServiceService.getInstance().getById(reservation.getServiceId());
+        String subject = "Nouvelle reservation #" + reservation.getId() + " - CURAVITA";
+        String content = "<p style=\"margin:0 0 12px;color:#4b5563;font-size:15px;\">Une nouvelle reservation a ete enregistree.</p>"
+                + "<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;\">"
+                + "<tr><td style=\"padding:10px 14px;border-bottom:1px solid #eef2f7;color:#111827;font-size:14px;\"><strong>ID:</strong> #" + reservation.getId() + "</td></tr>"
+                + "<tr><td style=\"padding:10px 14px;border-bottom:1px solid #eef2f7;color:#111827;font-size:14px;\"><strong>Client:</strong> " + safe(reservation.getNomClient()) + "</td></tr>"
+                + "<tr><td style=\"padding:10px 14px;border-bottom:1px solid #eef2f7;color:#111827;font-size:14px;\"><strong>Email:</strong> " + safe(reservation.getEmailClient()) + "</td></tr>"
+                + "<tr><td style=\"padding:10px 14px;border-bottom:1px solid #eef2f7;color:#111827;font-size:14px;\"><strong>Service:</strong> " + safe(service == null ? "" : service.getNom()) + "</td></tr>"
+                + "<tr><td style=\"padding:10px 14px;border-bottom:1px solid #eef2f7;color:#111827;font-size:14px;\"><strong>Date:</strong> " + safe(reservation.getDateRendezVous() == null ? "" : reservation.getDateRendezVous().toString()) + "</td></tr>"
+                + "<tr><td style=\"padding:10px 14px;color:#111827;font-size:14px;\"><strong>Motif:</strong> " + safe(reservation.getMotif()) + "</td></tr>"
+                + "</table>";
+        sendHtmlEmail(adminEmail, subject, buildMailLayout("Reservation", "Nouvelle reservation #" + reservation.getId(), content));
+    }
+
+    public void sendPatientConfirmation(Reservation reservation) {
+        if (reservation.getEmailClient() == null || reservation.getEmailClient().isBlank()) {
+            return;
+        }
+
+        Service service = ServiceService.getInstance().getById(reservation.getServiceId());
+        String subject = "Votre reservation #" + reservation.getId() + " - CURAVITA";
+        String content = "<p style=\"margin:0 0 12px;color:#4b5563;font-size:15px;line-height:1.6;\">Bonjour <strong>"
+                + safe(reservation.getNomClient())
+                + "</strong>, votre demande de reservation a bien ete enregistree.</p>"
+                + "<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;margin:10px 0 14px;\">"
+                + "<tr><td style=\"padding:10px 14px;color:#334155;font-size:14px;\"><strong>Reservation:</strong> #" + reservation.getId() + "</td></tr>"
+                + "<tr><td style=\"padding:0 14px 10px;color:#334155;font-size:14px;\"><strong>Service:</strong> " + safe(service == null ? "" : service.getNom()) + "</td></tr>"
+                + "<tr><td style=\"padding:0 14px 14px;color:#334155;font-size:14px;\"><strong>Date:</strong> " + safe(reservation.getDateRendezVous() == null ? "" : reservation.getDateRendezVous().toString()) + "</td></tr>"
+                + "</table>"
+                + "<p style=\"margin:0;color:#6b7280;font-size:14px;\">Vous recevrez une mise a jour apres validation par notre equipe.</p>";
+        sendHtmlEmail(reservation.getEmailClient(), subject, buildMailLayout("Reservation", "Demande recue", content));
+    }
+
+    public void sendStatusEmail(Reservation reservation) {
+        if (reservation.getEmailClient() == null || reservation.getEmailClient().isBlank()) {
+            return;
+        }
+
+        String subject = "Statut reservation #" + reservation.getId() + " - CURAVITA";
+        String content = "<p style=\"margin:0 0 12px;color:#4b5563;font-size:15px;line-height:1.6;\">Bonjour <strong>"
+                + safe(reservation.getNomClient())
+                + "</strong>, le statut de votre reservation est maintenant <strong>"
+                + safe(label(reservation.getStatut()))
+                + "</strong>.</p>";
+        sendHtmlEmail(reservation.getEmailClient(), subject, buildMailLayout("Statut reservation", "Mise a jour reservation #" + reservation.getId(), content));
     }
 
     public void sendChatbotTranscriptEmail(String toEmail, String userName, List<String> messages) {

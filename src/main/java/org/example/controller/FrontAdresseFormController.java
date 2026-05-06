@@ -283,6 +283,11 @@ public class FrontAdresseFormController {
     }
 
     @FXML
+    private void showFrontServices() throws IOException {
+        navigate("/fxml/FrontServices.fxml");
+    }
+
+    @FXML
     private void showFrontPanier() throws IOException {
         navigate("/fxml/FrontCommande.fxml");
     }

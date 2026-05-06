@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="org.example.controller.FrontServicesController"
+        fitToWidth="true" fitToHeight="true" pannable="true"
+        hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+    <BorderPane styleClass="admin-root front-module-page">
+    <top>
+        <VBox spacing="12" styleClass="admin-header-wrap">
+            <HBox styleClass="navbar-symfony" alignment="CENTER">
+                <Label text="CuraVita" styleClass="logo-text"/>
+                <Region HBox.hgrow="SOMETIMES"/>
+                <HBox styleClass="menu-container" alignment="CENTER">
+                    <Button text="Accueil" styleClass="menu-item" onAction="#goHome"/>
+                    <Button text="Produits" styleClass="menu-item" onAction="#showFrontProduits"/>
+                    <Button text="Services" styleClass="menu-item menu-item-active" onAction="#showFrontServices"/>
+                    <Button text="Panier" styleClass="menu-item" onAction="#showFrontPanier"/>
+                    <Button text="Adresses" styleClass="menu-item" onAction="#showFrontAddresses"/>
+                    <Button text="Commandes" styleClass="menu-item" onAction="#showFrontTracking"/>
+                    <Button text="Ordonnance" styleClass="menu-item"/>
+                    <Button text="Traitement" styleClass="menu-item"/>
+                    <Button text="Guide Sant&#233;" styleClass="menu-item"/>
+                    <Button text="Contact" styleClass="menu-item"/>
+                    <Button text="&#192; propos" styleClass="menu-item"/>
+                </HBox>
+                <Region HBox.hgrow="SOMETIMES"/>
+
+                <StackPane>
+                    <HBox styleClass="icon-container" alignment="CENTER">
+                        <Button text="&#128269;" styleClass="icon-button" onAction="#handleSearch"/>
+                        <Button fx:id="profileButton" text="&#128100;" styleClass="icon-button" onAction="#toggleProfileDropdown"/>
+                    </HBox>
+
+                    <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false">
+                        <VBox.margin>
+                            <Insets top="45" right="0" bottom="0" left="0"/>
+                        </VBox.margin>
+                        <Button text="Profil" styleClass="dropdown-item" onAction="#showProfile"/>
+                        <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                        <Button text="Logout" styleClass="dropdown-item" onAction="#logout"/>
+                    </VBox>
+                </StackPane>
+            </HBox>
+
+            <HBox spacing="10" styleClass="filters-row">
+                <TextField fx:id="searchField" promptText="Recherche service..." HBox.hgrow="ALWAYS" styleClass="filter-field"/>
+                <ComboBox fx:id="typeFilter" promptText="Type" styleClass="filter-field"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <StackPane styleClass="module-content-wrap">
+            <VBox spacing="14" styleClass="table-card">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <VBox styleClass="stat-card-mini" spacing="3">
+                        <Label text="Services" styleClass="stat-label-mini"/>
+                        <Label fx:id="totalServicesLabel" text="0" styleClass="stat-value-mini"/>
+                    </VBox>
+                    <Label text="Services disponibles" styleClass="admin-title"/>
+                </HBox>
+
+                <ScrollPane fitToWidth="true" styleClass="admin-table" VBox.vgrow="ALWAYS">
+                    <content>
+                        <FlowPane fx:id="servicesFlow" hgap="12" vgap="12" prefWrapLength="920" style="-fx-padding: 12;"/>
+                    </content>
+                </ScrollPane>
+            </VBox>
+        </StackPane>
+    </center>
+    </BorderPane>
+    </content>
+</ScrollPane>
