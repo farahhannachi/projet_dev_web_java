@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.example.controller.FrontServicesController" styleClass="root">
+
+    <!-- ============================================
+         NAVBAR (TOP)
+    ============================================ -->
+    <HBox styleClass="navbar-pill" alignment="CENTER">
+        <VBox.margin>
+            <Insets top="20" left="40" right="40" bottom="0"/>
+        </VBox.margin>
+
+        <!-- LEFT: Logo -->
+        <Label text="CuraVita" styleClass="logo-text"/>
+
+        <!-- Spacer -->
+        <Region HBox.hgrow="SOMETIMES"/>
+
+        <!-- CENTER: Menu Items -->
+        <HBox styleClass="menu-container" alignment="CENTER">
+            <Button text="Accueil" styleClass="menu-item" onAction="#goToAccueil"/>
+            <Button text="Dépôts" styleClass="menu-item" onAction="#showDepots"/>
+            <Button text="Stocks" styleClass="menu-item" onAction="#showStocks"/>
+            <Button text="Services" styleClass="menu-item" onAction="#showServices"/>
+            <Button text="Produits" styleClass="menu-item"/>
+            <Button text="Commandes" styleClass="menu-item"/>
+            <Button text="Ordonnance" styleClass="menu-item"/>
+            <Button text="Traitement" styleClass="menu-item"/>
+            <Button text="Guide Santé" styleClass="menu-item"/>
+            <Button text="Contact" styleClass="menu-item"/>
+            <Button text="À propos" styleClass="menu-item"/>
+        </HBox>
+
+        <!-- Spacer -->
+        <Region HBox.hgrow="SOMETIMES"/>
+
+        <!-- RIGHT: Icons -->
+        <StackPane>
+            <HBox styleClass="icon-container" alignment="CENTER">
+                <Button text="🔍" styleClass="icon-button" onAction="#handleSearch"/>
+                <Button fx:id="profileButton" text="👤" styleClass="icon-button" onAction="#toggleProfileDropdown"/>
+            </HBox>
+
+            <!-- Profile Dropdown -->
+            <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false">
+                <VBox.margin>
+                    <Insets top="45" right="0" bottom="0" left="0"/>
+                </VBox.margin>
+                <Button text="Profil" styleClass="dropdown-item" onAction="#showProfile"/>
+                <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                <Button text="Logout" styleClass="dropdown-item" onAction="#logout"/>
+            </VBox>
+        </StackPane>
+    </HBox>
+
+    <!-- ============================================
+         MAIN CONTENT AREA
+    ============================================ -->
+    <VBox styleClass="main-content" VBox.vgrow="ALWAYS">
+
+        <!-- ============================================
+             HERO SECTION (GREEN)
+        ============================================ -->
+        <VBox styleClass="hero-section" alignment="CENTER">
+            <Label text="Nos Services" styleClass="hero-title"/>
+            <Label text="Découvrez nos équipes médicales et leurs spécialités" styleClass="hero-subtitle"/>
+        </VBox>
+
+        <!-- ============================================
+             SEARCH AND FILTERS
+        ============================================ -->
+        <HBox styleClass="cards-section" alignment="CENTER_LEFT" spacing="20">
+            <VBox styleClass="stat-card-mini" spacing="3">
+                <Label text="Total Services" styleClass="stat-label-mini"/>
+                <Label fx:id="totalServicesLabel" text="0" styleClass="stat-value-mini"/>
+            </VBox>
+            <TextField fx:id="searchField" promptText="Rechercher un service..." prefWidth="300"/>
+            <ComboBox fx:id="typeFilter" promptText="Filtrer par type" prefWidth="200"/>
+        </HBox>
+
+        <!-- ============================================
+             SERVICES CARDS GRID
+        ============================================ -->
+        <ScrollPane styleClass="main-scroll" fitToWidth="true" VBox.vgrow="ALWAYS">
+            <VBox fx:id="servicesContainer" styleClass="cards-section" spacing="20"/>
+        </ScrollPane>
+
+    </VBox>
+
+</VBox>
+

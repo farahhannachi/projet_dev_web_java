@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+           fx:controller="org.example.controller.DepotController">
+
+    <!-- Vue principale: liste des dépôts -->
+    <VBox fx:id="listView" spacing="10" prefHeight="600" prefWidth="800">
+        <padding><Insets top="15" left="15" right="15" bottom="15"/></padding>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Gestion des Dépôts" style="-fx-font-size: 20; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Ajouter un dépôt" onAction="#openAddDepotModal" style="-fx-font-size: 12; -fx-padding: 8;"/>
+        </HBox>
+
+        <!-- Statistiques -->
+        <VBox styleClass="card" spacing="10">
+            <Label text="Statistiques Dépôts" styleClass="section-title"/>
+            <GridPane hgap="20" vgap="10" alignment="CENTER">
+                <VBox styleClass="stat-card" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                    <Label text="Nombre de Dépôts" styleClass="stat-label"/>
+                    <Label fx:id="totalDepotsLabel" text="0" styleClass="stat-value"/>
+                </VBox>
+                <VBox styleClass="stat-card" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                    <Label text="Capacité Totale" styleClass="stat-label"/>
+                    <Label fx:id="capaciteTotaleLabel" text="0" styleClass="stat-value"/>
+                </VBox>
+                <VBox styleClass="stat-card" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                    <Label text="Dépôt le Plus Chargé" styleClass="stat-label"/>
+                    <Label fx:id="depotPlusChargeLabel" text="N/A" styleClass="stat-value"/>
+                </VBox>
+            </GridPane>
+        </VBox>
+
+        <HBox spacing="10">
+            <TextField fx:id="searchField" promptText="Recherche..." prefWidth="250"/>
+            <ComboBox fx:id="villeFilter" promptText="Ville" prefWidth="150" />
+        </HBox>
+
+        <TableView fx:id="depotTable" VBox.vgrow="ALWAYS" minHeight="400">
+            <columns>
+                <TableColumn fx:id="colNom" text="Nom" prefWidth="120" />
+                <TableColumn fx:id="colAdresse" text="Adresse" prefWidth="180" />
+                <TableColumn fx:id="colVille" text="Ville" prefWidth="100" />
+                <TableColumn fx:id="colLocation" text="Localisation" prefWidth="150" />
+                <TableColumn fx:id="colCapacite" text="Capacité" prefWidth="90" />
+                <TableColumn fx:id="colResponsable" text="Responsable" prefWidth="120" />
+                <TableColumn fx:id="colTelephone" text="Téléphone" prefWidth="120" />
+                <TableColumn fx:id="colActions" text="Actions" prefWidth="80" />
+            </columns>
+        </TableView>
+
+        <Pagination fx:id="pagination" />
+    </VBox>
+</StackPane>

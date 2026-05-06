@@ -1,0 +1,36 @@
+================================================================================
+SOLUTION COMPLÈTE - VUE DÉPÔTS FONCTIONNELLE
+================================================================================
+
+PROBLÈME:
+  Quand on clique sur "Dépôts" → RIEN N'APPARAÎT (tableau vide)
+
+RAISON:
+  1. Le contrôleur FXML était attaché au mauvais élément
+  2. Les dépôts n'étaient pas partagés entre instances
+  3. Les données n'étaient pas initialisées
+
+SOLUTIONS APPORTÉES:
+  ✓ Depots.fxml : VBox comme racine (au lieu de ScrollPane)
+  ✓ DepotService.java : Implémenté le pattern Singleton
+  ✓ DepotController.java : Utilise getInstance() au lieu de new
+  ✓ DashboardController.java : Initialise les dépôts via le singleton
+
+RÉSULTAT:
+  ✓ Tableau CRUD visible avec 2 dépôts
+  ✓ Bouton "Ajouter un dépôt" fonctionnel
+  ✓ Recherche et filtrage visibles
+  ✓ Actions Modifier/Supprimer visibles
+  ✓ Pagination visible
+
+LANCEMENT:
+  Batch: LAUNCH_DEPOTS.bat
+  Maven: mvn javafx:run
+
+VÉRIFICATION:
+  ✓ Compilation: BUILD SUCCESS
+  ✓ Package: SUCCESS
+  ✓ Tous les fichiers en place
+
+================================================================================
+
