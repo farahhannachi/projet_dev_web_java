@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.controller.MapModalController"
+            prefWidth="950" prefHeight="650"
+            style="-fx-background-color: #f5f7fb;">
+
+    <top>
+        <VBox spacing="10" style="-fx-padding: 16; -fx-background-color: white; -fx-border-color: #d8dee9; -fx-border-width: 0 0 1 0;">
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Sélectionner l'emplacement du dépôt"
+                       style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #1f2937;"
+                       HBox.hgrow="ALWAYS"/>
+                <Button text="Fermer" onAction="#handleClose"
+                        style="-fx-padding: 8 14; -fx-background-color: #e5e7eb; -fx-text-fill: #111827;"/>
+            </HBox>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <TextField fx:id="searchField" promptText="Rechercher une adresse, ville ou région..." HBox.hgrow="ALWAYS"/>
+                <Button text="Rechercher" onAction="#handleSearchLocation"
+                        style="-fx-padding: 8 14; -fx-background-color: #2563eb; -fx-text-fill: white; -fx-font-weight: bold;"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <StackPane style="-fx-padding: 16;">
+            <Pane fx:id="mapPane" prefWidth="900" prefHeight="470"
+                  style="-fx-background-color: linear-gradient(to bottom, #dbeafe, #eff6ff); -fx-border-color: #94a3b8; -fx-border-width: 1;"/>
+        </StackPane>
+    </center>
+
+    <bottom>
+        <VBox spacing="10" style="-fx-padding: 14 16 16 16; -fx-background-color: white; -fx-border-color: #d8dee9; -fx-border-width: 1 0 0 0;">
+            <Label fx:id="locationLabel" text="Cliquez sur la carte pour choisir l'emplacement."
+                   style="-fx-text-fill: #374151;"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Latitude"/>
+                <TextField fx:id="latitudeField" editable="false" prefWidth="130"/>
+                <Label text="Longitude"/>
+                <TextField fx:id="longitudeField" editable="false" prefWidth="130"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="Enregistrer l'emplacement" onAction="#handleSaveLocation"
+                        style="-fx-padding: 10 18; -fx-background-color: #16a34a; -fx-text-fill: white; -fx-font-weight: bold;"/>
+            </HBox>
+        </VBox>
+    </bottom>
+</BorderPane>

@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * remises par palier, et workflow de statuts
  */
 public class CommandeService {
-    private final StockService stockService = new StockService();
+    private final StockService stockService = StockService.getInstance();
     private final FraudDetectionService fraudDetectionService = new FraudDetectionService();
     private final LoyaltyService loyaltyService = new LoyaltyService();
     private String resolvedUserIdColumn;

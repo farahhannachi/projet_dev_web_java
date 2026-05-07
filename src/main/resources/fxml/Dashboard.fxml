@@ -2,7 +2,6 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 
 <BorderPane fx:id="mainPane" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.DashboardController" styleClass="root">
     <left>
@@ -14,11 +13,14 @@
                 <Button text="Commandes" onAction="#showCommandes" styleClass="sidebar-item"/>
                 <Button text="Promotions" onAction="#showPromotions" styleClass="sidebar-item"/>
                 <Button text="Coupons" onAction="#showCoupons" styleClass="sidebar-item"/>
-                <Button text="Dépôts" onAction="#showDepots" styleClass="sidebar-item"/>
+                <Button text="Depots" onAction="#showDepots" styleClass="sidebar-item"/>
                 <Button text="Stocks" onAction="#showStocks" styleClass="sidebar-item"/>
+                <Button text="Services" onAction="#showServices" styleClass="sidebar-item"/>
+                <Button text="Reservations" onAction="#showReservations" styleClass="sidebar-item"/>
+                <Button text="Consommation" onAction="#showConsommation" styleClass="sidebar-item"/>
             </VBox>
             <Region VBox.vgrow="ALWAYS"/>
-            <Button fx:id="frontOfficeBtn" text="← Back" onAction="#goToFrontOffice" styleClass="sidebar-button-bottom"/>
+            <Button fx:id="frontOfficeBtn" text="Back" onAction="#goToFrontOffice" styleClass="sidebar-button-bottom"/>
             <Button text="Logout" onAction="#logout" styleClass="sidebar-button-bottom"/>
         </VBox>
     </left>
@@ -56,8 +58,8 @@
                     </HBox>
                 </VBox>
                 <VBox styleClass="card" spacing="20">
-                    <Label text="Activité Récente" styleClass="section-title"/>
-                    <Label text="Aucune activité récente" styleClass="activity-item"/>
+                    <Label text="Activite Recente" styleClass="section-title"/>
+                    <Label text="Aucune activite recente" styleClass="activity-item"/>
                 </VBox>
             </VBox>
         </ScrollPane>

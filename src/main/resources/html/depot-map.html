@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Depot Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        .location-display {
+            position: absolute;
+            bottom: 18px;
+            left: 12px;
+            right: 12px;
+            background: rgba(255,255,255,0.96);
+            padding: 10px 14px;
+            border-radius: 6px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.24);
+            z-index: 800;
+            font-size: 12px;
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="location-display" id="locationDisplay">Cliquez sur la carte pour sélectionner l'emplacement du dépôt</div>
+
+    <script>
+        var map;
+        var marker;
+        var selectedLat = null;
+        var selectedLng = null;
+        var selectedName = null;
+
+        function initMap() {
+            map = L.map('map', {
+                zoomControl: true,
+                attributionControl: true
+            }).setView([36.8065, 10.1815], 8);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            map.on('click', function(e) {
+                selectLocation(e.latlng.lat, e.latlng.lng, null, true);
+            });
+
+            setTimeout(function() {
+                map.invalidateSize();
+                if (window.javaBridge && window.javaBridge.mapReady) {
+                    window.javaBridge.mapReady();
+                }
+            }, 250);
+        }
+
+        function selectLocation(lat, lng, name, notifyJava) {
+            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                return;
+            }
+
+            selectedLat = lat;
+            selectedLng = lng;
+            selectedName = name || lat.toFixed(5) + ', ' + lng.toFixed(5);
+
+            if (marker) {
+                map.removeLayer(marker);
+            }
+
+            marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+            marker.bindPopup(selectedName).openPopup();
+            marker.on('dragend', function(event) {
+                var position = event.target.getLatLng();
+                selectLocation(position.lat, position.lng, null, true);
+            });
+
+            document.getElementById('locationDisplay').innerHTML =
+                '<strong>Emplacement sélectionné:</strong> ' + selectedName;
+
+            if (notifyJava && window.javaBridge && window.javaBridge.locationSelected) {
+                window.javaBridge.locationSelected(lat, lng, selectedName);
+            }
+        }
+
+        function setMapCenter(lat, lng, name) {
+            if (!map) {
+                return;
+            }
+            map.setView([lat, lng], 15);
+            selectLocation(lat, lng, name, false);
+            setTimeout(function() { map.invalidateSize(); }, 150);
+        }
+
+        function refreshMap() {
+            if (map) {
+                setTimeout(function() { map.invalidateSize(); }, 150);
+            }
+        }
+
+        window.onload = initMap;
+    </script>
+</body>
+</html>

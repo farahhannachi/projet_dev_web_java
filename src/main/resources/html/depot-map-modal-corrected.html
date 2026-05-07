@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Carte - Sélection Location</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        .location-display {
+            position: absolute;
+            bottom: 80px;
+            left: 10px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 800;
+            font-size: 12px;
+            max-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="location-display" id="locationDisplay">Cliquez sur la carte pour sélectionner</div>
+
+    <script>
+        var map;
+        var marker;
+        var selectedLat = null;
+        var selectedLng = null;
+        var selectedName = null;
+
+        function initMap() {
+            // Initialize map centered on France
+            map = L.map('map').setView([46.603354, 1.888334], 6);
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Add click handler - CORRECTED: Using e.latlng (WGS84 degrees)
+            map.on('click', function(e) {
+                // CORRECT: e.latlng returns coordinates in WGS84 (degrees)
+                // e.latlng.lat is latitude in degrees (-90 to 90)
+                // e.latlng.lng is longitude in degrees (-180 to 180)
+                var lat = e.latlng.lat;
+                var lng = e.latlng.lng;
+
+                // Debug: Log coordinates to verify they're in valid ranges
+                console.log("Latitude:", lat, "Longitude:", lng);
+
+                // Validate coordinates are in valid ranges
+                if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                    console.error("Invalid coordinates! lat:", lat, "lng:", lng);
+                    return;
+                }
+
+                // Remove existing marker
+                if (marker) {
+                    map.removeLayer(marker);
+                }
+
+                // Add new marker
+                marker = L.marker([lat, lng]).addTo(map);
+
+                // Store selected location
+                selectedLat = lat;
+                selectedLng = lng;
+                selectedName = lat.toFixed(5) + ', ' + lng.toFixed(5);
+
+                // Update display
+                document.getElementById('locationDisplay').innerHTML =
+                    '<strong>Location sélectionnée:</strong><br>' + selectedName;
+
+                // Notify Java controller
+                if (window.java && window.java.updateLocationDisplay) {
+                    window.java.updateLocationDisplay(selectedName);
+                }
+            });
+        }
+
+        function setMapCenter(lat, lng) {
+            if (map) {
+                map.setView([lat, lng], 13);
+                // Add marker if coordinates are not default
+                if (lat !== 0 && lng !== 0) {
+                    if (marker) {
+                        map.removeLayer(marker);
+                    }
+                    marker = L.marker([lat, lng]).addTo(map);
+                    selectedLat = lat;
+                    selectedLng = lng;
+                    selectedName = lat.toFixed(5) + ', ' + lng.toFixed(5);
+                    document.getElementById('locationDisplay').innerHTML =
+                        '<strong>Location actuelle:</strong><br>' + selectedName;
+                }
+            }
+        }
+
+        function getSelectedLocation() {
+            return {
+                lat: selectedLat,
+                lng: selectedLng,
+                name: selectedName
+            };
+        }
+
+        // Initialize map when page loads
+        window.onload = initMap;
+    </script>
+</body>
+</html>

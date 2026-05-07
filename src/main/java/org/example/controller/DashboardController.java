@@ -2,20 +2,22 @@ package org.example.controller;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.example.service.ClientService;
-import org.example.service.ProduitService;
 import org.example.service.CommandeService;
+import org.example.service.ProduitService;
 import org.example.service.StockService;
 
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DashboardController {
@@ -34,16 +36,18 @@ public class DashboardController {
     @FXML private Button frontOfficeBtn;
 
     private Node dashboardHomeContent;
+    private String currentViewPath = null;
 
     private final ClientService clientService = new ClientService();
-    private final ProduitService produitService = new ProduitService();
+    private final ProduitService produitService = ProduitService.getInstance();
     private final CommandeService commandeService = new CommandeService();
-    private final StockService stockService = new StockService();
+    private final StockService stockService = StockService.getInstance();
 
     @FXML
     public void initialize() {
         dashboardHomeContent = mainPane.getCenter();
         loadStats();
+        currentViewPath = null;
     }
 
     private void loadStats() {
@@ -55,7 +59,6 @@ public class DashboardController {
 
     @FXML
     private void handleNouveauClient() {
-        // Open new client form
         logger.info("Nouveau Client clicked");
     }
 
@@ -83,120 +86,115 @@ public class DashboardController {
 
     @FXML
     private void showClients() {
-        // Switch to clients view
         logger.info("Show Clients");
     }
 
     @FXML
     private void showProduits() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Produits.fxml"));
-            loader.setControllerFactory(type -> {
-                if (type == ProduitsController.class) {
-                    ProduitsController controller = new ProduitsController();
-                    controller.setDashboardController(this);
-                    return controller;
-                }
-                try {
-                    return type.getDeclaredConstructor().newInstance();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            Parent produitsView = loader.load();
-            mainPane.setCenter(produitsView);
-        } catch (IOException e) {
-            logger.severe("Erreur lors du chargement de Produits.fxml: " + e.getMessage());
-            e.printStackTrace();
-        }
+        loadViewWithControllerFactory("/fxml/Produits.fxml", "Produits");
     }
 
     @FXML
     private void showCommandes() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Commandes.fxml"));
-            loader.setControllerFactory(type -> {
-                if (type == CommandesController.class) {
-                    CommandesController controller = new CommandesController();
-                    controller.setDashboardController(this);
-                    return controller;
-                }
-                try {
-                    return type.getDeclaredConstructor().newInstance();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            Parent commandesView = loader.load();
-            mainPane.setCenter(commandesView);
-        } catch (IOException e) {
-            logger.severe("Erreur lors du chargement de Commandes.fxml: " + e.getMessage());
-        }
+        loadViewWithControllerFactory("/fxml/Commandes.fxml", "Commandes");
+    }
+
+    @FXML
+    private void showPromotions() {
+        loadViewWithControllerFactory("/fxml/Promotions.fxml", "Promotions");
+    }
+
+    @FXML
+    private void showCoupons() {
+        loadViewWithControllerFactory("/fxml/Coupons.fxml", "Coupons");
+    }
+
+    @FXML
+    private void showDepots() {
+        navigateToSimple("/fxml/Depots.fxml", "Depots");
+    }
+
+    @FXML
+    private void showStocks() {
+        navigateToSimple("/fxml/Stocks.fxml", "Stocks");
+    }
+
+    @FXML
+    private void showServices() {
+        navigateToSimple("/fxml/Services.fxml", "Services");
+    }
+
+    @FXML
+    private void showConsommation() {
+        navigateToSimple("/fxml/Consommation.fxml", "Consommation");
+    }
+
+    @FXML
+    private void showReservations() {
+        navigateToSimple("/fxml/Reservations.fxml", "Reservations");
     }
 
     public void showDashboardHome() {
         if (dashboardHomeContent != null) {
             mainPane.setCenter(dashboardHomeContent);
+            currentViewPath = null;
         }
         loadStats();
     }
 
-    @FXML
-    private void showPromotions() {
+    private void loadViewWithControllerFactory(String fxmlPath, String label) {
+        if (fxmlPath != null && fxmlPath.equals(currentViewPath)) {
+            return;
+        }
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Promotions.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             loader.setControllerFactory(type -> {
-                if (type == PromotionsController.class) {
-                    PromotionsController controller = new PromotionsController();
-                    controller.setDashboardController(this);
-                    return controller;
-                }
                 try {
-                    return type.getDeclaredConstructor().newInstance();
+                    Object controller = type.getDeclaredConstructor().newInstance();
+                    if (controller instanceof ProduitsController produitsController) {
+                        produitsController.setDashboardController(this);
+                    } else if (controller instanceof CommandesController commandesController) {
+                        commandesController.setDashboardController(this);
+                    } else if (controller instanceof PromotionsController promotionsController) {
+                        promotionsController.setDashboardController(this);
+                    } else if (controller instanceof CouponsController couponsController) {
+                        couponsController.setDashboardController(this);
+                    }
+                    return controller;
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             });
-            Parent promotionsView = loader.load();
-            mainPane.setCenter(promotionsView);
+            Parent view = loader.load();
+            mainPane.setCenter(view);
+            currentViewPath = fxmlPath;
         } catch (IOException e) {
-            logger.severe("Erreur lors du chargement de Promotions.fxml: " + e.getMessage());
+            showLoadError(label, e);
         }
     }
 
-    @FXML
-    private void showCoupons() {
+    private void navigateToSimple(String fxmlPath, String label) {
+        if (fxmlPath != null && fxmlPath.equals(currentViewPath)) {
+            logger.info("Navigation ignored, already on view: " + label);
+            return;
+        }
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Coupons.fxml"));
-            loader.setControllerFactory(type -> {
-                if (type == CouponsController.class) {
-                    CouponsController controller = new CouponsController();
-                    controller.setDashboardController(this);
-                    return controller;
-                }
-                try {
-                    return type.getDeclaredConstructor().newInstance();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            Parent couponsView = loader.load();
-            mainPane.setCenter(couponsView);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+            Parent view = loader.load();
+            mainPane.setCenter(view);
+            currentViewPath = fxmlPath;
         } catch (IOException e) {
-            logger.severe("Erreur lors du chargement de Coupons.fxml: " + e.getMessage());
+            logger.log(Level.SEVERE, "Erreur lors du chargement de " + fxmlPath, e);
+            showLoadError(label, e);
         }
     }
 
-    @FXML
-    private void showDepots() {
-        // Switch to depots view
-        logger.info("Show Depots");
-    }
-
-    @FXML
-    private void showStocks() {
-        // Switch to stocks view
-        logger.info("Show Stocks");
+    private void showLoadError(String label, Exception e) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Erreur");
+        alert.setHeaderText("Impossible de charger " + label);
+        alert.setContentText(e.getMessage());
+        alert.showAndWait();
     }
 
     @FXML

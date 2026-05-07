@@ -1,11 +1,16 @@
 package org.example.model;
 
+import java.time.LocalDateTime;
+
 public class Stock {
     private int id;
     private Produit produit;
     private int quantiteDisponible;
     private int seuilMinimum;
     private Depot depot;
+    private LocalDateTime derniereSortie;
+    private LocalDateTime dateDerniereMiseAJour;
+    private int quantiteInitiale;
 
     public Stock() {}
 
@@ -32,6 +37,34 @@ public class Stock {
 
     public Depot getDepot() { return depot; }
     public void setDepot(Depot depot) { this.depot = depot; }
+
+    public LocalDateTime getDerniereSortie() {
+        return derniereSortie;
+    }
+
+    public void setDerniereSortie(LocalDateTime derniereSortie) {
+        this.derniereSortie = derniereSortie;
+    }
+
+    public LocalDateTime getDateDerniereMiseAJour() {
+        return dateDerniereMiseAJour;
+    }
+
+    public void setDateDerniereMiseAJour(LocalDateTime dateDerniereMiseAJour) {
+        this.dateDerniereMiseAJour = dateDerniereMiseAJour;
+    }
+
+    public int getQuantiteInitiale() {
+        return quantiteInitiale;
+    }
+
+    public void setQuantiteInitiale(int quantiteInitiale) {
+        this.quantiteInitiale = quantiteInitiale;
+    }
+
+    // Alias pour la compatibilité (getQuantite/setQuantite)
+    public int getQuantite() { return quantiteDisponible; }
+    public void setQuantite(int quantite) { this.quantiteDisponible = quantite; }
 
     public boolean isStockFaible() {
         return quantiteDisponible <= seuilMinimum;

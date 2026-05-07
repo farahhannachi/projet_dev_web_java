@@ -222,7 +222,16 @@ public class StockService {
     }
 
     /**
-     * Récupère les stocks par dépôt avec jointure
+     * Récupère les stocks pour un produit spécifique (tous dépôts)
+     */
+    public List<Stock> getStocksByProduit(int produitId) {
+        return getAll().stream()
+                .filter(s -> s.getProduit() != null && s.getProduit().getId() == produitId)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Cherche les stocks d'un dépôt spécifique
      */
     public List<Stock> getStocksByDepot(int depotId) {
         return getAll().stream()
@@ -231,12 +240,58 @@ public class StockService {
     }
 
     /**
-     * Récupère les stocks critiques (quantité inférieure au seuil critique)
+     * Vérifie si une quantité est disponible pour un produit dans un dépôt
      */
-    public List<Stock> getStocksCritiques() {
+    public boolean isQuantiteDisponible(int produitId, int depotId, int quantite) {
         return getAll().stream()
-                .filter(stock -> stock.getQuantiteDisponible() < stock.getSeuilMinimum())
-                .collect(Collectors.toList());
+                .anyMatch(s -> s.getProduit() != null && s.getProduit().getId() == produitId &&
+                              s.getDepot() != null && s.getDepot().getId() == depotId &&
+                              s.getQuantiteDisponible() >= quantite);
+    }
+
+    /**
+     * Obtient la quantité totale disponible pour un produit (tous dépôts)
+     */
+    public int getQuantiteTotaleProduit(int produitId) {
+        return getStocksByProduit(produitId).stream()
+                .mapToInt(Stock::getQuantiteDisponible)
+                .sum();
+    }
+
+    /**
+     * Décrémente la quantité d'un stock (pour simulation de vente/réservation)
+     * À utiliser avec prudence ; dans un contexte multi-utilisateur, utiliser les transactions
+     */
+    public boolean decrementerStock(int stockId, int quantite) {
+        String sql = "UPDATE stock SET quantite = quantite - ? WHERE id_stock = ? AND quantite >= ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, quantite);
+            stmt.setInt(2, stockId);
+            stmt.setInt(3, quantite);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de la décrémentation du stock", e);
+        }
+    }
+
+    /**
+     * Incrémente la quantité d'un stock (ex : retour, réapprov)
+     */
+    public boolean incrementerStock(int stockId, int quantite) {
+        String sql = "UPDATE stock SET quantite = quantite + ? WHERE id_stock = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, quantite);
+            stmt.setInt(2, stockId);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de l'incrémentation du stock", e);
+        }
     }
 
     /**
@@ -256,6 +311,15 @@ public class StockService {
         // Exemple : Filtrer les stocks ayant une réduction récente
         return getAll().stream()
                 .filter(stock -> stock.getQuantiteDisponible() < stock.getQuantiteInitiale())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Récupère les stocks critiques (quantité inférieure au seuil critique)
+     */
+    public List<Stock> getStocksCritiques() {
+        return getAll().stream()
+                .filter(stock -> stock.getQuantiteDisponible() < stock.getSeuilMinimum())
                 .collect(Collectors.toList());
     }
 }

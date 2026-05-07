@@ -18,6 +18,15 @@ import java.util.stream.Collectors;
  * Service de gestion des produits avec recherche avancée et archivage
  */
 public class ProduitService {
+    private static ProduitService instance;
+
+    public static ProduitService getInstance() {
+        if (instance == null) {
+            instance = new ProduitService();
+        }
+        return instance;
+    }
+
     public void add(Produit produit) {
         String sql = "INSERT INTO produit (nom, description, prix, quantite_stock, date_expiration, categorie, image, statut) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";

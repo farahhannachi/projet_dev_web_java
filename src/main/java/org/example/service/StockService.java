@@ -1,142 +1,360 @@
 package org.example.service;
 
-import org.example.model.Produit;
 import org.example.model.Stock;
+import org.example.model.Produit;
+import org.example.model.Depot;
 import org.example.util.DatabaseUtil;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Service de gestion des stocks avec règles métier avancées
- * - Réservation et libération de stock
- * - Vérification de disponibilité
- * - Alertes stock faible
- * - Gestion des stocks en dépôts
+ * Service pour gérer les Stocks avec jointure Depot
+ * Utilise la base de données avec jointure SQL pour récupérer les informations du dépôt
  */
 public class StockService {
-    private final ProduitService produitService = new ProduitService();
-    private List<Stock> stocks = new ArrayList<>();
-    private int nextId = 1;
+    private static StockService instance;
+
+    private StockService() {}
+
+    public static StockService getInstance() {
+        if (instance == null) {
+            instance = new StockService();
+        }
+        return instance;
+    }
 
     /**
-     * Ajoute un stock (pour dépôt)
+     * Ajoute un stock en base de données
      */
     public void add(Stock stock) {
-        stock.setId(nextId++);
-        stocks.add(stock);
-    }
+        String sql = "INSERT INTO stock (produit_id, depot_id, quantite, quantite_initiale, seuil_alerte, seuil_critique, date_entree, etat_stock, date_derniere_mise_a_jour) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-    /**
-     * Récupère tous les stocks
-     */
-    public List<Stock> getAll() {
-        return new ArrayList<>(stocks);
-    }
+            stmt.setInt(1, stock.getProduit().getId());
+            stmt.setInt(2, stock.getDepot().getId());
+            stmt.setInt(3, stock.getQuantiteDisponible());
+            stmt.setInt(4, stock.getQuantiteDisponible()); // quantite_initiale = quantite
+            stmt.setInt(5, stock.getSeuilMinimum());
+            stmt.setInt(6, stock.getSeuilMinimum()); // seuil_critique = seuil_minimum
+            stmt.setTimestamp(7, Timestamp.valueOf(LocalDateTime.now()));
+            stmt.setString(8, "actif");
+            stmt.setTimestamp(9, Timestamp.valueOf(LocalDateTime.now()));
 
-    /**
-     * Retourne les stocks avec quantité faible
-     */
-    public List<Stock> getStocksFaibles() {
-        String sql = "SELECT id_stock, quantite, seuil_alerte FROM stock WHERE is_actif = 1 AND quantite <= seuil_alerte";
-        List<Stock> faibles = new ArrayList<>();
+            stmt.executeUpdate();
 
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
-            while (resultSet.next()) {
-                Stock stock = new Stock();
-                stock.setId(resultSet.getInt("id_stock"));
-                stock.setQuantiteDisponible(resultSet.getInt("quantite"));
-                stock.setSeuilMinimum(resultSet.getInt("seuil_alerte"));
-                faibles.add(stock);
-            }
-            return faibles;
-        } catch (SQLException e) {
-            // fallback en memoire si la base est indisponible
-        }
-
-        return stocks.stream()
-                .filter(Stock::isStockFaible)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Réserve du stock pour une commande
-     */
-    public boolean reserverStock(int produitId, int quantite) {
-        Produit produit = produitService.getById(produitId);
-        if (produit == null) {
-            throw new IllegalArgumentException("Produit non trouvé : " + produitId);
-        }
-
-        if (!verifierDisponibilite(produitId, quantite)) {
-            return false;
-        }
-
-        produit.setQuantiteStock(produit.getQuantiteStock() - quantite);
-        produitService.update(produit);
-        return true;
-    }
-
-    /**
-     * Libère du stock en cas d'annulation
-     */
-    public void libererStock(int produitId, int quantite) {
-        Produit produit = produitService.getById(produitId);
-        if (produit == null) {
-            throw new IllegalArgumentException("Produit non trouvé : " + produitId);
-        }
-        
-        produit.setQuantiteStock(produit.getQuantiteStock() + quantite);
-        produitService.update(produit);
-    }
-
-    /**
-     * Vérifie la disponibilité d'un produit
-     */
-    public boolean verifierDisponibilite(int produitId, int quantite) {
-        String sql = "SELECT quantite_stock, statut FROM produit WHERE id_produit = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, produitId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    int qty = resultSet.getInt("quantite_stock");
-                    String statut = resultSet.getString("statut");
-                    return qty >= quantite && !"indisponible".equalsIgnoreCase(statut) && !"rupture".equalsIgnoreCase(statut);
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    stock.setId(rs.getInt(1));
                 }
             }
         } catch (SQLException e) {
-            // fallback en memoire
+            throw new RuntimeException("Erreur lors de l'ajout du stock", e);
         }
-
-        Produit produit = produitService.getById(produitId);
-        if (produit == null) {
-            return false;
-        }
-        return produit.estDisponible() && produit.getQuantiteStock() >= quantite;
     }
 
     /**
-     * Retourne les produits avec stock faible dans les services
+     * Met à jour un stock en base de données
      */
-    public List<Produit> alerteStockFaible() {
-        List<Produit> tous = produitService.getAll();
-        return tous.stream()
-                .filter(p -> !p.isArchive() && p.estStockFaible())
+    public void update(Stock stock) {
+        String sql = "UPDATE stock SET produit_id=?, depot_id=?, quantite=?, seuil_alerte=?, seuil_critique=?, date_derniere_mise_a_jour=? WHERE id_stock=?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, stock.getProduit().getId());
+            stmt.setInt(2, stock.getDepot().getId());
+            stmt.setInt(3, stock.getQuantiteDisponible());
+            stmt.setInt(4, stock.getSeuilMinimum());
+            stmt.setInt(5, stock.getSeuilMinimum());
+            stmt.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now()));
+            stmt.setInt(7, stock.getId());
+
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de la modification du stock", e);
+        }
+    }
+
+    /**
+     * Supprime un stock de la base de données
+     */
+    public void delete(int id) {
+        String sql = "DELETE FROM stock WHERE id_stock=?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de la suppression du stock", e);
+        }
+    }
+
+    /**
+     * Récupère tous les stocks avec jointure complète Produit + Depot
+     * Utilise LEFT JOIN pour récupérer les informations du produit et du dépôt
+     */
+    public List<Stock> getAll() {
+        List<Stock> stocks = new ArrayList<>();
+        String sql = """
+            SELECT s.id_stock, s.quantite, s.seuil_alerte, s.seuil_critique,
+                   p.id_produit, p.nom as produit_nom, p.description as produit_description, p.prix as produit_prix,
+                   d.id_depot, d.nom_depot, d.adresse_depot, d.ville, d.capacite_depot, d.responsable_depot, d.responsable_telephone
+            FROM stock s
+            LEFT JOIN produit p ON s.produit_id = p.id_produit
+            LEFT JOIN depot d ON s.depot_id = d.id_depot
+            ORDER BY s.id_stock
+            """;
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Stock stock = new Stock();
+                stock.setId(rs.getInt("id_stock"));
+                stock.setQuantiteDisponible(rs.getInt("quantite"));
+                stock.setSeuilMinimum(rs.getInt("seuil_alerte"));
+
+                // Créer et remplir le produit
+                Produit produit = new Produit();
+                produit.setId(rs.getInt("id_produit"));
+                produit.setNom(rs.getString("produit_nom"));
+                produit.setDescription(rs.getString("produit_description"));
+                produit.setPrix(rs.getDouble("produit_prix"));
+                stock.setProduit(produit);
+
+                // Créer et remplir le dépôt
+                Depot depot = new Depot();
+                depot.setId(rs.getInt("id_depot"));
+                depot.setNom(rs.getString("nom_depot"));
+                depot.setAdresse(rs.getString("adresse_depot"));
+                depot.setVille(rs.getString("ville"));
+                depot.setCapaciteDepot(rs.getInt("capacite_depot"));
+                depot.setResponsableDepot(rs.getString("responsable_depot"));
+                depot.setResponsableTelephone(rs.getString("responsable_telephone"));
+                stock.setDepot(depot);
+
+                stocks.add(stock);
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération des stocks avec jointure: " + e.getMessage());
+            // Retourner liste vide en cas d'erreur DB
+            return new ArrayList<>();
+        }
+        return stocks;
+    }
+
+    /**
+     * Recherche des stocks avec jointure
+     */
+    public List<Stock> search(String query) {
+        return getAll().stream()
+                .filter(s -> (s.getProduit() != null && s.getProduit().getNom() != null &&
+                             s.getProduit().getNom().toLowerCase().contains(query.toLowerCase())) ||
+                            (s.getDepot() != null && s.getDepot().getNom() != null &&
+                             s.getDepot().getNom().toLowerCase().contains(query.toLowerCase())))
                 .collect(Collectors.toList());
     }
 
     /**
-     * Retourne le nombre de produits avec stock faible
+     * Récupère un stock par ID avec jointure
      */
-    public int compterStockFaible() {
-        return alerteStockFaible().size();
+    public Stock getById(int id) {
+        String sql = """
+            SELECT s.*, 
+                   d.nom_depot, d.adresse_depot, d.ville, d.capacite_depot, d.responsable_depot, d.responsable_telephone,
+                   p.nom as produit_nom, p.description as produit_description, p.prix as produit_prix
+            FROM stock s
+            LEFT JOIN depot d ON s.depot_id = d.id_depot
+            LEFT JOIN produit p ON s.produit_id = p.id_produit
+            WHERE s.id_stock = ?
+            """;
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Stock stock = new Stock();
+                    stock.setId(rs.getInt("id_stock"));
+                    stock.setQuantiteDisponible(rs.getInt("quantite"));
+                    stock.setSeuilMinimum(rs.getInt("seuil_alerte"));
+
+                    // Produit
+                    Produit produit = new Produit();
+                    produit.setId(rs.getInt("produit_id"));
+                    produit.setNom(rs.getString("produit_nom"));
+                    produit.setDescription(rs.getString("produit_description"));
+                    produit.setPrix(rs.getDouble("produit_prix"));
+                    stock.setProduit(produit);
+
+                    // Dépôt
+                    Depot depot = new Depot();
+                    depot.setId(rs.getInt("depot_id"));
+                    depot.setNom(rs.getString("nom_depot"));
+                    depot.setAdresse(rs.getString("adresse_depot"));
+                    depot.setVille(rs.getString("ville"));
+                    depot.setCapaciteDepot(rs.getInt("capacite_depot"));
+                    depot.setResponsableDepot(rs.getString("responsable_depot"));
+                    depot.setResponsableTelephone(rs.getString("responsable_telephone"));
+                    stock.setDepot(depot);
+
+                    return stock;
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de la récupération du stock", e);
+        }
+        return null;
+    }
+
+    /**
+     * Récupère les stocks faibles avec jointure
+     */
+    public List<Stock> getStocksFaibles() {
+        return getAll().stream().filter(Stock::isStockFaible).collect(Collectors.toList());
+    }
+
+    /**
+     * Récupère les stocks pour un produit spécifique (tous dépôts)
+     */
+    public List<Stock> getStocksByProduit(int produitId) {
+        return getAll().stream()
+                .filter(s -> s.getProduit() != null && s.getProduit().getId() == produitId)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Cherche les stocks d'un dépôt spécifique
+     */
+    public List<Stock> getStocksByDepot(int depotId) {
+        return getAll().stream()
+                .filter(s -> s.getDepot() != null && s.getDepot().getId() == depotId)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Vérifie si une quantité est disponible pour un produit dans un dépôt
+     */
+    public boolean isQuantiteDisponible(int produitId, int depotId, int quantite) {
+        return getAll().stream()
+                .anyMatch(s -> s.getProduit() != null && s.getProduit().getId() == produitId &&
+                              s.getDepot() != null && s.getDepot().getId() == depotId &&
+                              s.getQuantiteDisponible() >= quantite);
+    }
+
+    /**
+     * Obtient la quantité totale disponible pour un produit (tous dépôts)
+     */
+    public int getQuantiteTotaleProduit(int produitId) {
+        return getStocksByProduit(produitId).stream()
+                .mapToInt(Stock::getQuantiteDisponible)
+                .sum();
+    }
+
+    public boolean verifierDisponibilite(int produitId, int quantite) {
+        return getQuantiteTotaleProduit(produitId) >= quantite;
+    }
+
+    public boolean reserverStock(int produitId, int quantite) {
+        int quantiteRestante = quantite;
+        for (Stock stock : getStocksByProduit(produitId)) {
+            if (quantiteRestante <= 0) {
+                return true;
+            }
+
+            int disponible = stock.getQuantiteDisponible();
+            if (disponible <= 0) {
+                continue;
+            }
+
+            int aReserver = Math.min(disponible, quantiteRestante);
+            if (decrementerStock(stock.getId(), aReserver)) {
+                quantiteRestante -= aReserver;
+            }
+        }
+
+        return quantiteRestante <= 0;
+    }
+
+    public boolean libererStock(int produitId, int quantite) {
+        List<Stock> stocks = getStocksByProduit(produitId);
+        if (stocks.isEmpty()) {
+            return false;
+        }
+
+        Stock stock = stocks.get(0);
+        return incrementerStock(stock.getId(), quantite);
+    }
+
+    /**
+     * Décrémente la quantité d'un stock (pour simulation de vente/réservation)
+     * À utiliser avec prudence ; dans un contexte multi-utilisateur, utiliser les transactions
+     */
+    public boolean decrementerStock(int stockId, int quantite) {
+        String sql = "UPDATE stock SET quantite = quantite - ? WHERE id_stock = ? AND quantite >= ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, quantite);
+            stmt.setInt(2, stockId);
+            stmt.setInt(3, quantite);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de la décrémentation du stock", e);
+        }
+    }
+
+    /**
+     * Incrémente la quantité d'un stock (ex : retour, réapprov)
+     */
+    public boolean incrementerStock(int stockId, int quantite) {
+        String sql = "UPDATE stock SET quantite = quantite + ? WHERE id_stock = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, quantite);
+            stmt.setInt(2, stockId);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de l'incrémentation du stock", e);
+        }
+    }
+
+    /**
+     * Récupère les mouvements d'entrée de stock
+     */
+    public List<Stock> getMouvementsEntree() {
+        // Exemple : Filtrer les stocks ajoutés récemment
+        return getAll().stream()
+                .filter(stock -> stock.getDateDerniereMiseAJour() != null && stock.getDateDerniereMiseAJour().isAfter(LocalDateTime.now().minusDays(7)))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Récupère les mouvements de sortie de stock
+     */
+    public List<Stock> getMouvementsSortie() {
+        // Exemple : Filtrer les stocks ayant une réduction récente
+        return getAll().stream()
+                .filter(stock -> stock.getQuantiteDisponible() < stock.getQuantiteInitiale())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Récupère les stocks critiques (quantité inférieure au seuil critique)
+     */
+    public List<Stock> getStocksCritiques() {
+        return getAll().stream()
+                .filter(stock -> stock.getQuantiteDisponible() < stock.getSeuilMinimum())
+                .collect(Collectors.toList());
     }
 }

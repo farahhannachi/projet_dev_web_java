@@ -2,11 +2,62 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
-<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fitToWidth="true" fitToHeight="false" styleClass="main-scroll">
-    <VBox spacing="16" styleClass="main-content">
-        <padding><Insets top="20" left="20" right="20" bottom="20"/></padding>
-        <Label text="Gestion des Promotions" styleClass="main-title" />
-        <Label text="Cette vue est en cours de développement..." />
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+           fx:controller="org.example.controller.PromotionController">
+
+    <!-- Vue principale: liste des promotions -->
+    <VBox fx:id="listView" spacing="10" prefHeight="600" prefWidth="800" styleClass="admin-list-view">
+        <padding><Insets top="15" left="15" right="15" bottom="15"/></padding>
+
+        <!-- En-tête -->
+        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="admin-header">
+            <Label text="Gestion des Promotions" styleClass="admin-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="➕ Ajouter une promotion" onAction="#openAddPromotionModal" styleClass="btn-primary"/>
+        </HBox>
+
+        <!-- Statistiques -->
+        <VBox styleClass="stat-section" spacing="10">
+            <Label text="Statistiques Promotions" styleClass="section-title"/>
+            <GridPane hgap="20" vgap="10" alignment="CENTER">
+                <VBox styleClass="stat-card" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                    <Label text="Nombre de Promotions" styleClass="stat-label"/>
+                    <Label fx:id="totalPromotionsLabel" text="0" styleClass="stat-value"/>
+                </VBox>
+                <VBox styleClass="stat-card" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                    <Label text="Promotions Actives" styleClass="stat-label"/>
+                    <Label fx:id="promotionsActivesLabel" text="0" styleClass="stat-value"/>
+                </VBox>
+                <VBox styleClass="stat-card" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                    <Label text="Réduction Moyenne" styleClass="stat-label"/>
+                    <Label fx:id="reductionMoyenneLabel" text="0.00%" styleClass="stat-value"/>
+                </VBox>
+            </GridPane>
+        </VBox>
+
+        <!-- Filtres et Recherche -->
+        <HBox spacing="10" styleClass="filter-section">
+            <TextField fx:id="searchField" promptText="🔍 Rechercher par code, produit..." prefWidth="300" styleClass="search-field"/>
+            <ComboBox fx:id="statusFilter" promptText="Filtre par statut" prefWidth="180" styleClass="filter-combo"/>
+            <ComboBox fx:id="typeFilter" promptText="Type de promotion" prefWidth="150" styleClass="filter-combo"/>
+        </HBox>
+
+        <!-- Tableau des promotions -->
+        <TableView fx:id="promotionTable" VBox.vgrow="ALWAYS" minHeight="350" styleClass="admin-table">
+            <columns>
+                <TableColumn fx:id="colId" text="ID" prefWidth="50" />
+                <TableColumn fx:id="colCode" text="Code" prefWidth="100" />
+                <TableColumn fx:id="colType" text="Type" prefWidth="80" />
+                <TableColumn fx:id="colValeur" text="Valeur" prefWidth="80" />
+                <TableColumn fx:id="colProduit" text="Produit" prefWidth="150" />
+                <TableColumn fx:id="colDateDebut" text="Date Début" prefWidth="120" />
+                <TableColumn fx:id="colDateFin" text="Date Fin" prefWidth="120" />
+                <TableColumn fx:id="colActions" text="Actions" prefWidth="90" />
+            </columns>
+        </TableView>
+
+        <!-- Pagination -->
+        <Pagination fx:id="pagination" styleClass="admin-pagination" />
     </VBox>
-</ScrollPane>
+</StackPane>
 

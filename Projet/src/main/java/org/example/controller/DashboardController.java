@@ -16,6 +16,7 @@ import org.example.model.Commande;
 import org.example.model.Depot;
 import org.example.model.Produit;
 import org.example.model.Stock;
+import org.example.model.LigneCommande;
 import org.example.service.ClientService;
 import org.example.service.ProduitService;
 import org.example.service.CommandeService;
@@ -53,6 +54,7 @@ public class DashboardController {
     private final DepotService depotService = DepotService.getInstance();
     private final ServiceService serviceService = ServiceService.getInstance();
     private static final Logger LOGGER = Logger.getLogger(DashboardController.class.getName());
+    private String currentViewPath = null;
 
     @FXML
     public void initialize() {
@@ -60,6 +62,7 @@ public class DashboardController {
         // This prevents data duplication and ensures UI reflects actual DB state
         loadStats();
         initializeCharts();
+        currentViewPath = null; // dashboard home initial
     }
 
     private void addSampleData() {
@@ -85,10 +88,18 @@ public class DashboardController {
             stockService.add(new Stock(0, produitService.getAll().get(0), 50, 10, depot1));
             stockService.add(new Stock(0, produitService.getAll().get(1), 5, 10, depot2)); // Low stock
 
-            // Sample orders
-            commandeService.add(new Commande(0, clientService.getAll().stream().findFirst().orElse(null),
-                java.util.Collections.singletonList(produitService.getAll().stream().findFirst().orElse(null)),
-                LocalDate.now(), 5.50, "Confirmée"));
+            // Sample orders - créer avec LigneCommande
+            Produit firstProduit = produitService.getAll().stream().findFirst().orElse(null);
+            if (firstProduit != null) {
+                LigneCommande ligne = new LigneCommande(firstProduit, 1, firstProduit.getPrix());
+                Commande commande = new Commande();
+                commande.addLigne(ligne);
+                commande.setClient(clientService.getAll().stream().findFirst().orElse(null));
+                commande.setDateCommande(LocalDate.now());
+                commande.setStatut("Confirmée");
+                commande.calculerTotal();
+                commandeService.add(commande);
+            }
 
             // Sample services
             serviceService.add(new org.example.model.Service(0, "Dupont", "Médecin", "Médecine générale", "0123456789", "dupont@medecin.fr", "123 Rue de la Santé, Paris", java.time.LocalDateTime.now()));
@@ -174,66 +185,72 @@ public class DashboardController {
 
     @FXML
     private void showClients() {
-        loadViewInCenter("/fxml/Clients.fxml");
+        navigateTo("/fxml/Clients.fxml", "Clients");
     }
 
     @FXML
     private void showProduits() {
-        loadViewInCenter("/fxml/Produits.fxml");
+        navigateTo("/fxml/Produits.fxml", "Produits");
     }
 
     @FXML
     private void showCommandes() {
-        loadViewInCenter("/fxml/Commandes.fxml");
+        navigateTo("/fxml/Commandes.fxml", "Commandes");
     }
 
     @FXML
     private void showPromotions() {
-        loadViewInCenter("/fxml/Promotions.fxml");
+        navigateTo("/fxml/Promotions.fxml", "Promotions");
     }
 
     @FXML
     private void showCoupons() {
-        loadViewInCenter("/fxml/Coupons.fxml");
+        navigateTo("/fxml/Coupons.fxml", "Coupons");
     }
 
     @FXML
     private void showDepots() {
-        loadViewInCenter("/fxml/Depots.fxml");
+        navigateTo("/fxml/Depots.fxml", "Dépôts");
     }
 
     @FXML
     private void showStocks() {
-        loadViewInCenter("/fxml/Stocks.fxml");
+        navigateTo("/fxml/Stocks.fxml", "Stocks");
     }
 
     @FXML
     private void showServices() {
-        loadViewInCenter("/fxml/Services.fxml");
+        navigateTo("/fxml/Services.fxml", "Services");
     }
 
     @FXML
     private void showConsommation() {
-        loadViewInCenter("/fxml/Consommation.fxml");
+        navigateTo("/fxml/Consommation.fxml", "Consommation");
     }
 
     @FXML
     private void showReservations() {
-        loadViewInCenter("/fxml/Reservations.fxml");
+        navigateTo("/fxml/Reservations.fxml", "Reservations");
+    }
+
+    private void navigateTo(String fxmlPath, String label) {
+        if (fxmlPath != null && fxmlPath.equals(currentViewPath)) {
+            LOGGER.info(() -> "Navigation ignorée (déjà sur la vue): " + label);
+            return;
+        }
+        loadViewInCenter(fxmlPath);
+        currentViewPath = fxmlPath;
     }
 
     private void loadViewInCenter(String fxmlPath) {
         try {
+            LOGGER.info(() -> "Chargement de la vue: " + fxmlPath);
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent view = loader.load();
             mainPane.setCenter(view);
-
-            // Log success
-            System.out.println("Vue chargée avec succès: " + fxmlPath);
+            LOGGER.info(() -> "Vue chargée avec succès: " + fxmlPath);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Erreur lors du chargement de " + fxmlPath, e);
-
-            // Afficher une boîte de dialogue d'erreur
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Erreur");
             alert.setHeaderText("Impossible de charger la vue");
