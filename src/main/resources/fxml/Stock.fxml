@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+           fx:controller="org.example.controller.StockController">
+
+    <!-- Vue principale: liste des stocks -->
+    <VBox fx:id="listView" spacing="10" prefHeight="600" prefWidth="800">
+        <padding><Insets top="15" left="15" right="15" bottom="15"/></padding>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Gestion des Stocks" style="-fx-font-size: 20; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Ajouter un stock" onAction="#openAddStockModal" style="-fx-font-size: 12; -fx-padding: 8;"/>
+        </HBox>
+
+        <HBox spacing="10">
+            <TextField fx:id="searchField" promptText="Recherche..." prefWidth="250"/>
+            <ComboBox fx:id="depotFilter" promptText="Dépôt" prefWidth="150" />
+        </HBox>
+
+        <TableView fx:id="stockTable" VBox.vgrow="ALWAYS" minHeight="400">
+            <columns>
+                <TableColumn fx:id="colProduit" text="Produit" prefWidth="150" />
+                <TableColumn fx:id="colQuantite" text="Quantité" prefWidth="100" />
+                <TableColumn fx:id="colSeuilMinimum" text="Seuil Minimum" prefWidth="120" />
+                <TableColumn fx:id="colDepot" text="Dépôt" prefWidth="120" />
+                <TableColumn fx:id="colActions" text="Actions" prefWidth="80" />
+            </columns>
+        </TableView>
+
+        <Pagination fx:id="pagination" />
+    </VBox>
+</StackPane>
+

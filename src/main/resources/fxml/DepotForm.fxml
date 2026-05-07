@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.WebView?>
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.controller.DepotFormController"
+      spacing="14" prefHeight="720" prefWidth="980">
+    <padding><Insets top="20" left="20" right="20" bottom="20"/></padding>
+
+    <Label fx:id="formTitle" text="Ajouter un dépôt"
+           style="-fx-font-size: 24; -fx-font-weight: bold;"/>
+
+    <GridPane hgap="15" vgap="12">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="25"/>
+            <ColumnConstraints percentWidth="25"/>
+            <ColumnConstraints percentWidth="25"/>
+            <ColumnConstraints percentWidth="25"/>
+        </columnConstraints>
+
+        <Label text="Nom *" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <TextField fx:id="nomField" promptText="Nom du dépôt" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+        <Label text="Adresse *" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+        <TextField fx:id="adresseField" promptText="Adresse" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+
+        <Label text="Ville *" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <TextField fx:id="villeField" promptText="Ville" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+        <Label text="Capacité *" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+        <TextField fx:id="capaciteField" promptText="Capacité" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+
+        <Label text="Responsable *" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <TextField fx:id="responsableField" promptText="Responsable" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+        <Label text="Téléphone *" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+        <TextField fx:id="telephoneField" promptText="Téléphone" GridPane.columnIndex="3" GridPane.rowIndex="2"/>
+
+        <Label text="Localisation" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <TextField fx:id="locationNameField" promptText="Cliquez sur la carte" GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.columnSpan="3"/>
+
+        <Label text="Latitude" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <TextField fx:id="latitudeField" editable="false" promptText="Latitude" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+        <Label text="Longitude" GridPane.columnIndex="2" GridPane.rowIndex="4"/>
+        <TextField fx:id="longitudeField" editable="false" promptText="Longitude" GridPane.columnIndex="3" GridPane.rowIndex="4"/>
+    </GridPane>
+
+    <VBox spacing="8" VBox.vgrow="ALWAYS">
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Carte" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+            <TextField fx:id="mapSearchField" promptText="Rechercher une adresse ou utiliser les champs adresse/ville" HBox.hgrow="ALWAYS"/>
+            <Button text="Rechercher" onAction="#handleSearchMapLocation" styleClass="button-primary"/>
+            <Button text="Centrer" onAction="#handleOpenMap" styleClass="button-secondary"/>
+        </HBox>
+        <WebView fx:id="mapWebView" prefHeight="320" minHeight="280" VBox.vgrow="ALWAYS"/>
+    </VBox>
+
+    <Label fx:id="errorLabel" text="" style="-fx-text-fill: red;"/>
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Button text="Enregistrer" onAction="#handleSave" style="-fx-padding: 8; -fx-font-size: 12;"/>
+        <Button text="Annuler" onAction="#handleCancel" style="-fx-padding: 8; -fx-font-size: 12;"/>
+    </HBox>
+</VBox>

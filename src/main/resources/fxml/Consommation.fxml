@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.controller.ServiceConsommationController"
+      spacing="15" style="-fx-padding: 20;">
+
+    <Label text="Consommation de Stock par Service"
+           style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+
+    <TitledPane text="Enregistrer une consommation" expanded="true">
+        <VBox spacing="12" style="-fx-padding: 15;">
+            <HBox spacing="10">
+                <Label text="Service *" style="-fx-min-width: 120;" />
+                <ComboBox fx:id="serviceCombo" prefWidth="300" />
+            </HBox>
+
+            <HBox spacing="10">
+                <Label text="Stock *" style="-fx-min-width: 120;" />
+                <ComboBox fx:id="stockCombo" prefWidth="300" />
+            </HBox>
+
+            <Label fx:id="stockDisponibleLabel"
+                   style="-fx-text-fill: #3498DB; -fx-font-style: italic;" />
+
+            <HBox spacing="10">
+                <Label text="Quantite *" style="-fx-min-width: 120;" />
+                <Spinner fx:id="quantiteSpinner" prefWidth="100" />
+            </HBox>
+
+            <HBox spacing="10">
+                <Label text="Motif *" style="-fx-min-width: 120;" />
+                <TextField fx:id="motifField" prefWidth="300"
+                           promptText="Ex: Consommation pour traitement" />
+            </HBox>
+
+            <HBox spacing="10">
+                <Label text="Ref. Document" style="-fx-min-width: 120;" />
+                <TextField fx:id="referenceDocumentField" prefWidth="300"
+                           promptText="Ex: Numero ordonnance (optionnel)" />
+            </HBox>
+
+            <Label fx:id="avertissementLabel"
+                   style="-fx-text-fill: #27AE60;" wrapText="true" />
+
+            <HBox spacing="10" style="-fx-padding: 10 0 0 0;">
+                <Button fx:id="consommerButton" text="Consommer" onAction="#handleConsommer"
+                        style="-fx-font-size: 12; -fx-padding: 8 20;" />
+                <Button fx:id="annulerButton" text="Reinitialiser" onAction="#handleAnnuler"
+                        style="-fx-font-size: 12; -fx-padding: 8 20;" />
+            </HBox>
+        </VBox>
+    </TitledPane>
+
+    <TitledPane text="Historique des mouvements" expanded="true">
+        <TableView fx:id="historiqueTable" prefHeight="300">
+            <columns>
+                <TableColumn fx:id="colDate" text="Date" prefWidth="150" />
+                <TableColumn fx:id="colService" text="Service" prefWidth="120" />
+                <TableColumn fx:id="colProduit" text="Produit" prefWidth="150" />
+                <TableColumn fx:id="colQuantite" text="Quantite" prefWidth="80" />
+                <TableColumn fx:id="colMotif" text="Motif" prefWidth="150" />
+                <TableColumn fx:id="colDepot" text="Depot" prefWidth="120" />
+            </columns>
+        </TableView>
+    </TitledPane>
+
+    <HBox spacing="20" style="-fx-padding: 10; -fx-border-color: #ECF0F1; -fx-border-radius: 5;">
+        <Label text="* Champs obligatoires" style="-fx-text-fill: #7F8C8D;" />
+        <Label text="Les stocks avec seuil faible sont signales" style="-fx-text-fill: #F39C12;" />
+    </HBox>
+</VBox>

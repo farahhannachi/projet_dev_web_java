@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.controller.ProduitsController"
+            fitToWidth="true" fitToHeight="true" pannable="true"
+            hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+        <StackPane styleClass="admin-root">
+    <BorderPane>
+        <top>
+            <VBox spacing="14" styleClass="admin-header-wrap">
+                <HBox alignment="CENTER_LEFT" spacing="20" styleClass="admin-header">
+                    <VBox spacing="2">
+                        <Label text="Produits" styleClass="admin-title"/>
+                        <Label text="Gestion du catalogue" styleClass="admin-subtitle"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Retour" onAction="#goBack" styleClass="btn-admin-primary"/>
+                </HBox>
+
+                <HBox spacing="12" styleClass="stats-row">
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Total" styleClass="stat-label"/>
+                        <Label fx:id="totalProduitsLabel" text="0" styleClass="stat-value"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Disponibles" styleClass="stat-label"/>
+                        <Label fx:id="disponiblesLabel" text="0" styleClass="stat-value success"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Indisponibles" styleClass="stat-label"/>
+                        <Label fx:id="indisponiblesLabel" text="0" styleClass="stat-value warning"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Rupture" styleClass="stat-label"/>
+                        <Label fx:id="ruptureLabel" text="0" styleClass="stat-value danger"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="10" styleClass="filters-row">
+                    <TextField fx:id="searchField" promptText="Recherche..." HBox.hgrow="ALWAYS" styleClass="filter-field"/>
+                    <ComboBox fx:id="categorieFilterCombo" promptText="Categorie" styleClass="filter-field"/>
+                    <ComboBox fx:id="statutFilterCombo" promptText="Statut" styleClass="filter-field"/>
+                    <TextField fx:id="prixMinField" promptText="Prix min" styleClass="filter-field"/>
+                    <ComboBox fx:id="sortCombo" promptText="Tri" styleClass="filter-field"/>
+                </HBox>
+            </VBox>
+        </top>
+        <center>
+            <VBox styleClass="table-card" BorderPane.alignment="CENTER">
+            <TableView fx:id="produitsTable" styleClass="admin-table" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="idCol" text="ID" prefWidth="60" visible="false"/>
+                    <TableColumn fx:id="nomCol" text="Nom" prefWidth="150"/>
+                    <TableColumn fx:id="descriptionCol" text="Description" prefWidth="200"/>
+                    <TableColumn fx:id="prixCol" text="Prix" prefWidth="100"/>
+                    <TableColumn fx:id="quantiteCol" text="Quantité" prefWidth="100"/>
+                    <TableColumn fx:id="categorieCol" text="Catégorie" prefWidth="120"/>
+                    <TableColumn fx:id="dateExpirationCol" text="Expiration" prefWidth="120"/>
+                    <TableColumn fx:id="imageCol" text="Image" prefWidth="140"/>
+                    <TableColumn fx:id="statutCol" text="Statut" prefWidth="120"/>
+                </columns>
+            </TableView>
+            </VBox>
+        </center>
+        <bottom>
+            <HBox spacing="10" alignment="CENTER_LEFT" styleClass="admin-actions-row">
+                <Button text="Ajouter" onAction="#handleAjouterProduit" styleClass="btn-admin-primary"/>
+                <Button text="Modifier" onAction="#handleModifierProduit" styleClass="btn-admin-outline"/>
+                <Button text="Supprimer" onAction="#handleSupprimerProduit" styleClass="btn-admin-danger"/>
+            </HBox>
+        </bottom>
+    </BorderPane>
+
+    <!-- Modal Overlay -->
+    <StackPane fx:id="modalOverlay" visible="false" managed="false" style="-fx-background-color: #80000000;">
+        <VBox styleClass="admin-modal" spacing="10" maxWidth="560">
+            <Label fx:id="modalTitle" text="Titre du Modal" styleClass="admin-modal-title"/>
+
+            <Label text="Nom produit" styleClass="field-label"/>
+            <TextField fx:id="nomField" promptText="Ex: Paracetamol 500mg" styleClass="form-field"/>
+
+            <Label text="Description" styleClass="field-label"/>
+            <TextField fx:id="descField" promptText="Description pharmaceutique" styleClass="form-field"/>
+
+            <HBox spacing="12">
+                <VBox HBox.hgrow="ALWAYS" spacing="6">
+                    <Label text="Prix (DT)" styleClass="field-label"/>
+                    <TextField fx:id="prixField" promptText="0.00" styleClass="form-field"/>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS" spacing="6">
+                    <Label text="Quantite stock" styleClass="field-label"/>
+                    <TextField fx:id="quantiteField" promptText="0" styleClass="form-field"/>
+                </VBox>
+            </HBox>
+
+            <HBox spacing="12">
+                <VBox HBox.hgrow="ALWAYS" spacing="6">
+                    <Label text="Categorie" styleClass="field-label"/>
+                    <TextField fx:id="categorieField" promptText="Ex: Analgesiques" styleClass="form-field"/>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS" spacing="6">
+                    <Label text="Date expiration" styleClass="field-label"/>
+                    <DatePicker fx:id="dateExpirationPicker" styleClass="form-field"/>
+                </VBox>
+            </HBox>
+
+            <Label text="Image produit" styleClass="field-label"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <TextField fx:id="imageField" editable="false" promptText="Aucune image selectionnee" HBox.hgrow="ALWAYS" styleClass="form-field"/>
+                <Button fx:id="browseImageBtn" text="Uploader" onAction="#handleBrowseImage" styleClass="btn-admin-outline"/>
+            </HBox>
+
+            <Label text="Statut" styleClass="field-label"/>
+            <ComboBox fx:id="statutCombo" promptText="Statut" styleClass="form-field"/>
+
+            <VBox fx:id="deleteConfirmBox" visible="false" managed="false" spacing="10">
+                <Label text="Êtes-vous sûr de vouloir supprimer ce produit ?"/>
+                <HBox spacing="10" alignment="CENTER">
+                    <Button fx:id="cancelDeleteBtn" text="Annuler" onAction="#handleCancelDelete"/>
+                    <Button fx:id="confirmDeleteBtn" text="Supprimer" onAction="#handleConfirmDelete" styleClass="btn-admin-danger"/>
+                </HBox>
+            </VBox>
+
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button fx:id="cancelBtn" text="Annuler" onAction="#handleCloseModal" styleClass="btn-admin-outline"/>
+                <Button fx:id="saveBtn" text="Enregistrer" onAction="#handleSaveProduit" styleClass="btn-admin-primary"/>
+            </HBox>
+        </VBox>
+    </StackPane>
+        </StackPane>
+    </content>
+</ScrollPane>

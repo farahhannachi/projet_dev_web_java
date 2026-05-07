@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.image.*?>
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.controller.ServiceFormController"
+      spacing="15" prefHeight="600" prefWidth="800">
+    <padding><Insets top="20" left="20" right="20" bottom="20"/></padding>
+
+    <!-- Titre -->
+    <Label fx:id="formTitle" text="Ajouter un service"
+           style="-fx-font-size: 24; -fx-font-weight: bold;"/>
+
+    <!-- Formulaire -->
+    <GridPane hgap="15" vgap="15">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="50"/>
+            <ColumnConstraints percentWidth="50"/>
+        </columnConstraints>
+
+        <!-- Ligne 1 -->
+        <Label text="Nom *" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <TextField fx:id="nomField" promptText="Nom complet" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+        <!-- Ligne 2 -->
+        <Label text="Type *" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <ComboBox fx:id="typeField" promptText="Sélectionner le type" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+        <!-- Ligne 3 -->
+        <Label text="Spécialité *" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <TextField fx:id="specialiteField" promptText="Spécialité" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+        <!-- Ligne 4 -->
+        <Label text="Téléphone *" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <TextField fx:id="telephoneField" promptText="Téléphone" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+        <!-- Ligne 5 -->
+        <Label text="Email *" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <TextField fx:id="emailField" promptText="Email" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+        <!-- Ligne 6 -->
+        <Label text="Adresse *" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+        <TextField fx:id="adresseField" promptText="Adresse" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+
+        <!-- QR Code Display -->
+        <Label text="QR Code" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+        <ImageView fx:id="qrCodeView" GridPane.columnIndex="1" GridPane.rowIndex="6"
+                   fitWidth="300" fitHeight="300" preserveRatio="true"/>
+    </GridPane>
+
+    <!-- Message d'erreur -->
+    <Label fx:id="errorLabel" text="" style="-fx-text-fill: red;"/>
+
+    <!-- Boutons -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Button text="Enregistrer" onAction="#handleSave" style="-fx-padding: 8; -fx-font-size: 12;"/>
+        <Button text="Annuler" onAction="#handleCancel" style="-fx-padding: 8; -fx-font-size: 12;"/>
+    </HBox>
+</VBox>

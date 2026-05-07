@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="org.example.controller.FrontProduitsController"
+        fitToWidth="true" fitToHeight="true" pannable="true"
+        hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+    <BorderPane styleClass="admin-root front-module-page">
+    <top>
+        <VBox spacing="12" styleClass="admin-header-wrap">
+            <HBox styleClass="navbar-symfony" alignment="CENTER">
+                <Label text="CuraVita" styleClass="logo-text"/>
+                <Region HBox.hgrow="SOMETIMES"/>
+                <HBox styleClass="menu-container" alignment="CENTER">
+                    <Button text="Accueil" styleClass="menu-item" onAction="#goHome"/>
+                    <Button text="Produits" styleClass="menu-item menu-item-active" onAction="#showFrontProduits"/>
+                    <Button text="Services" styleClass="menu-item" onAction="#showFrontServices"/>
+                    <Button text="Panier" styleClass="menu-item" onAction="#showFrontPanier"/>
+                    <Button text="Adresses" styleClass="menu-item" onAction="#showFrontAddresses"/>
+                    <Button text="Commandes" styleClass="menu-item" onAction="#showFrontTracking"/>
+                    <Button text="Ordonnance" styleClass="menu-item"/>
+                    <Button text="Traitement" styleClass="menu-item"/>
+                    <Button text="Guide Sant&#233;" styleClass="menu-item"/>
+                    <Button text="Contact" styleClass="menu-item"/>
+                    <Button text="&#192; propos" styleClass="menu-item"/>
+                </HBox>
+                <Region HBox.hgrow="SOMETIMES"/>
+
+                <StackPane>
+                    <HBox styleClass="icon-container" alignment="CENTER">
+                        <Button text="&#128269;" styleClass="icon-button" onAction="#handleSearch"/>
+                        <Button fx:id="profileButton" text="&#128100;" styleClass="icon-button" onAction="#toggleProfileDropdown"/>
+                    </HBox>
+
+                    <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false">
+                        <VBox.margin>
+                            <Insets top="45" right="0" bottom="0" left="0"/>
+                        </VBox.margin>
+                        <Button text="Profil" styleClass="dropdown-item" onAction="#showProfile"/>
+                        <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                        <Button text="Logout" styleClass="dropdown-item" onAction="#logout"/>
+                    </VBox>
+                </StackPane>
+            </HBox>
+
+            <HBox spacing="10" styleClass="filters-row">
+                <TextField fx:id="searchField" promptText="Recherche produit..." HBox.hgrow="ALWAYS" styleClass="filter-field"/>
+                <ComboBox fx:id="categorieFilter" promptText="Categorie" styleClass="filter-field"/>
+                <ComboBox fx:id="stockFilter" promptText="Stock" styleClass="filter-field"/>
+                <ComboBox fx:id="sortFilter" promptText="Tri" styleClass="filter-field"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <StackPane styleClass="module-content-wrap">
+            <HBox spacing="14">
+                <VBox HBox.hgrow="ALWAYS" styleClass="table-card">
+                    <ScrollPane fitToWidth="true" styleClass="admin-table" VBox.vgrow="ALWAYS">
+                        <content>
+                            <FlowPane fx:id="productsFlow" hgap="12" vgap="12" prefWrapLength="920" style="-fx-padding: 12;"/>
+                        </content>
+                    </ScrollPane>
+                </VBox>
+
+                <VBox prefWidth="340" spacing="10" styleClass="admin-modal">
+                    <Label text="Panier" styleClass="admin-modal-title"/>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Label text="Articles:" styleClass="field-label"/>
+                        <Label fx:id="cartCountLabel" text="0" styleClass="admin-meta-badge"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="cartTotalLabel" text="0.00 DT" styleClass="stat-value"/>
+                    </HBox>
+
+                    <Separator/>
+                    <ScrollPane fitToWidth="true" pannable="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="inner-scroll" VBox.vgrow="ALWAYS">
+                        <content>
+                            <VBox fx:id="cartItemsBox" spacing="6"/>
+                        </content>
+                    </ScrollPane>
+
+                    <HBox spacing="8">
+                        <Button text="Vider" onAction="#handleClearCart" styleClass="btn-admin-danger"/>
+                        <Button text="Passer commande" onAction="#goToCommande" styleClass="btn-admin-primary" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                </VBox>
+            </HBox>
+
+            <VBox spacing="10" alignment="BOTTOM_RIGHT" fillWidth="false" pickOnBounds="false" styleClass="med-bot-floating-wrap" StackPane.alignment="BOTTOM_RIGHT" style="-fx-padding: 0 18 18 0;">
+                <VBox fx:id="medBotPanel" spacing="8" visible="false" managed="false" styleClass="med-bot-panel">
+                    <HBox alignment="CENTER_LEFT" styleClass="med-bot-head">
+                        <Label text="Assistant Medicaments" styleClass="med-bot-head-label"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="medBotCloseButton" text="&#215;" onAction="#closeMedBotPanel" styleClass="med-bot-close"/>
+                    </HBox>
+                    <ListView fx:id="chatMessagesList" VBox.vgrow="ALWAYS" styleClass="med-bot-log"/>
+                    <HBox spacing="8" styleClass="med-bot-foot">
+                        <TextField fx:id="chatInputField" promptText="Ex: j'ai mal a la tete" HBox.hgrow="ALWAYS" styleClass="med-bot-input"/>
+                        <Button text="Envoyer" onAction="#handleSendChatMessage" styleClass="med-bot-send"/>
+                    </HBox>
+                </VBox>
+
+                <Button fx:id="medBotLauncher" text="&#128138;" onAction="#toggleMedBotPanel" styleClass="med-bot-launcher"/>
+            </VBox>
+        </StackPane>
+    </center>
+    <bottom>
+        <VBox styleClass="front-footer">
+            <HBox spacing="30" styleClass="front-footer-top">
+                <VBox spacing="10" HBox.hgrow="ALWAYS">
+                    <Label text="Votre sante, notre priorite. Pharmacie en ligne agreee et securisee." styleClass="front-footer-text" wrapText="true"/>
+                    <Label text="123 Avenue de la Sante, 75001 Paris" styleClass="front-footer-text"/>
+                    <Label text="01 23 45 67 89" styleClass="front-footer-text"/>
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label text="Navigation" styleClass="front-footer-title"/>
+                    <Label text="Accueil" styleClass="front-footer-link"/>
+                    <Label text="Nos Produits" styleClass="front-footer-link"/>
+                    <Label text="Conseils Sante" styleClass="front-footer-link"/>
+                    <Label text="Contact" styleClass="front-footer-link"/>
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label text="Services" styleClass="front-footer-title"/>
+                    <Label text="Envoi d'ordonnance" styleClass="front-footer-link"/>
+                    <Label text="Click &amp; Collect" styleClass="front-footer-link"/>
+                    <Label text="Livraison Express" styleClass="front-footer-link"/>
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label text="Aide" styleClass="front-footer-title"/>
+                    <Label text="FAQ" styleClass="front-footer-link"/>
+                    <Label text="Mon Compte" styleClass="front-footer-link"/>
+                    <Label text="Suivi de commande" styleClass="front-footer-link"/>
+                </VBox>
+            </HBox>
+            <HBox styleClass="front-footer-bottom" alignment="CENTER_LEFT">
+                <Label text="2026 CuraVita. Tous droits reserves." styleClass="front-footer-copy"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Espace Admin" styleClass="front-footer-link"/>
+                <Label text="Mentions Legales" styleClass="front-footer-link"/>
+                <Label text="CGV" styleClass="front-footer-link"/>
+                <Label text="Confidentialite" styleClass="front-footer-link"/>
+            </HBox>
+        </VBox>
+    </bottom>
+        </BorderPane>
+    </content>
+</ScrollPane>

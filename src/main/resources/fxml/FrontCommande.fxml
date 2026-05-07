@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="org.example.controller.FrontCommandeController"
+        fitToWidth="true" fitToHeight="true" pannable="true"
+        hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+    <BorderPane styleClass="admin-root front-module-page">
+    <top>
+        <VBox styleClass="admin-header-wrap">
+            <HBox styleClass="navbar-symfony" alignment="CENTER">
+                <Label text="CuraVita" styleClass="logo-text"/>
+                <Region HBox.hgrow="SOMETIMES"/>
+                <HBox styleClass="menu-container" alignment="CENTER">
+                    <Button text="Accueil" styleClass="menu-item" onAction="#goHome"/>
+                    <Button text="Produits" styleClass="menu-item" onAction="#showFrontProduits"/>
+                    <Button text="Services" styleClass="menu-item" onAction="#showFrontServices"/>
+                    <Button text="Panier" styleClass="menu-item menu-item-active" onAction="#showFrontPanier"/>
+                    <Button text="Adresses" styleClass="menu-item" onAction="#showFrontAddresses"/>
+                    <Button text="Commandes" styleClass="menu-item" onAction="#showFrontTracking"/>
+                    <Button text="Ordonnance" styleClass="menu-item"/>
+                    <Button text="Traitement" styleClass="menu-item"/>
+                    <Button text="Guide Sant&#233;" styleClass="menu-item"/>
+                    <Button text="Contact" styleClass="menu-item"/>
+                    <Button text="&#192; propos" styleClass="menu-item"/>
+                </HBox>
+                <Region HBox.hgrow="SOMETIMES"/>
+
+                <StackPane>
+                    <HBox styleClass="icon-container" alignment="CENTER">
+                        <Button text="&#128269;" styleClass="icon-button" onAction="#handleSearch"/>
+                        <Button fx:id="profileButton" text="&#128100;" styleClass="icon-button" onAction="#toggleProfileDropdown"/>
+                    </HBox>
+
+                    <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false">
+                        <VBox.margin>
+                            <Insets top="45" right="0" bottom="0" left="0"/>
+                        </VBox.margin>
+                        <Button text="Profil" styleClass="dropdown-item" onAction="#showProfile"/>
+                        <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                        <Button text="Logout" styleClass="dropdown-item" onAction="#logout"/>
+                    </VBox>
+                </StackPane>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <HBox spacing="16" styleClass="checkout-wrap">
+            <VBox HBox.hgrow="ALWAYS" spacing="12" styleClass="checkout-left-symfony">
+                <Label text="Coordonnees de livraison" styleClass="checkout-title"/>
+
+                <GridPane hgap="10" vgap="10">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50"/>
+                        <ColumnConstraints percentWidth="50"/>
+                    </columnConstraints>
+                    <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label text="Nom complet" styleClass="field-label"/>
+                        <TextField fx:id="nomField" styleClass="form-field"/>
+                    </VBox>
+                    <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label text="Email" styleClass="field-label"/>
+                        <TextField fx:id="emailField" styleClass="form-field"/>
+                    </VBox>
+                    <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                        <Label text="Telephone" styleClass="field-label"/>
+                        <TextField fx:id="telephoneField" styleClass="form-field"/>
+                    </VBox>
+                    <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <Label text="Adresse enregistree (optionnel)" styleClass="field-label"/>
+                        <ComboBox fx:id="savedAddressCombo" promptText="Selectionner..." styleClass="form-field"/>
+                    </VBox>
+                </GridPane>
+
+                <VBox fx:id="mapSection" spacing="8" visible="true" managed="true" styleClass="map-card">
+                    <HBox spacing="8">
+                        <TextField fx:id="mapSearchField" promptText="Rechercher votre adresse..." HBox.hgrow="ALWAYS" styleClass="form-field"/>
+                        <Button text="Utiliser ma localisation" onAction="#handleUseMyLocation" styleClass="btn-admin-primary"/>
+                    </HBox>
+                    <ListView fx:id="mapResultsList" prefHeight="110" visible="false" managed="false" styleClass="map-results"/>
+                    <ImageView fx:id="mapPreviewImage" fitWidth="760" fitHeight="220" preserveRatio="false" smooth="true" styleClass="map-preview-image"/>
+                    <Label fx:id="mapStatusLabel" text="Carte non chargee" styleClass="admin-subtitle"/>
+                    <Label fx:id="selectedLocationLabel" text="Aucune localisation selectionnee" styleClass="admin-subtitle"/>
+                </VBox>
+
+                <Label text="Adresse de livraison" styleClass="field-label"/>
+                <TextField fx:id="adresseField" styleClass="form-field"/>
+
+                <Label text="Message" styleClass="field-label"/>
+                <TextArea fx:id="messageField" prefRowCount="3" wrapText="true" styleClass="form-field"/>
+
+                <VBox spacing="8" styleClass="checkout-coupon-card">
+                    <Label text="Code promo" styleClass="checkout-summary-title"/>
+                    <HBox spacing="8" styleClass="checkout-coupon-row">
+                        <TextField fx:id="couponField" promptText="EX: CURA10" HBox.hgrow="ALWAYS" styleClass="form-field"/>
+                        <Button text="Appliquer" onAction="#handleApplyCoupon" styleClass="btn-admin-outline"/>
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="6" styleClass="checkout-payment-card">
+                    <Label text="Methode de paiement" styleClass="field-label"/>
+                    <ComboBox fx:id="paiementCombo" visible="false" managed="false" styleClass="form-field"/>
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <RadioButton fx:id="paiementLivraisonRadio" text="Paiement a la livraison"/>
+                        <RadioButton fx:id="paiementEnLigneRadio" text="Paiement en ligne"/>
+                    </HBox>
+                    <HBox spacing="8">
+                        <Button text="Retirer selection" onAction="#handleRemoveSelected" styleClass="btn-admin-outline"/>
+                        <Button text="Vider panier" onAction="#handleClearCart" styleClass="btn-admin-danger"/>
+                    </HBox>
+                    <Button text="Continuer" onAction="#handlePasserCommande" styleClass="btn-admin-primary checkout-confirm"/>
+                </VBox>
+            </VBox>
+
+            <VBox prefWidth="360" spacing="12" styleClass="checkout-right-symfony">
+                <VBox spacing="10" styleClass="checkout-summary-card">
+                    <Label text="Recapitulatif panier" styleClass="checkout-title"/>
+
+                    <TableView fx:id="cartTable" styleClass="admin-table checkout-table" prefHeight="220">
+                        <columns>
+                            <TableColumn fx:id="produitCol" text="Produit" prefWidth="130"/>
+                            <TableColumn fx:id="quantiteCol" text="Qt" prefWidth="40"/>
+                            <TableColumn fx:id="prixCol" text="Prix" prefWidth="75"/>
+                            <TableColumn fx:id="totalCol" text="Total" prefWidth="75"/>
+                            <TableColumn fx:id="actionsCol" text="" prefWidth="35"/>
+                        </columns>
+                    </TableView>
+
+                    <HBox><Label text="Articles" styleClass="field-label"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="cartCountLabel" text="0"/></HBox>
+                    <HBox><Label text="Sous-total" styleClass="field-label"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="subTotalLabel" text="0.00 DT"/></HBox>
+                    <HBox><Label text="Remise" styleClass="field-label"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="couponDiscountLabel" text="0.00 DT"/></HBox>
+                    <HBox><Label text="Livraison" styleClass="field-label"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="shippingLabel" text="0.00 DT"/></HBox>
+                    <Separator/>
+                    <HBox><Label text="Total" styleClass="field-label"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="totalFinalLabel" styleClass="stat-value" text="0.00 DT"/></HBox>
+                </VBox>
+            </VBox>
+        </HBox>
+    </center>
+    <bottom>
+        <VBox styleClass="front-footer">
+            <HBox spacing="30" styleClass="front-footer-top">
+                <VBox spacing="10" HBox.hgrow="ALWAYS">
+                    <Label text="Votre sante, notre priorite. Pharmacie en ligne agreee et securisee." styleClass="front-footer-text" wrapText="true"/>
+                    <Label text="123 Avenue de la Sante, 75001 Paris" styleClass="front-footer-text"/>
+                    <Label text="01 23 45 67 89" styleClass="front-footer-text"/>
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label text="Navigation" styleClass="front-footer-title"/>
+                    <Label text="Accueil" styleClass="front-footer-link"/>
+                    <Label text="Nos Produits" styleClass="front-footer-link"/>
+                    <Label text="Conseils Sante" styleClass="front-footer-link"/>
+                    <Label text="Contact" styleClass="front-footer-link"/>
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label text="Services" styleClass="front-footer-title"/>
+                    <Label text="Envoi d'ordonnance" styleClass="front-footer-link"/>
+                    <Label text="Click &amp; Collect" styleClass="front-footer-link"/>
+                    <Label text="Livraison Express" styleClass="front-footer-link"/>
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label text="Aide" styleClass="front-footer-title"/>
+                    <Label text="FAQ" styleClass="front-footer-link"/>
+                    <Label text="Mon Compte" styleClass="front-footer-link"/>
+                    <Label text="Suivi de commande" styleClass="front-footer-link"/>
+                </VBox>
+            </HBox>
+            <HBox styleClass="front-footer-bottom" alignment="CENTER_LEFT">
+                <Label text="2026 CuraVita. Tous droits reserves." styleClass="front-footer-copy"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Espace Admin" styleClass="front-footer-link"/>
+                <Label text="Mentions Legales" styleClass="front-footer-link"/>
+                <Label text="CGV" styleClass="front-footer-link"/>
+                <Label text="Confidentialite" styleClass="front-footer-link"/>
+            </HBox>
+        </VBox>
+    </bottom>
+        </BorderPane>
+    </content>
+</ScrollPane>
