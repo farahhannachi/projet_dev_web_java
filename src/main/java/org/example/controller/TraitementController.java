@@ -12,12 +12,17 @@ import javafx.stage.Stage; // Fenêtre principale
 import org.example.model.User; // Modèle utilisateur
 import org.example.service.UserService; // Service de gestion des utilisateurs
 import org.example.util.DatabaseUtil; // Utilitaire de connexion à la base de données
+import org.example.util.NavbarOrdonnanceMenu;
+import org.example.util.SceneNavigation;
+
+import java.net.URL;
 
 import java.io.IOException; // Exception d'entrée/sortie
 import java.sql.*; // Classes JDBC
 import java.time.LocalDate; // Date sans heure
 import java.time.LocalDateTime; // Date avec heure
 import java.time.format.DateTimeFormatter; // Formateur de date
+import java.util.ArrayList;
 import java.util.List;
 
 // Contrôleur front-office pour la demande de traitement par le client
@@ -35,12 +40,11 @@ public class TraitementController {
     @FXML private Label errorLabel; // Label pour afficher les messages d'erreur
     @FXML private Button profileButton; // Bouton profil dans la navbar (ancien, gardé pour compatibilité)
     @FXML private Button submitButton; // Bouton de soumission (anti double-clic)
-    @FXML private StackPane ordonnanceMenuContainer; // Conteneur du menu déroulant ordonnance
-    @FXML private VBox ordonnanceDropdown; // Menu déroulant ordonnance
 
     // Nouveaux éléments navbar avatar
     @FXML private javafx.scene.layout.HBox profileContainer;
     @FXML private VBox profileDropdown;
+    @FXML private Button dashboardMenuItem;
     @FXML private javafx.scene.shape.Circle navbarAvatarCircle;
     @FXML private Label navbarUsername;
     @FXML private Label navbarAvatarLabel;
@@ -63,7 +67,7 @@ public class TraitementController {
             emailField.setText(currentUser.getEmail() != null ? currentUser.getEmail() : ""); // Remplir l'email
         }
 
-        loadProduits(); // Charger la liste des produits depuis la base
+        loadProduitsAsync(); // Charger la liste des produits depuis la base (hors thread UI)
 
         // Listener OpenFDA : afficher infos produit à chaque sélection
         produitCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
@@ -121,44 +125,43 @@ public class TraitementController {
             t.start();
         });
 
-        // Gestion du menu déroulant ordonnance au survol
-        if (ordonnanceMenuContainer != null && ordonnanceDropdown != null) {
-            ordonnanceMenuContainer.setOnMouseEntered(e -> { ordonnanceDropdown.setVisible(true); ordonnanceDropdown.setManaged(true); });
-            ordonnanceMenuContainer.setOnMouseExited(e -> { ordonnanceDropdown.setVisible(false); ordonnanceDropdown.setManaged(false); });
-        }
-
         // Charger le nom de l'utilisateur dans la navbar avatar
         if (navbarUsername != null && currentUser != null) {
             String nom = currentUser.getNom() != null ? currentUser.getNom() : currentUser.getEmail();
             navbarUsername.setText(nom.split(" ")[0]);
         }
-
-        // Toggle dropdown profil
-        if (profileContainer != null && profileDropdown != null) {
-            profileContainer.setOnMouseClicked(e -> {
-                boolean visible = profileDropdown.isVisible();
-                profileDropdown.setVisible(!visible);
-                profileDropdown.setManaged(!visible);
-            });
+        if (dashboardMenuItem != null) {
+            dashboardMenuItem.setVisible(userService.isAdmin());
+            dashboardMenuItem.setManaged(userService.isAdmin());
         }
+        if (navbarAvatarCircle != null) {
+            navbarAvatarCircle.setStyle("-fx-fill: #1f6f54; -fx-stroke: white; -fx-stroke-width: 2;");
+        }
+        /* Toggle profil : voir FXML onMouseClicked="#toggleProfileDropdown" (évite double listener) */
+        NavbarOrdonnanceMenu.wirePopupStyle(profileContainer);
     }
 
-    // Charger les produits depuis la base de données dans le ComboBox
-    private void loadProduits() {
-        try {
-            Connection conn = DatabaseUtil.getInstance().getConnection(); // Obtenir la connexion
-            Statement stmt = conn.createStatement(); // Créer un statement
-            ResultSet rs = stmt.executeQuery("SELECT id_produit, nom FROM produit ORDER BY nom"); // Requête pour récupérer tous les produits
-            javafx.collections.ObservableList<String> items = FXCollections.observableArrayList(); // Liste observable pour le ComboBox
-            while (rs.next()) { // Parcourir les résultats
-                items.add(rs.getInt("id_produit") + " - " + rs.getString("nom")); // Ajouter chaque produit (format "ID - Nom")
+    /** Charge les produits hors du thread JavaFX pour éviter les gelées de la navbar / fenêtre. */
+    private void loadProduitsAsync() {
+        Thread worker = new Thread(() -> {
+            java.util.List<String> rows = new java.util.ArrayList<>();
+            try {
+                Connection conn = DatabaseUtil.getInstance().getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery("SELECT id_produit, nom FROM produit ORDER BY nom");
+                while (rs.next()) {
+                    rows.add(rs.getInt("id_produit") + " - " + rs.getString("nom"));
+                }
+                rs.close();
+                stmt.close();
+                javafx.application.Platform.runLater(() ->
+                        produitCombo.setItems(FXCollections.observableArrayList(rows)));
+            } catch (SQLException e) {
+                System.out.println("Erreur chargement produits: " + e.getMessage());
             }
-            produitCombo.setItems(items); // Remplir le ComboBox
-            rs.close(); // Fermer le ResultSet
-            stmt.close(); // Fermer le Statement
-        } catch (SQLException e) {
-            System.out.println("Erreur chargement produits: " + e.getMessage()); // Log de l'erreur
-        }
+        }, "load-produits");
+        worker.setDaemon(true);
+        worker.start();
     }
 
     // Recommandation IA : suggère les produits les plus prescrits pour des symptômes similaires
@@ -1033,6 +1036,48 @@ public class TraitementController {
         return btn;
     }
 
+    private javafx.scene.Node navAnchor() {
+        return nomPrenomField != null ? nomPrenomField : profileContainer;
+    }
+
+    @FXML
+    private void handleNavProduits() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+    }
+
+    @FXML
+    private void handleNavCommandes() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+    }
+
+    @FXML
+    private void handleNavGuide() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/GuideSante.fxml");
+    }
+
+    @FXML
+    private void handleNavContact() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/ContactPage.fxml");
+    }
+
+    @FXML
+    private void handleNavAbout() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/APropos.fxml");
+    }
+
+    @FXML
+    private void handleNavbarSearch() {
+        if (produitCombo != null) {
+            produitCombo.requestFocus();
+        }
+    }
+
+    @FXML
+    private void goToMessagesPage() {
+        closeProfileDropdown();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/MessagesPage.fxml");
+    }
+
     // Annuler et retourner à l'accueil
     @FXML
     private void handleCancel() {
@@ -1042,15 +1087,7 @@ public class TraitementController {
     // Navigation vers la page d'accueil
     @FXML
     private void goToAccueil() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) nomPrenomField.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) { e.printStackTrace(); }
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
     }
 
     // Déjà sur la page traitement
@@ -1062,29 +1099,13 @@ public class TraitementController {
     // Navigation vers la page "Mes Ordonnances"
     @FXML
     private void goToMesOrdonnances() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MesOrdonnances.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) nomPrenomField.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) { e.printStackTrace(); }
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/MesOrdonnances.fxml");
     }
 
     // Navigation vers la page de création d'ordonnance
     @FXML
     private void goToCreerOrdonnance() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Ordonnance.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) nomPrenomField.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) { e.printStackTrace(); }
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Ordonnance.fxml");
     }
 
     // Navigation vers la page ordonnance avec passage de paramètres (traitement + ordonnance)
@@ -1096,7 +1117,10 @@ public class TraitementController {
             controller.setTraitementId(traitementId);
             controller.setOrdonnanceId(ordonnanceId, numeroOrdonnance);
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            URL cssUrl = SceneNavigation.class.getResource(SceneNavigation.STYLESHEET_PATH);
+            if (cssUrl != null) {
+                scene.getStylesheets().add(cssUrl.toExternalForm());
+            }
             Stage stage = (Stage) nomPrenomField.getScene().getWindow();
             stage.setScene(scene);
             stage.setFullScreen(true);
@@ -1106,38 +1130,45 @@ public class TraitementController {
     // Navigation vers la page Profil
     @FXML
     private void goToProfil() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Profil.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) nomPrenomField.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) { e.printStackTrace(); }
+        closeProfileDropdown();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Profil.fxml");
+    }
+
+    private void closeProfileDropdown() {
+        if (profileDropdown != null) {
+            profileDropdown.setVisible(false);
+            profileDropdown.setManaged(false);
+        }
     }
 
     // Toggle dropdown profil navbar
     @FXML
     private void toggleProfileDropdown() {
         if (profileDropdown != null) {
-            boolean visible = profileDropdown.isVisible();
-            profileDropdown.setVisible(!visible);
-            profileDropdown.setManaged(!visible);
+            boolean next = !profileDropdown.isVisible();
+            profileDropdown.setVisible(next);
+            profileDropdown.setManaged(next);
+            if (next) {
+                profileDropdown.toFront();
+                javafx.scene.Node parent = profileDropdown.getParent();
+                if (parent != null) {
+                    parent.toFront();
+                }
+            }
         }
+    }
+
+    @FXML
+    private void goToDashboard() {
+        closeProfileDropdown();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Dashboard.fxml");
     }
 
     // Déconnexion
     @FXML
     private void logout() {
-        try {
-            userService.logout();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) nomPrenomField.getScene().getWindow();
-            stage.setScene(scene);
-        } catch (IOException e) { e.printStackTrace(); }
+        closeProfileDropdown();
+        userService.logout();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Login.fxml");
     }
 }

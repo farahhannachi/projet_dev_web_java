@@ -1,28 +1,27 @@
 package org.example.controller;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.stage.Stage;
 import org.example.model.User;
 import org.example.service.UserService;
 import org.example.util.DatabaseUtil;
 import org.example.util.QRCodeService;
+import org.example.util.NavbarOrdonnanceMenu;
+import org.example.util.SceneNavigation;
 
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MesOrdonnancesController {
 
-    @FXML private Button profileButton;
     @FXML private javafx.scene.layout.HBox profileContainer;
     @FXML private javafx.scene.shape.Circle navbarAvatarCircle;
     @FXML private javafx.scene.control.Label navbarUsername;
@@ -30,9 +29,8 @@ public class MesOrdonnancesController {
     @FXML private Button triButton;
     @FXML private TextField searchField;
     @FXML private VBox cardsContainer;
-    @FXML private StackPane ordonnanceMenuContainer;
-    @FXML private VBox ordonnanceDropdown;
     @FXML private VBox profileDropdown;
+    @FXML private Button dashboardMenuItem;
     @FXML private javafx.scene.chart.PieChart statPieChart;
     @FXML private VBox statsContainer;
     @FXML private Button statsToggleBtn;
@@ -40,6 +38,8 @@ public class MesOrdonnancesController {
     private UserService userService = UserService.getInstance();
     private boolean triRecent = true;
     private String filtreStatut = null;
+    /** Incrémenté à chaque chargement pour ignorer les réponses SQL obsolètes (saisie recherche rapide). */
+    private final AtomicInteger ordonnancesLoadGeneration = new AtomicInteger();
 
     @FXML
     public void initialize() {
@@ -48,21 +48,23 @@ public class MesOrdonnancesController {
         // Search listener
         searchField.textProperty().addListener((obs, oldVal, newVal) -> loadOrdonnances(newVal.trim()));
 
-        // Ordonnance hover dropdown
-        if (ordonnanceMenuContainer != null && ordonnanceDropdown != null) {
-            ordonnanceMenuContainer.setOnMouseEntered(e -> { ordonnanceDropdown.setVisible(true); ordonnanceDropdown.setManaged(true); });
-            ordonnanceMenuContainer.setOnMouseExited(e -> { ordonnanceDropdown.setVisible(false); ordonnanceDropdown.setManaged(false); });
-        }
-
         // Charger le nom dans la navbar avatar
         User currentUser = userService.getCurrentUser();
         if (navbarUsername != null && currentUser != null) {
             String nom = currentUser.getNom() != null ? currentUser.getNom() : currentUser.getEmail();
             navbarUsername.setText(nom.split(" ")[0]);
         }
+        if (dashboardMenuItem != null) {
+            dashboardMenuItem.setVisible(userService.isAdmin());
+            dashboardMenuItem.setManaged(userService.isAdmin());
+        }
+        if (navbarAvatarCircle != null) {
+            navbarAvatarCircle.setStyle("-fx-fill: #1f6f54; -fx-stroke: white; -fx-stroke-width: 2;");
+        }
 
         // Vérification automatique des ordonnances qui expirent dans <= 7 jours
         javafx.application.Platform.runLater(this::verifierExpirationsProches);
+        NavbarOrdonnanceMenu.wirePopupStyle(profileContainer);
     }
 
     /**
@@ -71,41 +73,45 @@ public class MesOrdonnancesController {
      */
     private void verifierExpirationsProches() {
         User currentUser = userService.getCurrentUser();
-        if (currentUser == null) return;
-
-        List<String[]> expirantes = new ArrayList<>(); // [numero, date_expiration, jours_restants]
-
-        try {
-            Connection conn = DatabaseUtil.getInstance().getConnection();
-            PreparedStatement ps = conn.prepareStatement(
-                "SELECT numero_ordonnance, date_expiration, " +
-                "DATEDIFF(date_expiration, CURDATE()) AS jours_restants " +
-                "FROM ordonnance " +
-                "WHERE id_utilisateur_id = ? " +
-                "AND statut NOT IN ('expirée', 'brouillon') " +
-                "AND date_expiration IS NOT NULL " +
-                "AND DATEDIFF(date_expiration, CURDATE()) BETWEEN 0 AND 7 " +
-                "ORDER BY date_expiration ASC"
-            );
-            ps.setInt(1, currentUser.getId());
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                expirantes.add(new String[]{
-                    rs.getString("numero_ordonnance"),
-                    rs.getTimestamp("date_expiration").toLocalDateTime().toLocalDate().toString(),
-                    String.valueOf(rs.getInt("jours_restants"))
-                });
-            }
-            rs.close(); ps.close();
-        } catch (SQLException e) {
-            System.err.println("[Expiration] Erreur SQL : " + e.getMessage());
+        if (currentUser == null) {
             return;
         }
+        Thread worker = new Thread(() -> {
+            List<String[]> expirantes = fetchExpirantesProches(currentUser.getId());
+            if (!expirantes.isEmpty()) {
+                Platform.runLater(() -> showExpirationAlert(expirantes));
+            }
+        }, "ordo-expiry-check");
+        worker.setDaemon(true);
+        worker.start();
+    }
 
-        if (expirantes.isEmpty()) return;
-
-        // Construire et afficher la fenêtre d'alerte
-        showExpirationAlert(expirantes);
+    private List<String[]> fetchExpirantesProches(int userId) {
+        List<String[]> expirantes = new ArrayList<>();
+        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT numero_ordonnance, date_expiration, "
+                             + "DATEDIFF(date_expiration, CURDATE()) AS jours_restants "
+                             + "FROM ordonnance "
+                             + "WHERE id_utilisateur_id = ? "
+                             + "AND statut NOT IN ('expirée', 'brouillon') "
+                             + "AND date_expiration IS NOT NULL "
+                             + "AND DATEDIFF(date_expiration, CURDATE()) BETWEEN 0 AND 7 "
+                             + "ORDER BY date_expiration ASC")) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    expirantes.add(new String[]{
+                            rs.getString("numero_ordonnance"),
+                            rs.getTimestamp("date_expiration").toLocalDateTime().toLocalDate().toString(),
+                            String.valueOf(rs.getInt("jours_restants"))
+                    });
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[Expiration] Erreur SQL : " + e.getMessage());
+        }
+        return expirantes;
     }
 
     private void showExpirationAlert(List<String[]> expirantes) {
@@ -251,25 +257,62 @@ public class MesOrdonnancesController {
             return;
         }
 
+        Label loading = new Label("Chargement...");
+        loading.setStyle("-fx-font-size: 14; -fx-text-fill: #64748b;");
+        cardsContainer.getChildren().add(loading);
+
+        final boolean tri = triRecent;
+        final String filtre = filtreStatut;
+        final String searchFinal = search != null ? search : "";
+        final int generation = ordonnancesLoadGeneration.incrementAndGet();
+
+        Thread worker = new Thread(() -> {
+            try {
+                List<OrdSnap> data = fetchOrdonnanceSnapshots(searchFinal, currentUser, tri, filtre);
+                Platform.runLater(() -> {
+                    if (generation != ordonnancesLoadGeneration.get()) {
+                        return;
+                    }
+                    rebuildOrdonnanceCardsFromSnapshots(data);
+                });
+            } catch (SQLException e) {
+                Platform.runLater(() -> {
+                    if (generation != ordonnancesLoadGeneration.get()) {
+                        return;
+                    }
+                    cardsContainer.getChildren().clear();
+                    Label err = new Label("Erreur: " + e.getMessage());
+                    err.setStyle("-fx-text-fill: #E74C3C;");
+                    cardsContainer.getChildren().add(err);
+                });
+            }
+        }, "mes-ordonnances-load");
+        worker.setDaemon(true);
+        worker.start();
+    }
+
+    private List<OrdSnap> fetchOrdonnanceSnapshots(String search, User currentUser, boolean triRecent, String filtreStatut)
+            throws SQLException {
+        List<OrdSnap> ords = new ArrayList<>();
+        String sql = "SELECT o.id_ordonnance, o.numero_ordonnance, o.date_ordonnance, o.date_expiration, o.statut AS ord_statut, o.note_medical, "
+                + "t.id_traitement, t.dosage, t.frequence, t.repas, t.duree_jours, t.status AS trait_statut, t.date_debut, t.notes, "
+                + "p.nom AS produit_nom "
+                + "FROM ordonnance o "
+                + "LEFT JOIN traitement t ON t.id_ordonnance_id = o.id_ordonnance "
+                + "LEFT JOIN produit p ON t.id_produit_id = p.id_produit "
+                + "WHERE o.id_utilisateur_id = ? ";
+
+        if (!search.isEmpty()) {
+            sql += "AND (o.numero_ordonnance LIKE ? OR p.nom LIKE ? OR t.dosage LIKE ? OR o.statut LIKE ?) ";
+        }
+        if (filtreStatut != null) {
+            sql += "AND o.statut = ? ";
+        }
+        sql += "ORDER BY o.date_ordonnance " + (triRecent ? "DESC" : "ASC");
+
+        Connection conn = DatabaseUtil.getInstance().getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql);
         try {
-            Connection conn = DatabaseUtil.getInstance().getConnection();
-            String sql = "SELECT o.id_ordonnance, o.numero_ordonnance, o.date_ordonnance, o.date_expiration, o.statut AS ord_statut, o.note_medical, " +
-                    "t.id_traitement, t.dosage, t.frequence, t.repas, t.duree_jours, t.status AS trait_statut, t.date_debut, t.notes, " +
-                    "p.nom AS produit_nom " +
-                    "FROM ordonnance o " +
-                    "LEFT JOIN traitement t ON t.id_ordonnance_id = o.id_ordonnance " +
-                    "LEFT JOIN produit p ON t.id_produit_id = p.id_produit " +
-                    "WHERE o.id_utilisateur_id = ? ";
-
-            if (!search.isEmpty()) {
-                sql += "AND (o.numero_ordonnance LIKE ? OR p.nom LIKE ? OR t.dosage LIKE ? OR o.statut LIKE ?) ";
-            }
-            if (filtreStatut != null) {
-                sql += "AND o.statut = ? ";
-            }
-            sql += "ORDER BY o.date_ordonnance " + (triRecent ? "DESC" : "ASC");
-
-            PreparedStatement ps = conn.prepareStatement(sql);
             int paramIdx = 1;
             ps.setInt(paramIdx++, currentUser.getId());
             if (!search.isEmpty()) {
@@ -283,52 +326,58 @@ public class MesOrdonnancesController {
                 ps.setString(paramIdx++, filtreStatut);
             }
 
-            ResultSet rs = ps.executeQuery();
-            int lastOrdId = -1;
-            VBox currentCard = null;
-
-            while (rs.next()) {
-                int ordId = rs.getInt("id_ordonnance");
-
-                if (ordId != lastOrdId) {
-                    // New ordonnance card
-                    currentCard = createOrdonnanceCard(
-                            rs.getString("numero_ordonnance"),
-                            rs.getTimestamp("date_ordonnance"),
-                            rs.getTimestamp("date_expiration"),
-                            rs.getString("ord_statut"),
-                            rs.getString("note_medical")
-                    );
-                    cardsContainer.getChildren().add(currentCard);
-                    lastOrdId = ordId;
-                }
-
-                // Add traitement row if exists
-                if (rs.getInt("id_traitement") > 0 && currentCard != null) {
-                    HBox traitRow = createTraitementRow(
-                            rs.getString("produit_nom"),
-                            rs.getString("dosage"),
-                            rs.getString("frequence"),
-                            rs.getString("repas"),
-                            rs.getInt("duree_jours"),
-                            rs.getString("trait_statut")
-                    );
-                    currentCard.getChildren().add(traitRow);
+            try (ResultSet rs = ps.executeQuery()) {
+                OrdSnap current = null;
+                int lastOrdId = -1;
+                while (rs.next()) {
+                    int ordId = rs.getInt("id_ordonnance");
+                    if (ordId != lastOrdId) {
+                        current = new OrdSnap(
+                                rs.getString("numero_ordonnance"),
+                                rs.getTimestamp("date_ordonnance"),
+                                rs.getTimestamp("date_expiration"),
+                                rs.getString("ord_statut"),
+                                rs.getString("note_medical"));
+                        ords.add(current);
+                        lastOrdId = ordId;
+                    }
+                    if (rs.getInt("id_traitement") > 0 && current != null) {
+                        current.traits.add(new TraitSnap(
+                                rs.getString("produit_nom"),
+                                rs.getString("dosage"),
+                                rs.getString("frequence"),
+                                rs.getString("repas"),
+                                rs.getInt("duree_jours"),
+                                rs.getString("trait_statut")));
+                    }
                 }
             }
-            rs.close();
+        } finally {
             ps.close();
+        }
+        return ords;
+    }
 
-            if (cardsContainer.getChildren().isEmpty()) {
-                Label empty = new Label("Aucune ordonnance trouv\u00e9e.");
-                empty.setStyle("-fx-font-size: 14; -fx-text-fill: #888;");
-                cardsContainer.getChildren().add(empty);
+    private void rebuildOrdonnanceCardsFromSnapshots(List<OrdSnap> ords) {
+        cardsContainer.getChildren().clear();
+        if (ords.isEmpty()) {
+            Label empty = new Label("Aucune ordonnance trouv\u00e9e.");
+            empty.setStyle("-fx-font-size: 14; -fx-text-fill: #888;");
+            cardsContainer.getChildren().add(empty);
+            return;
+        }
+        for (OrdSnap o : ords) {
+            VBox card = createOrdonnanceCard(o.numero, o.dateOrd, o.dateExp, o.ordStatut, o.note);
+            for (TraitSnap t : o.traits) {
+                card.getChildren().add(createTraitementRow(
+                        t.produitNom,
+                        t.dosage,
+                        t.frequence,
+                        t.repas,
+                        t.dureeJours,
+                        t.traitStatut));
             }
-
-        } catch (SQLException e) {
-            Label err = new Label("Erreur: " + e.getMessage());
-            err.setStyle("-fx-text-fill: #E74C3C;");
-            cardsContainer.getChildren().add(err);
+            cardsContainer.getChildren().add(card);
         }
     }
 
@@ -1106,58 +1155,91 @@ public class MesOrdonnancesController {
         return line;
     }
 
+    private void closeProfileDropdown() {
+        if (profileDropdown != null) {
+            profileDropdown.setVisible(false);
+            profileDropdown.setManaged(false);
+        }
+    }
+
     @FXML
     private void toggleProfileDropdown() {
         if (profileDropdown != null) {
-            boolean vis = profileDropdown.isVisible();
-            profileDropdown.setVisible(!vis);
-            profileDropdown.setManaged(!vis);
+            boolean next = !profileDropdown.isVisible();
+            profileDropdown.setVisible(next);
+            profileDropdown.setManaged(next);
+            if (next) {
+                profileDropdown.toFront();
+                javafx.scene.Node parent = profileDropdown.getParent();
+                if (parent != null) {
+                    parent.toFront();
+                }
+            }
         }
+    }
+
+    @FXML
+    private void goToDashboard() {
+        closeProfileDropdown();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Dashboard.fxml");
+    }
+
+    @FXML
+    private void logout() {
+        closeProfileDropdown();
+        handleLogout();
+    }
+
+    private javafx.scene.Node navAnchor() {
+        return cardsContainer != null ? cardsContainer : profileContainer;
+    }
+
+    @FXML
+    private void handleNavProduits() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+    }
+
+    @FXML
+    private void handleNavCommandes() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+    }
+
+    @FXML
+    private void handleNavGuide() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/GuideSante.fxml");
+    }
+
+    @FXML
+    private void handleNavContact() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/ContactPage.fxml");
+    }
+
+    @FXML
+    private void handleNavAbout() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/APropos.fxml");
+    }
+
+    @FXML
+    private void goToMessagesPage() {
+        closeProfileDropdown();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/MessagesPage.fxml");
     }
 
     @FXML
     private void handleLogout() {
-        try {
-            userService.logout();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) cardsContainer.getScene().getWindow();
-            stage.setScene(scene);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        closeProfileDropdown();
+        userService.logout();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Login.fxml");
     }
 
     @FXML
     private void goToAccueil() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) cardsContainer.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
     }
 
     @FXML
     private void goToTraitement() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Traitement.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) cardsContainer.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Traitement.fxml");
     }
 
     @FXML
@@ -1167,31 +1249,48 @@ public class MesOrdonnancesController {
 
     @FXML
     private void goToCreerOrdonnance() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Ordonnance.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) cardsContainer.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Ordonnance.fxml");
     }
 
     @FXML
     private void goToProfil() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Profil.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) cardsContainer.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            e.printStackTrace();
+        closeProfileDropdown();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Profil.fxml");
+    }
+
+    /** Données sérialisées depuis JDBC (thread arrière-plan) avant reconstruction des cartes sur le FX thread. */
+    private static final class TraitSnap {
+        final String produitNom;
+        final String dosage;
+        final String frequence;
+        final String repas;
+        final int dureeJours;
+        final String traitStatut;
+
+        TraitSnap(String produitNom, String dosage, String frequence, String repas, int dureeJours, String traitStatut) {
+            this.produitNom = produitNom;
+            this.dosage = dosage;
+            this.frequence = frequence;
+            this.repas = repas;
+            this.dureeJours = dureeJours;
+            this.traitStatut = traitStatut;
+        }
+    }
+
+    private static final class OrdSnap {
+        final String numero;
+        final Timestamp dateOrd;
+        final Timestamp dateExp;
+        final String ordStatut;
+        final String note;
+        final List<TraitSnap> traits = new ArrayList<>();
+
+        OrdSnap(String numero, Timestamp dateOrd, Timestamp dateExp, String ordStatut, String note) {
+            this.numero = numero;
+            this.dateOrd = dateOrd;
+            this.dateExp = dateExp;
+            this.ordStatut = ordStatut;
+            this.note = note;
         }
     }
 }

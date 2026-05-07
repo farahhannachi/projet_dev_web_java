@@ -13,6 +13,7 @@
                 <children>
                     <Label text="👥 Liste des Clients" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #1f6f54;"/>
                     <Pane HBox.hgrow="ALWAYS"/>
+                    <Button text="Contact" onAction="#goToContactSupport" style="-fx-padding: 10 20; -fx-background-color: white; -fx-text-fill: #1f6f54; -fx-font-size: 12; -fx-cursor: hand; -fx-background-radius: 5; -fx-border-color: #1f6f54; -fx-border-radius: 5;"/>
                     <Button text="← Retour" onAction="#goBackToDashboard" style="-fx-padding: 10 20; -fx-background-color: #1f6f54; -fx-text-fill: white; -fx-font-size: 12; -fx-cursor: hand; -fx-background-radius: 5;"/>
                 </children>
             </HBox>

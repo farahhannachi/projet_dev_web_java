@@ -11,6 +11,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import org.example.service.UserService;
 import org.example.util.DatabaseUtil;
 
 import java.io.IOException;
@@ -21,6 +22,8 @@ import java.time.LocalDate;
 public class BackTraitementController {
 
     @FXML private VBox pageContainer; // Conteneur principal de la page (remplacé dynamiquement)
+
+    private final UserService userService = new UserService();
 
     @FXML
     public void initialize() {
@@ -65,11 +68,13 @@ public class BackTraitementController {
 
         TableView<ObservableList<String>> table = new TableView<>();
         table.getStyleClass().add("modern-table"); table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY); table.setMinHeight(400);
-        String[] hdrs = {"ID","Ordonnance","Patient","Produit","Dosage","Fr\u00e9quence","Dur\u00e9e (jours)","Date D\u00e9but","Date Fin","Statut","Actions"};
+        /* Index 0 = id_traitement (non affiché), nécessaire aux boutons — données affichées à partir de l'index 1 */
+        String[] hdrs = {"Ordonnance","Patient","Produit","Dosage","Fr\u00e9quence","Dur\u00e9e (jours)","Date D\u00e9but","Date Fin","Statut","Actions"};
         for (int i = 0; i < hdrs.length; i++) {
-            final int col = i;
+            final int dataCol = i + 1;
             TableColumn<ObservableList<String>, String> c = new TableColumn<>(hdrs[i]);
-            c.setCellValueFactory(p -> new javafx.beans.property.SimpleStringProperty(col < p.getValue().size() ? p.getValue().get(col) : ""));
+            c.setCellValueFactory(p -> new javafx.beans.property.SimpleStringProperty(
+                    dataCol < p.getValue().size() ? p.getValue().get(dataCol) : ""));
             // Largeur fixe pour la colonne Actions
             if (i == hdrs.length - 1) {
                 c.setMinWidth(310);
@@ -1282,9 +1287,19 @@ public class BackTraitementController {
     }
 
     @FXML private void goToDashboard() { nav("/fxml/Dashboard.fxml"); }
+
+    /** Retour au shell Dashboard avec la vue Support / Contact ouverte. */
+    @FXML private void goToContactSupport() {
+        DashboardController.requestOpenContactSection();
+        nav("/fxml/Dashboard.fxml");
+    }
+
     @FXML private void goToOrdonnances() { nav("/fxml/BackOrdonnance.fxml"); }
     @FXML private void goToClients() { nav("/fxml/UserManagement.fxml"); }
-    @FXML private void logout() { nav("/fxml/Login.fxml"); }
+    @FXML private void logout() {
+        userService.logout();
+        nav("/fxml/Login.fxml");
+    }
     private void nav(String fxml) {
         try {
             Parent root = FXMLLoader.load(getClass().getResource(fxml));

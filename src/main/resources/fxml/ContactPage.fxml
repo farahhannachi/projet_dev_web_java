@@ -3,60 +3,15 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.shape.SVGPath?>
-
+<?import javafx.scene.shape.Circle?>
 <StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.example.controller.ContactPageController" fx:id="rootContainer">
 
     <VBox styleClass="support-page-root">
 
-        <!-- Navbar (kept consistent with the rest of CuraVita) -->
-        <HBox styleClass="navbar-pill" alignment="CENTER">
-            <VBox.margin>
-                <Insets top="20" left="40" right="40" bottom="0"/>
-            </VBox.margin>
-
-            <Label text="CuraVita" styleClass="logo-text"/>
-            <Region HBox.hgrow="SOMETIMES"/>
-
-            <HBox styleClass="menu-container" alignment="CENTER">
-                <Button text="Accueil" styleClass="menu-item" onAction="#goHome"/>
-                <Button text="Produits" styleClass="menu-item"/>
-                <Button text="Commandes" styleClass="menu-item"/>
-                <Button text="Ordonnance" styleClass="menu-item"/>
-                <Button text="Traitement" styleClass="menu-item"/>
-                <Button text="Guide Santé" styleClass="menu-item"/>
-                <Button text="Contact" styleClass="menu-item"/>
-                <Button text="À propos" styleClass="menu-item"/>
-            </HBox>
-
-            <Region HBox.hgrow="SOMETIMES"/>
-
-            <StackPane>
-                <HBox styleClass="icon-container" alignment="CENTER">
-                    <Button text="&#128269;" styleClass="icon-button" onAction="#handleSearch"/>
-                    <Button fx:id="profileButton" text="&#128100;" styleClass="icon-button" onAction="#toggleProfileDropdown"/>
-                    <StackPane>
-                        <Button fx:id="messagesButton" text="" styleClass="icon-button" onAction="#handleMessages">
-                            <graphic>
-                                <SVGPath content="M12,22c1.1,0 2,-0.9 2,-2h-4c0,1.1 0.89,2 2,2zM18,16v-5c0,-3.07 -1.64,-5.64 -4.5,-6.32V4c0,-0.83 -0.67,-1.5 -1.5,-1.5s-1.5,0.67 -1.5,1.5v0.68C7.63,5.36 6,7.92 6,11v5l-2,2v1h16v-1l-2,-2z" fill="white" scaleX="0.8" scaleY="0.8"/>
-                            </graphic>
-                        </Button>
-                        <Label fx:id="messagesBadge" text="0" styleClass="message-badge" />
-                    </StackPane>
-                </HBox>
-
-                <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false">
-                    <VBox.margin>
-                        <Insets top="45" right="0" bottom="0" left="0"/>
-                    </VBox.margin>
-                    <Button text="Profil" styleClass="dropdown-item" onAction="#showProfile"/>
-                    <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
-                    <Button text="Logout" styleClass="dropdown-item" onAction="#logout"/>
-                </VBox>
-            </StackPane>
-        </HBox>
-
+        <StackPane VBox.vgrow="ALWAYS" maxWidth="Infinity" maxHeight="Infinity">
+            <VBox spacing="0" maxWidth="Infinity" maxHeight="Infinity">
+                <Region prefHeight="96" minHeight="96" maxHeight="96"/>
         <!-- Page content (scrollable like the screenshots) -->
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="support-scroll" VBox.vgrow="ALWAYS">
             <content>
@@ -152,6 +107,61 @@
                 </VBox>
             </content>
         </ScrollPane>
+            </VBox>
+
+            <VBox alignment="TOP_CENTER" pickOnBounds="false" maxWidth="Infinity" StackPane.alignment="TOP_CENTER">
+                <padding><Insets top="15" right="30" bottom="0" left="30"/></padding>
+                <HBox styleClass="navbar-pill" alignment="CENTER">
+                    <Label text="CuraVita" styleClass="logo-text"/>
+                    <Region HBox.hgrow="SOMETIMES"/>
+                    <HBox styleClass="menu-container" alignment="CENTER">
+                        <Button text="Accueil" styleClass="menu-item" onAction="#goHome"/>
+                        <Button text="Produits" styleClass="menu-item" onAction="#handleNavProduits"/>
+                        <Button text="Commandes" styleClass="menu-item" onAction="#handleNavCommandes"/>
+                        <Button text="Traitement" styleClass="menu-item" onAction="#handleNavTraitement"/>
+                        <MenuButton mnemonicParsing="false" text="Ordonnance" popupSide="BOTTOM" styleClass="nav-ordonnance-menubutton">
+                            <items>
+                                <MenuItem text="Cr&#233;er une ordonnance" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-create" onAction="#goToCreerOrdonnance"/>
+                                <SeparatorMenuItem styleClass="nav-ordonnance-sep"/>
+                                <MenuItem text="Mes ordonnances" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-list" onAction="#goToMesOrdonnances"/>
+                            </items>
+                        </MenuButton>
+                        <Button text="Guide Santé" styleClass="menu-item" onAction="#handleNavGuide"/>
+                        <Button text="Contact" styleClass="menu-item" onAction="#handleNavContact"/>
+                        <Button text="À propos" styleClass="menu-item" onAction="#handleNavAbout"/>
+                    </HBox>
+                    <Region HBox.hgrow="SOMETIMES"/>
+                    <HBox styleClass="navbar-right-section" alignment="CENTER" spacing="15">
+                        <Button text="&#128269;" styleClass="navbar-search-btn" onAction="#handleSearch"/>
+                        <StackPane styleClass="navbar-notif-wrap">
+                            <Button fx:id="messagesButton" text="&#128276;" styleClass="navbar-notif-btn" onAction="#handleMessages"/>
+                            <Label fx:id="messagesBadge" text="0" styleClass="message-badge-navbar" StackPane.alignment="TOP_RIGHT"/>
+                        </StackPane>
+                        <StackPane>
+                            <HBox fx:id="profileContainer" styleClass="navbar-profile-container"
+                                  alignment="CENTER" spacing="10" onMouseClicked="#toggleProfileDropdown">
+                                <StackPane styleClass="navbar-avatar-container">
+                                    <Circle fx:id="navbarAvatarCircle" radius="18" styleClass="navbar-avatar-circle"/>
+                                    <Label fx:id="navbarAvatarLabel" text="&#128100;" styleClass="navbar-avatar-emoji" alignment="CENTER"/>
+                                    <Circle radius="4" styleClass="online-dot" StackPane.alignment="BOTTOM_RIGHT"/>
+                                </StackPane>
+                                <Label fx:id="navbarUsername" text="Utilisateur" styleClass="navbar-username"/>
+                                <Label text="&#9660;" styleClass="navbar-dropdown-arrow"/>
+                            </HBox>
+                            <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false" StackPane.alignment="TOP_RIGHT">
+                                <VBox.margin>
+                                    <Insets top="52"/>
+                                </VBox.margin>
+                                <Button text="Mon Profil" styleClass="dropdown-item" onAction="#goToProfil"/>
+                                <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                                <Button text="D&#233;connexion" styleClass="dropdown-item" onAction="#logout"/>
+                            </VBox>
+                        </StackPane>
+                    </HBox>
+                </HBox>
+            </VBox>
+        </StackPane>
+
     </VBox>
 
     <StackPane fx:id="notificationsOverlay" visible="false" managed="false" styleClass="notification-overlay-dimmer">
@@ -162,6 +172,7 @@
                 <Label text="Notifications" styleClass="notification-popup-title" />
                 <Region HBox.hgrow="ALWAYS" />
                 <Label fx:id="popupUnreadBadge" text="0" styleClass="notification-popup-count" />
+                <Button text="Voir tout" styleClass="notification-close-btn" onAction="#goToMessagesPage" />
                 <Button fx:id="closeNotificationsButton" text="✕" styleClass="notification-close-btn" onAction="#closeNotificationsPopup" />
             </HBox>
 

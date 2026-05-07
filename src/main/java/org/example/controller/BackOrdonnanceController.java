@@ -11,6 +11,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import org.example.service.UserService;
 import org.example.util.DatabaseUtil;
 
 import java.io.IOException;
@@ -21,6 +22,8 @@ import java.time.LocalDate;
 public class BackOrdonnanceController {
 
     @FXML private VBox pageContainer; // Conteneur principal de la page (remplacé dynamiquement selon la vue)
+
+    private final UserService userService = new UserService();
 
     @FXML
     public void initialize() {
@@ -66,11 +69,13 @@ public class BackOrdonnanceController {
         table.getStyleClass().add("modern-table");
         table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
         table.setMinHeight(400);
-        String[] hdrs = {"ID","Num\u00e9ro","Patient","Date Ordonnance","Date Expiration","Statut","Traitements","Signature","Actions"};
+        /* Index 0 de chaque ligne = id (non affiché), utilisé par Actions — colonnes visibles à partir de l'index 1 */
+        String[] hdrs = {"Num\u00e9ro","Patient","Date Ordonnance","Date Expiration","Statut","Traitements","Signature","Actions"};
         for (int i = 0; i < hdrs.length; i++) {
-            final int col = i;
+            final int dataCol = i + 1;
             TableColumn<ObservableList<String>, String> c = new TableColumn<>(hdrs[i]);
-            c.setCellValueFactory(p -> new javafx.beans.property.SimpleStringProperty(col < p.getValue().size() ? p.getValue().get(col) : ""));
+            c.setCellValueFactory(p -> new javafx.beans.property.SimpleStringProperty(
+                    dataCol < p.getValue().size() ? p.getValue().get(dataCol) : ""));
 
             // Rendu visuel de la colonne Signature
             if (i == hdrs.length - 2) { // colonne "Signature"
@@ -499,7 +504,11 @@ public class BackOrdonnanceController {
                             }
                             rsTel.close(); psTel.close();
                             String smsMsg = "Bonjour " + nomPatient + ", votre ordonnance " + numero + " a été validée. Vos traitements sont maintenant actifs. - CuraVita";
-                            org.example.util.SmsService.getInstance().send(telephone, smsMsg);
+                            if (telephone != null && !telephone.isBlank()) {
+                                org.example.service.SmsService.getInstance().send(telephone.trim(), smsMsg);
+                            } else {
+                                System.out.println("[SMS] Pas d'envoi : le patient (id=" + patientId + ") n'a pas de numéro de téléphone en base.");
+                            }
                         } catch (Exception smsEx) {
                             System.err.println("[SMS] Erreur récupération téléphone : " + smsEx.getMessage());
                         }
@@ -1002,9 +1011,19 @@ public class BackOrdonnanceController {
     }
 
     @FXML private void goToDashboard() { nav("/fxml/Dashboard.fxml"); }
+
+    /** Retour au shell Dashboard avec la vue Support / Contact ouverte. */
+    @FXML private void goToContactSupport() {
+        DashboardController.requestOpenContactSection();
+        nav("/fxml/Dashboard.fxml");
+    }
+
     @FXML private void goToTraitements() { nav("/fxml/BackTraitement.fxml"); }
     @FXML private void goToClients() { nav("/fxml/UserManagement.fxml"); }
-    @FXML private void logout() { nav("/fxml/Login.fxml"); }
+    @FXML private void logout() {
+        userService.logout();
+        nav("/fxml/Login.fxml");
+    }
     private void nav(String fxml) {
         try {
             Parent root = FXMLLoader.load(getClass().getResource(fxml));

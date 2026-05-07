@@ -189,7 +189,10 @@ public class ResetPasswordController {
             controller.initializeWithToken(token);
             
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(ResetPasswordController.class.getResource("/css/styles.css").toExternalForm());
+            java.net.URL cssUrl = org.example.util.SceneNavigation.class.getResource(org.example.util.SceneNavigation.STYLESHEET_PATH);
+            if (cssUrl != null) {
+                scene.getStylesheets().add(cssUrl.toExternalForm());
+            }
             
             Stage stage = (Stage) Stage.getWindows().get(0);
             stage.setScene(scene);
@@ -206,21 +209,8 @@ public class ResetPasswordController {
      */
     @FXML
     private void handleBackToSignIn() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-            Parent root = loader.load();
-            
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            
-            Stage stage = (Stage) emailInput.getScene().getWindow();
-            stage.setScene(scene);
-            
-            System.out.println("[RESET] Navigated back to Sign In");
-        } catch (IOException e) {
-            System.err.println("[ERROR] Failed to load Login page: " + e.getMessage());
-            e.printStackTrace();
-        }
+        org.example.util.SceneNavigation.replaceScene(emailInput, "/fxml/Login.fxml");
+        System.out.println("[RESET] Navigated back to Sign In");
     }
 }
 

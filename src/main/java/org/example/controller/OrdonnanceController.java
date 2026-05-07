@@ -1,18 +1,14 @@
 package org.example.controller; // Déclaration du package
 
 import javafx.fxml.FXML; // Annotation pour lier les éléments FXML
-import javafx.fxml.FXMLLoader; // Chargeur de fichiers FXML
-import javafx.scene.Parent; // Noeud racine de la scène
-import javafx.scene.Scene; // Scène JavaFX
 import javafx.scene.control.*; // Composants UI (Label, TextField, DatePicker, etc.)
-import javafx.scene.layout.StackPane; // Conteneur empilé
 import javafx.scene.layout.VBox; // Conteneur vertical
-import javafx.stage.Stage; // Fenêtre principale
 import org.example.model.User; // Modèle utilisateur
 import org.example.service.UserService; // Service de gestion des utilisateurs
-import org.example.util.DatabaseUtil; // Utilitaire de connexion à la base de données
+import org.example.util.DatabaseUtil;
+import org.example.util.NavbarOrdonnanceMenu; // Utilitaire de connexion à la base de données
+import org.example.util.SceneNavigation;
 
-import java.io.IOException; // Exception d'entrée/sortie
 import java.sql.*; // Classes JDBC (Connection, PreparedStatement, ResultSet, etc.)
 import java.time.LocalDate; // Date sans heure
 import java.time.LocalDateTime; // Date avec heure
@@ -29,12 +25,10 @@ public class OrdonnanceController {
     @FXML private Label errorLabel; // Label pour afficher les messages d'erreur
     @FXML private Button profileButton; // Bouton profil dans la navbar (ancien, gardé pour compatibilité)
     @FXML private Button submitButton; // Bouton de soumission (désactivé après clic pour anti double-clic)
-    @FXML private StackPane ordonnanceMenuContainer; // Conteneur du menu déroulant ordonnance
-    @FXML private VBox ordonnanceDropdown; // Menu déroulant ordonnance (créer / mes ordonnances)
-
     // Nouveaux éléments navbar avatar
     @FXML private javafx.scene.layout.HBox profileContainer;
     @FXML private VBox profileDropdown;
+    @FXML private Button dashboardMenuItem;
     @FXML private javafx.scene.shape.Circle navbarAvatarCircle;
     @FXML private Label navbarUsername;
     @FXML private Label navbarAvatarLabel;
@@ -73,26 +67,26 @@ public class OrdonnanceController {
         dateOrdonnanceField.setValue(LocalDate.now()); // Date ordonnance = aujourd'hui par défaut
         dateExpirationField.setValue(LocalDate.now().plusYears(1)); // Date expiration = dans 1 an par défaut
 
-        // Gestion du menu déroulant ordonnance au survol de la souris
-        if (ordonnanceMenuContainer != null && ordonnanceDropdown != null) {
-            ordonnanceMenuContainer.setOnMouseEntered(e -> { ordonnanceDropdown.setVisible(true); ordonnanceDropdown.setManaged(true); });
-            ordonnanceMenuContainer.setOnMouseExited(e -> { ordonnanceDropdown.setVisible(false); ordonnanceDropdown.setManaged(false); });
-        }
-
-        // Charger le nom dans la navbar avatar
         User currentUser = userService.getCurrentUser();
         if (navbarUsername != null && currentUser != null) {
             String nom = currentUser.getNom() != null ? currentUser.getNom() : currentUser.getEmail();
             navbarUsername.setText(nom.split(" ")[0]);
         }
+        if (dashboardMenuItem != null) {
+            dashboardMenuItem.setVisible(userService.isAdmin());
+            dashboardMenuItem.setManaged(userService.isAdmin());
+        }
+        if (navbarAvatarCircle != null) {
+            navbarAvatarCircle.setStyle("-fx-fill: #1f6f54; -fx-stroke: white; -fx-stroke-width: 2;");
+        }
+        /* Profil : FXML onMouseClicked="#toggleProfileDropdown" */
+        NavbarOrdonnanceMenu.wirePopupStyle(profileContainer);
+    }
 
-        // Toggle dropdown profil
-        if (profileContainer != null && profileDropdown != null) {
-            profileContainer.setOnMouseClicked(e -> {
-                boolean visible = profileDropdown.isVisible();
-                profileDropdown.setVisible(!visible);
-                profileDropdown.setManaged(!visible);
-            });
+    private void closeProfileDropdown() {
+        if (profileDropdown != null) {
+            profileDropdown.setVisible(false);
+            profileDropdown.setManaged(false);
         }
     }
 
@@ -414,46 +408,66 @@ public class OrdonnanceController {
         dialog.showAndWait();
     }
 
+    private javafx.scene.Node navAnchor() {
+        return numeroField != null ? numeroField : profileContainer;
+    }
+
+    @FXML
+    private void handleNavProduits() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+    }
+
+    @FXML
+    private void handleNavCommandes() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+    }
+
+    @FXML
+    private void handleNavGuide() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/GuideSante.fxml");
+    }
+
+    @FXML
+    private void handleNavContact() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/ContactPage.fxml");
+    }
+
+    @FXML
+    private void handleNavAbout() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/APropos.fxml");
+    }
+
+    @FXML
+    private void handleNavbarSearch() {
+        if (noteMedicalField != null) {
+            noteMedicalField.requestFocus();
+        } else if (numeroField != null) {
+            numeroField.requestFocus();
+        }
+    }
+
+    @FXML
+    private void goToMessagesPage() {
+        closeProfileDropdown();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/MessagesPage.fxml");
+    }
+
     // Navigation vers la page d'accueil
     @FXML
     private void goToAccueil() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) numeroField.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) { e.printStackTrace(); }
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
     }
 
     // Navigation vers la page de demande de traitement
     @FXML
     private void goToTraitement() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Traitement.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) numeroField.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) { e.printStackTrace(); }
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Traitement.fxml");
     }
 
     // Navigation vers la page "Mes Ordonnances"
     @FXML
     private void goToMesOrdonnances() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MesOrdonnances.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) numeroField.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) { e.printStackTrace(); }
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/MesOrdonnances.fxml");
     }
 
     // Action "Créer une ordonnance" dans le menu - déjà sur cette page
@@ -464,36 +478,36 @@ public class OrdonnanceController {
 
     @FXML
     private void goToProfil() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Profil.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) submitButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) { e.printStackTrace(); }
+        closeProfileDropdown();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Profil.fxml");
     }
 
     @FXML
     private void toggleProfileDropdown() {
         if (profileDropdown != null) {
-            boolean visible = profileDropdown.isVisible();
-            profileDropdown.setVisible(!visible);
-            profileDropdown.setManaged(!visible);
+            boolean next = !profileDropdown.isVisible();
+            profileDropdown.setVisible(next);
+            profileDropdown.setManaged(next);
+            if (next) {
+                profileDropdown.toFront();
+                javafx.scene.Node parent = profileDropdown.getParent();
+                if (parent != null) {
+                    parent.toFront();
+                }
+            }
         }
     }
 
     @FXML
+    private void goToDashboard() {
+        closeProfileDropdown();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Dashboard.fxml");
+    }
+
+    @FXML
     private void logout() {
-        try {
-            userService.logout();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) submitButton.getScene().getWindow();
-            stage.setScene(scene);
-        } catch (IOException e) { e.printStackTrace(); }
+        closeProfileDropdown();
+        userService.logout();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Login.fxml");
     }
 }

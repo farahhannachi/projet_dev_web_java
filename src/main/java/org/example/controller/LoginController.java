@@ -2,28 +2,34 @@ package org.example.controller;
 
 import javafx.animation.*;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
-import javafx.stage.Stage;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.example.model.User;
+import org.example.service.TwoFactorAuthService;
+import org.example.service.TwilioVerifyService;
 import org.example.service.UserService;
-
-import java.io.IOException;
+import org.example.util.SceneNavigation;
 
 public class LoginController {
     @FXML private TextField loginEmail;
     @FXML private PasswordField loginPassword;
     @FXML private Label loginError;
+    @FXML private VBox loginStepCredentials;
+    @FXML private VBox loginStepTotp;
+    @FXML private TextField loginTotpCode;
 
     @FXML private TextField signupName;
     @FXML private TextField signupEmail;
+    @FXML private TextField signupPhone;
     @FXML private PasswordField signupPassword;
+    @FXML private Button signupSendSmsButton;
+    @FXML private VBox signupOtpBox;
+    @FXML private TextField signupOtpCode;
     @FXML private Label signupError;
 
     @FXML private javafx.scene.layout.VBox signInPanel;
@@ -31,6 +37,14 @@ public class LoginController {
     @FXML private StackPane backgroundPane;
 
     private UserService userService = UserService.getInstance();
+    private final TwoFactorAuthService twoFactorAuthService = new TwoFactorAuthService();
+    private final TwilioVerifyService twilioVerifyService = TwilioVerifyService.getInstance();
+    /** Téléphone national normalisé (stocké DB) après envoi Verify réussi. */
+    private String signupPendingNationalPhone;
+    /** E.164 pour Twilio Verify (check). */
+    private String signupPendingE164;
+    /** Utilisateur authentifié par mot de passe en attente de validation TOTP ({@code currentUser} pas encore défini). */
+    private User pendingTotpUser;
     private boolean isSignInMode = true;
     private boolean isAnimating = false;
 
@@ -52,6 +66,268 @@ public class LoginController {
             signInPanel.setTranslateX(0);
             signInPanel.setOpacity(1);
         }
+        cancelTotpFlowSilent();
+        resetSignupVerificationUi();
+    }
+
+    private void resetSignupVerificationUi() {
+        signupPendingNationalPhone = null;
+        signupPendingE164 = null;
+        if (signupOtpBox != null) {
+            signupOtpBox.setVisible(false);
+            signupOtpBox.setManaged(false);
+        }
+        if (signupOtpCode != null) {
+            signupOtpCode.clear();
+        }
+        if (signupSendSmsButton != null) {
+            signupSendSmsButton.setDisable(false);
+        }
+    }
+
+    private boolean validateSignupFormBasics(String name, String email, String password, String phoneRaw) {
+        signupError.setText("");
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || phoneRaw.isBlank()) {
+            signupError.setText("❌ Tous les champs sont requis");
+            signupError.setStyle("-fx-text-fill: #E74C3C;");
+            return false;
+        }
+        String phone = UserService.normalizePhoneNumber(phoneRaw);
+        if (!UserService.isValidPhoneNumber(phone)) {
+            signupError.setText("❌ Numéro invalide : au moins 8 chiffres (ex: +216XXXXXXXX ou 98XXXXXX)");
+            signupError.setStyle("-fx-text-fill: #E74C3C;");
+            return false;
+        }
+        if (!email.matches("^[a-zA-Z0-9]+@gmail\\.com$")) {
+            signupError.setText("❌ Invalid email format (use: name@gmail.com or mundo36@gmail.com)");
+            signupError.setStyle("-fx-text-fill: #E74C3C;");
+            return false;
+        }
+        return true;
+    }
+
+    @FXML
+    private void handleSignupSendCode() {
+        if (isAnimating) {
+            return;
+        }
+
+        String name = signupName.getText().trim();
+        String email = signupEmail.getText().trim();
+        String password = signupPassword.getText();
+        String phoneRaw = signupPhone != null ? signupPhone.getText() : "";
+
+        if (!validateSignupFormBasics(name, email, password, phoneRaw)) {
+            return;
+        }
+
+        if (!twilioVerifyService.isConfigured()) {
+            signupError.setText("❌ Vérification SMS indisponible : configurez TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN "
+                    + "et TWILIO_VERIFY_SERVICE_SID (Console Twilio → Verify → Service SID). "
+                    + "En développement : TWILIO_VERIFY_SKIP=true pour simuler sans SMS.");
+            signupError.setStyle("-fx-text-fill: #E74C3C;");
+            return;
+        }
+
+        if (userService.isEmailTaken(email)) {
+            signupError.setText("❌ Cet email est déjà utilisé");
+            signupError.setStyle("-fx-text-fill: #E74C3C;");
+            return;
+        }
+
+        String national = UserService.normalizePhoneNumber(phoneRaw);
+        String e164 = TwilioVerifyService.toE164(national);
+        if (!e164.startsWith("+") || e164.length() < 10) {
+            signupError.setText("❌ Numéro international invalide pour SMS");
+            signupError.setStyle("-fx-text-fill: #E74C3C;");
+            return;
+        }
+
+        signupError.setText("");
+        if (signupSendSmsButton != null) {
+            signupSendSmsButton.setDisable(true);
+        }
+
+        Thread worker = new Thread(() -> {
+            TwilioVerifyService.VerifySendResult result = twilioVerifyService.sendSmsVerification(e164);
+            javafx.application.Platform.runLater(() -> {
+                if (signupSendSmsButton != null) {
+                    signupSendSmsButton.setDisable(false);
+                }
+                if (result.success()) {
+                    signupPendingNationalPhone = national;
+                    signupPendingE164 = e164;
+                    if (signupOtpBox != null) {
+                        signupOtpBox.setVisible(true);
+                        signupOtpBox.setManaged(true);
+                    }
+                    if (signupOtpCode != null) {
+                        signupOtpCode.clear();
+                        signupOtpCode.requestFocus();
+                    }
+                    String hint = twilioVerifyService.isSkipMode()
+                            ? " (mode sans SMS : tout code à 6 chiffres est accepté)"
+                            : "";
+                    signupError.setText("✅ Code envoyé. Vérifiez vos SMS." + hint);
+                    signupError.setStyle("-fx-text-fill: #1f6f5c;");
+                } else {
+                    signupPendingNationalPhone = null;
+                    signupPendingE164 = null;
+                    signupError.setText("❌ " + (result.message().isBlank() ? "Envoi SMS impossible" : result.message()));
+                    signupError.setStyle("-fx-text-fill: #E74C3C;");
+                }
+            });
+        }, "twilio-verify-send");
+        worker.setDaemon(true);
+        worker.start();
+    }
+
+    @FXML
+    private void handleSignupConfirm() {
+        if (isAnimating) {
+            return;
+        }
+
+        String name = signupName.getText().trim();
+        String email = signupEmail.getText().trim();
+        String password = signupPassword.getText();
+        String phoneRaw = signupPhone != null ? signupPhone.getText() : "";
+
+        if (!validateSignupFormBasics(name, email, password, phoneRaw)) {
+            return;
+        }
+
+        if (signupPendingE164 == null || signupPendingNationalPhone == null) {
+            signupError.setText("❌ Envoyez d’abord le code SMS avec « Envoyer le code SMS »");
+            signupError.setStyle("-fx-text-fill: #E74C3C;");
+            return;
+        }
+
+        String nationalCurrent = UserService.normalizePhoneNumber(phoneRaw);
+        if (!nationalCurrent.equals(signupPendingNationalPhone)) {
+            signupError.setText("❌ Le numéro a changé après l’envoi du SMS. Renvoyez le code.");
+            signupError.setStyle("-fx-text-fill: #E74C3C;");
+            resetSignupVerificationUi();
+            return;
+        }
+
+        String otp = signupOtpCode != null ? signupOtpCode.getText().trim() : "";
+        if (!otp.matches("\\d{6}")) {
+            signupError.setText("❌ Entrez le code à 6 chiffres reçu par SMS");
+            signupError.setStyle("-fx-text-fill: #E74C3C;");
+            return;
+        }
+
+        signupError.setText("");
+        Thread worker = new Thread(() -> {
+            boolean ok = twilioVerifyService.checkVerificationCode(signupPendingE164, otp);
+            javafx.application.Platform.runLater(() -> {
+                if (!ok) {
+                    signupError.setText("❌ Code incorrect ou expiré. Renvoyez un nouveau SMS si besoin.");
+                    signupError.setStyle("-fx-text-fill: #E74C3C;");
+                    return;
+                }
+                if (userService.isEmailTaken(email)) {
+                    signupError.setText("❌ Cet email est déjà utilisé");
+                    signupError.setStyle("-fx-text-fill: #E74C3C;");
+                    resetSignupVerificationUi();
+                    return;
+                }
+                if (userService.signup(email, password, name, signupPendingNationalPhone)) {
+                    User newUser = userService.getCurrentUser();
+                    resetSignupVerificationUi();
+                    goToNextPage(newUser);
+                } else {
+                    signupError.setText("❌ Erreur lors de la création du compte");
+                    signupError.setStyle("-fx-text-fill: #E74C3C;");
+                }
+            });
+        }, "twilio-verify-check");
+        worker.setDaemon(true);
+        worker.start();
+    }
+
+    private boolean requiresTotpChallenge(User user) {
+        return user != null
+                && user.isTotpEnabled()
+                && user.getTotpSecret() != null
+                && !user.getTotpSecret().isBlank();
+    }
+
+    private void showTotpChallenge() {
+        if (loginStepCredentials != null) {
+            loginStepCredentials.setVisible(false);
+            loginStepCredentials.setManaged(false);
+        }
+        if (loginStepTotp != null) {
+            loginStepTotp.setVisible(true);
+            loginStepTotp.setManaged(true);
+        }
+        if (loginTotpCode != null) {
+            loginTotpCode.clear();
+        }
+        loginError.setText("");
+        javafx.application.Platform.runLater(() -> {
+            if (loginTotpCode != null) {
+                loginTotpCode.requestFocus();
+            }
+        });
+    }
+
+    private void cancelTotpFlowSilent() {
+        pendingTotpUser = null;
+        if (loginStepTotp != null) {
+            loginStepTotp.setVisible(false);
+            loginStepTotp.setManaged(false);
+        }
+        if (loginStepCredentials != null) {
+            loginStepCredentials.setVisible(true);
+            loginStepCredentials.setManaged(true);
+        }
+        if (loginTotpCode != null) {
+            loginTotpCode.clear();
+        }
+    }
+
+    @FXML
+    private void handleTotpVerify() {
+        if (pendingTotpUser == null) {
+            cancelTotpFlowSilent();
+            return;
+        }
+        String code = loginTotpCode != null ? loginTotpCode.getText().trim() : "";
+        if (!code.matches("\\d{6}")) {
+            loginError.setText("❌ Entrez un code à 6 chiffres");
+            loginError.setStyle("-fx-text-fill: #E74C3C;");
+            return;
+        }
+        if (!twoFactorAuthService.verifyCode(pendingTotpUser.getTotpSecret(), code)) {
+            loginError.setText("❌ Code incorrect ou expiré. Réessayez.");
+            loginError.setStyle("-fx-text-fill: #E74C3C;");
+            return;
+        }
+        loginError.setText("");
+        User user = pendingTotpUser;
+        pendingTotpUser = null;
+        userService.establishSessionAfterTotp(user);
+        if (loginStepTotp != null) {
+            loginStepTotp.setVisible(false);
+            loginStepTotp.setManaged(false);
+        }
+        if (loginStepCredentials != null) {
+            loginStepCredentials.setVisible(true);
+            loginStepCredentials.setManaged(true);
+        }
+        if (loginTotpCode != null) {
+            loginTotpCode.clear();
+        }
+        goToNextPage(user);
+    }
+
+    @FXML
+    private void handleTotpCancel() {
+        loginError.setText("");
+        cancelTotpFlowSilent();
     }
     
     private void startBackgroundAnimation() {
@@ -134,10 +410,11 @@ public class LoginController {
 
         User user = userService.login(email, password);
         if (user != null) {
-            try {
+            if (requiresTotpChallenge(user)) {
+                pendingTotpUser = user;
+                showTotpChallenge();
+            } else {
                 goToNextPage(user);
-            } catch (IOException e) {
-                loginError.setText("❌ Error loading page");
             }
         } else {
             loginError.setText("❌ Invalid email or password");
@@ -146,45 +423,10 @@ public class LoginController {
     }
 
     @FXML
-    private void handleSignup() {
-        if (isAnimating) return;
-        
-        String name = signupName.getText().trim();
-        String email = signupEmail.getText().trim();
-        String password = signupPassword.getText();
-
-        signupError.setText("");
-
-        if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            signupError.setText("❌ All fields required");
-            signupError.setStyle("-fx-text-fill: #E74C3C;");
-            return;
-        }
-
-        // Allow emails with text and numbers before @gmail.com (e.g., mundo36@gmail.com)
-        if (!email.matches("^[a-zA-Z0-9]+@gmail\\.com$")) {
-            signupError.setText("❌ Invalid email format (use: name@gmail.com or mundo36@gmail.com)");
-            signupError.setStyle("-fx-text-fill: #E74C3C;");
-            return;
-        }
-
-        if (userService.signup(email, password, name)) {
-            try {
-                User newUser = userService.getCurrentUser();
-                goToNextPage(newUser);
-            } catch (IOException e) {
-                signupError.setText("❌ Error loading page");
-                signupError.setStyle("-fx-text-fill: #E74C3C;");
-            }
-        } else {
-            signupError.setText("❌ Email already exists or invalid format");
-            signupError.setStyle("-fx-text-fill: #E74C3C;");
-        }
-    }
-
-    @FXML
     private void showSignUp() {
         if (!isSignInMode || isAnimating) return;
+        cancelTotpFlowSilent();
+        resetSignupVerificationUi();
         isAnimating = true;
         isSignInMode = false;
 
@@ -224,6 +466,7 @@ public class LoginController {
     @FXML
     private void showSignIn() {
         if (isSignInMode || isAnimating) return;
+        cancelTotpFlowSilent();
         isAnimating = true;
         isSignInMode = true;
 
@@ -255,48 +498,39 @@ public class LoginController {
         seq.setOnFinished(e -> {
             signUpPanel.setVisible(false);
             signUpPanel.setManaged(false);
+            resetSignupVerificationUi();
             isAnimating = false;
         });
         seq.play();
     }
 
-    private void goToNextPage(User user) throws IOException {
-        String fxmlFile;
-        
-        if (user.getType().equals("admin")) {
-            fxmlFile = "/fxml/Dashboard.fxml";
-        } else {
-            fxmlFile = "/fxml/Accueil.fxml";
-        }
-
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-
-            Stage stage = (Stage) loginEmail.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-            loginError.setText("❌ Error: " + e.getMessage());
+    private void goToNextPage(User user) {
+        if (user == null) {
+            loginError.setText("❌ Session invalide");
+            signupError.setText("❌ Session invalide");
             loginError.setStyle("-fx-text-fill: #E74C3C;");
+            signupError.setStyle("-fx-text-fill: #E74C3C;");
+            return;
         }
+        String fxmlFile = user.getType() != null && user.getType().equals("admin")
+                ? "/fxml/Dashboard.fxml"
+                : "/fxml/Accueil.fxml";
+        if (getClass().getResource(fxmlFile) == null) {
+            loginError.setText("❌ Error loading page");
+            signupError.setText("❌ Error loading page");
+            loginError.setStyle("-fx-text-fill: #E74C3C;");
+            signupError.setStyle("-fx-text-fill: #E74C3C;");
+            return;
+        }
+        SceneNavigation.replaceScene(loginEmail, fxmlFile);
     }
 
     @FXML
     private void handleForgotPassword() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ResetPassword.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) loginEmail.getScene().getWindow();
-            stage.setScene(scene);
-        } catch (Exception e) {
-            e.printStackTrace();
-            loginError.setText("❌ Erreur navigation : " + e.getMessage());
+        if (getClass().getResource("/fxml/ResetPassword.fxml") == null) {
+            loginError.setText("❌ Erreur navigation : page introuvable");
+            return;
         }
+        SceneNavigation.replaceScene(loginEmail, "/fxml/ResetPassword.fxml");
     }
 }

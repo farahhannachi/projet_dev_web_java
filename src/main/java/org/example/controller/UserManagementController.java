@@ -6,20 +6,16 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.model.User;
 import org.example.service.UserService;
+import org.example.util.SceneNavigation;
 
-import java.io.IOException;
 import java.util.regex.Pattern;
 
 public class UserManagementController {
@@ -555,15 +551,13 @@ public class UserManagementController {
     }
 
     @FXML
+    private void goToContactSupport() {
+        DashboardController.requestOpenContactSection();
+        SceneNavigation.replaceScene(mainStack != null ? mainStack : userTable, "/fxml/Dashboard.fxml");
+    }
+
+    @FXML
     private void goBackToDashboard() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Dashboard.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) userTable.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) { e.printStackTrace(); }
+        SceneNavigation.replaceScene(userTable, "/fxml/Dashboard.fxml");
     }
 }

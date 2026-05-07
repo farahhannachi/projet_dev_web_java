@@ -359,17 +359,7 @@ public class ContactQuestionController {
     @FXML
     private void handleClose() {
         stopSpeechIfRunning();
-        try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
-            javafx.scene.Parent root = loader.load();
-            javafx.scene.Scene scene = new javafx.scene.Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) objetField.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        org.example.util.SceneNavigation.replaceScene(objetField, "/fxml/Accueil.fxml");
     }
 
     @FXML

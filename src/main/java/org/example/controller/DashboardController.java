@@ -1,17 +1,15 @@
 package org.example.controller;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import org.example.model.Client;
 import org.example.model.Commande;
-import org.example.model.Coupon;
 import org.example.model.Depot;
 import org.example.model.Produit;
 import org.example.model.Stock;
@@ -19,11 +17,22 @@ import org.example.service.ClientService;
 import org.example.service.ProduitService;
 import org.example.service.CommandeService;
 import org.example.service.StockService;
+import org.example.service.UserService;
+import org.example.util.SceneNavigation;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DashboardController {
+
+    /** Lorsque true, le premier {@link #initialize()} après chargement du Dashboard affiche la vue Contact / tickets. */
+    private static final AtomicBoolean OPEN_CONTACT_SECTION_ON_NEXT_LOAD = new AtomicBoolean(false);
+
+    /** Appelé depuis les autres écrans admin avant {@code replaceScene(..., "/fxml/Dashboard.fxml")}. */
+    public static void requestOpenContactSection() {
+        OPEN_CONTACT_SECTION_ON_NEXT_LOAD.set(true);
+    }
 
     @FXML private BorderPane mainPane;
     @FXML private VBox sidebar;
@@ -40,6 +49,7 @@ public class DashboardController {
     private ProduitService produitService = new ProduitService();
     private CommandeService commandeService = new CommandeService();
     private StockService stockService = new StockService();
+    private final UserService userService = new UserService();
     private javafx.scene.Node dashboardCenter;
 
     @FXML
@@ -47,6 +57,9 @@ public class DashboardController {
         dashboardCenter = mainPane.getCenter();
         addSampleData();
         loadStats();
+        if (OPEN_CONTACT_SECTION_ON_NEXT_LOAD.compareAndSet(true, false)) {
+            Platform.runLater(this::showResponseQuestions);
+        }
     }
 
     private void addSampleData() {
@@ -98,56 +111,66 @@ public class DashboardController {
     }
 
     @FXML
-    private void goToFrontOffice() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) frontOfficeBtn.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+    private void goToFrontOffice() {
+        SceneNavigation.replaceScene(frontOfficeBtn, "/fxml/Accueil.fxml");
     }
 
     @FXML
     private void showClients() {
-        // Switch to clients view
-        System.out.println("Show Clients");
+        loadCenterContent("/fxml/UserManagement.fxml");
     }
 
     @FXML
     private void showProduits() {
-        // Switch to products view
-        System.out.println("Show Produits");
+        setCenterPlaceholder("Produits", "Vue catalogue détaillée — bientôt disponible.");
     }
 
     @FXML
     private void showCommandes() {
-        // Switch to orders view
-        System.out.println("Show Commandes");
+        setCenterPlaceholder("Commandes", "Vue commandes — bientôt disponible.");
     }
 
     @FXML
     private void showPromotions() {
-        // Switch to promotions view
-        System.out.println("Show Promotions");
+        setCenterPlaceholder("Promotions", "Gestion des promotions — bientôt disponible.");
     }
 
     @FXML
     private void showCoupons() {
-        // Switch to coupons view
-        System.out.println("Show Coupons");
+        setCenterPlaceholder("Coupons", "Gestion des coupons — bientôt disponible.");
     }
 
     @FXML
     private void showDepots() {
-        // Switch to depots view
-        System.out.println("Show Depots");
+        setCenterPlaceholder("Dépôts", "Gestion des dépôts — bientôt disponible.");
     }
 
     @FXML
     private void showStocks() {
-        // Switch to stocks view
-        System.out.println("Show Stocks");
+        setCenterPlaceholder("Stocks", "Gestion des stocks — bientôt disponible.");
+    }
+
+    @FXML
+    private void showBackOrdonnances() {
+        switchRootScene("/fxml/BackOrdonnance.fxml");
+    }
+
+    @FXML
+    private void showBackTraitements() {
+        switchRootScene("/fxml/BackTraitement.fxml");
+    }
+
+    private void setCenterPlaceholder(String title, String subtitle) {
+        Label heading = new Label(title);
+        heading.setStyle("-fx-font-size: 22; -fx-font-weight: bold;");
+        Label detail = new Label(subtitle);
+        VBox box = new VBox(12, heading, detail);
+        box.setStyle("-fx-padding: 40;");
+        mainPane.setCenter(box);
+    }
+
+    private void switchRootScene(String fxmlPath) {
+        SceneNavigation.replaceScene(mainPane, fxmlPath);
     }
 
     @FXML
@@ -172,13 +195,8 @@ public class DashboardController {
     }
 
     @FXML
-    private void logout() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) mainPane.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+    private void logout() {
+        userService.logout();
+        SceneNavigation.replaceScene(mainPane, "/fxml/Login.fxml");
     }
 }

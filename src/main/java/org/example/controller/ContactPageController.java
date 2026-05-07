@@ -4,11 +4,9 @@ import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -21,6 +19,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.example.model.Question;
@@ -31,7 +30,9 @@ import org.example.service.QuestionService;
 import org.example.service.ResponseQuestionService;
 import org.example.service.UserService;
 import org.example.service.GroqAiService;
+import org.example.util.NavbarOrdonnanceMenu;
 import org.example.util.PdfExportUtil;
+import org.example.util.SceneNavigation;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +42,10 @@ import java.util.Optional;
 
 public class ContactPageController {
     @FXML private StackPane rootContainer;
-    @FXML private Button profileButton;
+    @FXML private HBox profileContainer;
+    @FXML private Label navbarUsername;
+    @FXML private Circle navbarAvatarCircle;
+    @FXML private Label navbarAvatarLabel;
     @FXML private VBox profileDropdown;
     @FXML private Button dashboardMenuItem;
     @FXML private Button messagesButton;
@@ -86,12 +90,21 @@ public class ContactPageController {
         }
         loadMyTickets();
         updateMessagesBadge();
+        User navUser = userService.getCurrentUser();
+        if (navbarUsername != null && navUser != null) {
+            String nom = navUser.getNom() != null ? navUser.getNom() : navUser.getEmail();
+            navbarUsername.setText(nom.split(" ")[0]);
+        }
+        if (navbarAvatarCircle != null) {
+            navbarAvatarCircle.setStyle("-fx-fill: #1f6f54; -fx-stroke: white; -fx-stroke-width: 2;");
+        }
         Platform.runLater(this::bindOutsideClickHandler);
         // Chatbot welcome
         Platform.runLater(() -> {
             addBotMessage("Bonjour ! \uD83D\uDC4B Je suis l'assistant CuraVita.\nComment puis-je vous aider ?");
             addSuggestionChips();
         });
+        NavbarOrdonnanceMenu.wirePopupStyle(rootContainer);
     }
 
     private void updateMessagesBadge() {
@@ -594,9 +607,16 @@ public class ContactPageController {
             notificationsOverlay.setVisible(false);
             notificationsOverlay.setManaged(false);
         }
-        boolean isVisible = profileDropdown.isVisible();
-        profileDropdown.setVisible(!isVisible);
-        profileDropdown.setManaged(!isVisible);
+        boolean next = !profileDropdown.isVisible();
+        profileDropdown.setVisible(next);
+        profileDropdown.setManaged(next);
+        if (next) {
+            profileDropdown.toFront();
+            javafx.scene.Node parent = profileDropdown.getParent();
+            if (parent != null) {
+                parent.toFront();
+            }
+        }
     }
 
     @FXML
@@ -634,53 +654,94 @@ public class ContactPageController {
 
     @FXML
     private void goHome() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) profileButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            showError("Navigation", "Impossible d'ouvrir la page d'accueil.");
-        }
+        SceneNavigation.replaceScene(rootContainer, "/fxml/Accueil.fxml");
     }
 
     @FXML
-    private void showProfile() {
+    private void goToProfil() {
         profileDropdown.setVisible(false);
         profileDropdown.setManaged(false);
+        switchScene("/fxml/Profil.fxml");
+    }
+
+    @FXML
+    private void handleNavProduits() {
+        switchScene("/fxml/Accueil.fxml");
+    }
+
+    @FXML
+    private void handleNavCommandes() {
+        switchScene("/fxml/Accueil.fxml");
+    }
+
+    @FXML
+    private void handleNavTraitement() {
+        switchScene("/fxml/Traitement.fxml");
+    }
+
+    @FXML
+    private void goToCreerOrdonnance() {
+        switchScene("/fxml/Ordonnance.fxml");
+    }
+
+    @FXML
+    private void goToMesOrdonnances() {
+        switchScene("/fxml/MesOrdonnances.fxml");
+    }
+
+    @FXML
+    private void handleNavGuide() {
+        switchScene("/fxml/GuideSante.fxml");
+    }
+
+    @FXML
+    private void handleNavAbout() {
+        switchScene("/fxml/APropos.fxml");
+    }
+
+    @FXML
+    private void handleNavContact() {
+        // Déjà sur la page contact / support
+    }
+
+    @FXML
+    private void goToMessagesPage() {
+        if (notificationsOverlay != null) {
+            notificationsOverlay.setVisible(false);
+            notificationsOverlay.setManaged(false);
+        }
+        if (profileDropdown != null) {
+            profileDropdown.setVisible(false);
+            profileDropdown.setManaged(false);
+        }
+        switchScene("/fxml/MessagesPage.fxml");
+    }
+
+    private void switchScene(String fxmlPath) {
+        if (getClass().getResource(fxmlPath) == null) {
+            showError("Navigation", "Page introuvable : " + fxmlPath);
+            return;
+        }
+        SceneNavigation.replaceScene(rootContainer, fxmlPath);
     }
 
     @FXML
     private void goToDashboard() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Dashboard.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) profileButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            showError("Navigation", "Impossible d'ouvrir le dashboard.");
+        if (profileDropdown != null) {
+            profileDropdown.setVisible(false);
+            profileDropdown.setManaged(false);
         }
+        SceneNavigation.replaceScene(rootContainer, "/fxml/Dashboard.fxml");
     }
 
     @FXML
     private void logout() {
-        try {
-            userService.logout();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) profileButton.getScene().getWindow();
-            stage.setScene(scene);
-        } catch (IOException e) {
-            showError("Navigation", "Impossible de se deconnecter.");
+        if (profileDropdown != null) {
+            profileDropdown.setVisible(false);
+            profileDropdown.setManaged(false);
         }
+        userService.logout();
+        SceneNavigation.replaceScene(rootContainer, "/fxml/Login.fxml");
     }
 
     /* =========================

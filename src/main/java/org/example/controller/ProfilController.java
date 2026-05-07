@@ -1,21 +1,18 @@
 package org.example.controller;
 
-import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
+import javafx.animation.ScaleTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.PauseTransition;
-import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.Node;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -27,7 +24,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.model.Avatar;
 import org.example.model.User;
@@ -35,9 +31,10 @@ import org.example.config.AIConfig;
 import org.example.service.OpenRouterService;
 import org.example.service.TwoFactorAuthService;
 import org.example.service.UserService;
+import org.example.util.NavbarOrdonnanceMenu;
+import org.example.util.SceneNavigation;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.regex.Pattern;
 import javafx.concurrent.Task;
 
@@ -92,11 +89,9 @@ public class ProfilController {
 
     @FXML private HBox profileContainer;
     @FXML private VBox profileDropdown;
+    @FXML private Button dashboardMenuItem;
     @FXML private Circle navbarAvatarCircle;
     @FXML private Label navbarUsername;
-    @FXML private StackPane ordonnanceMenuContainer;
-    @FXML private VBox ordonnanceDropdownNav;
-
     @FXML private Button styleCartoon;
     @FXML private Button styleNeutral;
     @FXML private Button stylePixel;
@@ -126,6 +121,11 @@ public class ProfilController {
         currentUser = userService.getCurrentUser();
         configureAvatarViews();
 
+        if (dashboardMenuItem != null) {
+            dashboardMenuItem.setVisible(userService.isAdmin());
+            dashboardMenuItem.setManaged(userService.isAdmin());
+        }
+
         if (currentUser != null) {
             loadProfileData();
             loadNavbarUserData();
@@ -142,28 +142,7 @@ public class ProfilController {
             fade.play();
         }
 
-        if (heroAvatarImage != null) {
-            ScaleTransition pulse = new ScaleTransition(Duration.seconds(1.6), heroAvatarImage);
-            pulse.setFromX(1);
-            pulse.setToX(1.025);
-            pulse.setFromY(1);
-            pulse.setToY(1.025);
-            pulse.setAutoReverse(true);
-            pulse.setCycleCount(Animation.INDEFINITE);
-            pulse.play();
-        }
-
-        // Hover dropdown Ordonnance
-        if (ordonnanceMenuContainer != null && ordonnanceDropdownNav != null) {
-            ordonnanceMenuContainer.setOnMouseEntered(e -> {
-                ordonnanceDropdownNav.setVisible(true);
-                ordonnanceDropdownNav.setManaged(true);
-            });
-            ordonnanceMenuContainer.setOnMouseExited(e -> {
-                ordonnanceDropdownNav.setVisible(false);
-                ordonnanceDropdownNav.setManaged(false);
-            });
-        }
+        NavbarOrdonnanceMenu.wirePopupStyle(mainStack);
     }
 
     private void configureAvatarViews() {
@@ -191,7 +170,7 @@ public class ProfilController {
 
         Circle clip = new Circle(radius, radius, radius);
         imageView.setClip(clip);
-        imageView.setPreserveRatio(false);
+        imageView.setPreserveRatio(true);
         imageView.setSmooth(true);
     }
 
@@ -204,7 +183,8 @@ public class ProfilController {
         String firstName = fullName.split(" ")[0];
         heroNameLabel.setText("My name is " + firstName + ".");
         heroEmailLabel.setText(safeText(currentUser.getEmail(), "email@curavita.com"));
-        heroRoleLabel.setText(currentUser.getType().equalsIgnoreCase("admin") ? "Pharmacy Administrator" : "Customer");
+        String role = currentUser.getType();
+        heroRoleLabel.setText(role != null && role.equalsIgnoreCase("admin") ? "Pharmacy Administrator" : "Customer");
 
         heroStatusBadge.getStyleClass().removeAll("active", "blocked");
         if (currentUser.isBlocked()) {
@@ -220,6 +200,9 @@ public class ProfilController {
 
     private void loadHeroBackground() {
         try {
+            if (heroBackgroundImage == null) {
+                return;
+            }
             Image bgImage = new Image(
                     "https://images.unsplash.com/photo-1576091160550-2173dba999f3?w=1600&h=420&fit=crop",
                     1600,
@@ -230,7 +213,9 @@ public class ProfilController {
             );
             heroBackgroundImage.setImage(bgImage);
         } catch (Exception exception) {
-            heroSection.setStyle("-fx-background-color: linear-gradient(to right, #1f6f54, #2f8f67);");
+            if (heroSection != null) {
+                heroSection.setStyle("-fx-background-color: linear-gradient(to right, #1f6f54, #2f8f67);");
+            }
         }
     }
 
@@ -344,7 +329,8 @@ public class ProfilController {
 
     private Image createAvatarImage(String avatarUrl) {
         try {
-            Image image = new Image(avatarUrl, 160, 160, false, true, true);
+            /* Résolution élevée pour éviter la pixélisation sur le hero (~148px) et HiDPI */
+            Image image = new Image(avatarUrl, 384, 384, true, true, true);
             return image.isError() ? null : image;
         } catch (Exception exception) {
             return null;
@@ -355,7 +341,7 @@ public class ProfilController {
         String seed = currentUser != null && currentUser.getNom() != null && !currentUser.getNom().isBlank()
                 ? currentUser.getNom().replace(" ", "+")
                 : "CuraVita";
-        return "https://api.dicebear.com/7.x/initials/png?seed=" + seed + "&backgroundColor=1f6f54&textColor=ffffff";
+        return "https://api.dicebear.com/7.x/initials/png?seed=" + seed + "&backgroundColor=1f6f54&textColor=ffffff&size=256";
     }
 
     private String safeText(String value, String fallback) {
@@ -853,19 +839,70 @@ public class ProfilController {
         fade.play();
     }
 
+    private Node navAnchor() {
+        return profileContainer != null ? profileContainer : mainStack;
+    }
+
+    private void navigateToFxml(String resourcePath) {
+        SceneNavigation.replaceScene(navAnchor(), resourcePath);
+    }
+
+    @FXML
+    private void handleNavbarSearch() {
+        if (assistantPanel == null || assistantInputField == null) {
+            return;
+        }
+        if (!assistantPanel.isVisible()) {
+            assistantPanel.setVisible(true);
+            assistantPanel.setManaged(true);
+            assistantPanel.setOpacity(1);
+            assistantPanel.setTranslateY(0);
+        }
+        javafx.application.Platform.runLater(() -> assistantInputField.requestFocus());
+    }
+
+    private void dismissProfileDropdownNow() {
+        if (profileDropdown != null) {
+            profileDropdown.setOpacity(1);
+            profileDropdown.setVisible(false);
+            profileDropdown.setManaged(false);
+        }
+    }
+
+    @FXML
+    private void goToMessagesPage() {
+        dismissProfileDropdownNow();
+        navigateToFxml("/fxml/MessagesPage.fxml");
+    }
+
+    @FXML
+    private void handleNavProduits() {
+        navigateToFxml("/fxml/Accueil.fxml");
+    }
+
+    @FXML
+    private void handleNavCommandes() {
+        navigateToFxml("/fxml/Accueil.fxml");
+    }
+
+    @FXML
+    private void handleNavGuide() {
+        navigateToFxml("/fxml/GuideSante.fxml");
+    }
+
+    @FXML
+    private void handleNavContact() {
+        navigateToFxml("/fxml/ContactPage.fxml");
+    }
+
+    @FXML
+    private void handleNavAbout() {
+        navigateToFxml("/fxml/APropos.fxml");
+    }
+
     @FXML
     private void goBack() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) mainStack.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        navigateToFxml("/fxml/Accueil.fxml");
     }
 
     @FXML
@@ -879,17 +916,8 @@ public class ProfilController {
 
     @FXML
     private void goToDashboard() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Dashboard.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) profileContainer.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        dismissProfileDropdownNow();
+        navigateToFxml("/fxml/Dashboard.fxml");
     }
 
     @FXML
@@ -912,6 +940,11 @@ public class ProfilController {
             profileDropdown.setVisible(true);
             profileDropdown.setManaged(true);
             profileDropdown.setOpacity(0);
+            profileDropdown.toFront();
+            Node parent = profileDropdown.getParent();
+            if (parent != null) {
+                parent.toFront();
+            }
 
             FadeTransition fade = new FadeTransition(Duration.millis(180), profileDropdown);
             fade.setFromValue(0);
@@ -936,61 +969,23 @@ public class ProfilController {
 
     @FXML
     private void logout() {
-        try {
-            userService.logout();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) profileContainer.getScene().getWindow();
-            stage.setScene(scene);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        dismissProfileDropdownNow();
+        userService.logout();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Login.fxml");
     }
 
     @FXML
     private void goToTraitement() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Traitement.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) profileContainer.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        navigateToFxml("/fxml/Traitement.fxml");
     }
 
     @FXML
     private void goToCreerOrdonnance() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Ordonnance.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) profileContainer.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        navigateToFxml("/fxml/Ordonnance.fxml");
     }
 
     @FXML
     private void goToMesOrdonnances() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MesOrdonnances.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) profileContainer.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        navigateToFxml("/fxml/MesOrdonnances.fxml");
     }
 }

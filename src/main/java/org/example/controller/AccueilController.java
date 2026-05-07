@@ -4,10 +4,8 @@ import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Dialog;
@@ -19,19 +17,22 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.input.MouseEvent;
-import javafx.stage.Stage;
+import javafx.scene.shape.Circle;
 import org.example.model.ResponseQuestion;
 import org.example.service.UserService;
+import org.example.util.NavbarOrdonnanceMenu;
+import org.example.util.SceneNavigation;
 
-import java.io.IOException;
-import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class AccueilController {
 
     @FXML private StackPane rootContainer;
-    @FXML private Button profileButton;
+    @FXML private HBox profileContainer;
+    @FXML private Label navbarUsername;
+    @FXML private Circle navbarAvatarCircle;
+    @FXML private Label navbarAvatarLabel;
     @FXML private VBox profileDropdown;
     @FXML private Button dashboardMenuItem;
     @FXML private Button messagesButton;
@@ -64,7 +65,16 @@ public class AccueilController {
             messagesButton.setManaged(true);
         }
         updateMessagesBadge();
+        org.example.model.User navUser = userService.getCurrentUser();
+        if (navbarUsername != null && navUser != null) {
+            String nom = navUser.getNom() != null ? navUser.getNom() : navUser.getEmail();
+            navbarUsername.setText(nom.split(" ")[0]);
+        }
+        if (navbarAvatarCircle != null) {
+            navbarAvatarCircle.setStyle("-fx-fill: #1f6f54; -fx-stroke: white; -fx-stroke-width: 2;");
+        }
         Platform.runLater(this::bindOutsideClickHandler);
+        NavbarOrdonnanceMenu.wirePopupStyle(rootContainer);
     }
 
     private void updateMessagesBadge() {
@@ -314,65 +324,112 @@ public class AccueilController {
             notificationsOverlay.setVisible(false);
             notificationsOverlay.setManaged(false);
         }
-        boolean isVisible = profileDropdown.isVisible();
-        profileDropdown.setVisible(!isVisible);
-        profileDropdown.setManaged(!isVisible);
+        boolean next = !profileDropdown.isVisible();
+        profileDropdown.setVisible(next);
+        profileDropdown.setManaged(next);
+        if (next) {
+            profileDropdown.toFront();
+            javafx.scene.Node parent = profileDropdown.getParent();
+            if (parent != null) {
+                parent.toFront();
+            }
+        }
     }
 
     @FXML
-    private void showProfile() {
-        System.out.println("Profile clicked");
-        // Hide dropdown
+    private void goToProfil() {
         profileDropdown.setVisible(false);
         profileDropdown.setManaged(false);
-    }
-
-
-    @FXML
-    private void goToDashboard() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Dashboard.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) profileButton.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+        switchScene("/fxml/Profil.fxml");
     }
 
     @FXML
-    private void logout() throws IOException {
+    private void handleNavAccueil() {
+        // Déjà sur l'accueil
+    }
+
+    @FXML
+    private void handleNavProduits() {
+        /* Déjà sur la vitrine produits / accueil */
+    }
+
+    @FXML
+    private void handleNavCommandes() {
+        /* Hub accueil : pas de page commandes client dédiée pour l’instant */
+    }
+
+    @FXML
+    private void handleNavOrdonnance() {
+        switchScene("/fxml/Ordonnance.fxml");
+    }
+
+    @FXML
+    private void handleNavMesOrdonnances() {
+        switchScene("/fxml/MesOrdonnances.fxml");
+    }
+
+    @FXML
+    private void handleNavTraitement() {
+        switchScene("/fxml/Traitement.fxml");
+    }
+
+    @FXML
+    private void handleNavGuide() {
+        switchScene("/fxml/GuideSante.fxml");
+    }
+
+    @FXML
+    private void handleNavAbout() {
+        switchScene("/fxml/APropos.fxml");
+    }
+
+    @FXML
+    private void goToMessagesPage() {
+        if (notificationsOverlay != null) {
+            notificationsOverlay.setVisible(false);
+            notificationsOverlay.setManaged(false);
+        }
+        if (profileDropdown != null) {
+            profileDropdown.setVisible(false);
+            profileDropdown.setManaged(false);
+        }
+        switchScene("/fxml/MessagesPage.fxml");
+    }
+
+    private void switchScene(String fxmlPath) {
+        if (getClass().getResource(fxmlPath) == null) {
+            showError("Navigation", "Page introuvable : " + fxmlPath);
+            return;
+        }
+        SceneNavigation.replaceScene(rootContainer, fxmlPath);
+    }
+
+    @FXML
+    private void goToDashboard() {
+        if (profileDropdown != null) {
+            profileDropdown.setVisible(false);
+            profileDropdown.setManaged(false);
+        }
+        SceneNavigation.replaceScene(rootContainer, "/fxml/Dashboard.fxml");
+    }
+
+    @FXML
+    private void logout() {
+        if (profileDropdown != null) {
+            profileDropdown.setVisible(false);
+            profileDropdown.setManaged(false);
+        }
         userService.logout();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) profileButton.getScene().getWindow();
-        stage.setScene(scene);
+        SceneNavigation.replaceScene(rootContainer, "/fxml/Login.fxml");
     }
 
     @FXML
     private void handleContact() {
-        try {
-            URL fxmlUrl = getClass().getResource("/fxml/ContactPage.fxml");
-            if (fxmlUrl == null) {
-                throw new IllegalStateException("FXML not found on classpath: /fxml/ContactPage.fxml");
-            }
-            System.out.println("Loading ContactPage.fxml from: " + fxmlUrl);
-
-            FXMLLoader loader = new FXMLLoader(fxmlUrl);
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            Stage stage = (Stage) profileButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Throwable c = e;
-            while ((c = c.getCause()) != null) {
-                System.err.println("Caused by: " + c);
-            }
+        if (getClass().getResource("/fxml/ContactPage.fxml") == null) {
+            showError("Navigation", "Page Contact introuvable.");
+            return;
         }
+        SceneNavigation.replaceScene(rootContainer, "/fxml/ContactPage.fxml");
     }
 
     @FXML

@@ -27,11 +27,34 @@ public class DatabaseUtil {
     }
 
     /**
-     * Get database connection
+     * Get database connection (static method for convenience)
      */
-    public Connection getConnection() throws SQLException {
+    public static Connection getConnection() throws SQLException {
+        return getInstance().getConnectionInstance();
+    }
+
+    /**
+     * Get database connection (instance method)
+     */
+    public Connection getConnectionInstance() throws SQLException {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
+
+            if (connection != null && !connection.isClosed()) {
+                try {
+                    if (!connection.isValid(3)) {
+                        connection.close();
+                        connection = null;
+                    }
+                } catch (SQLException e) {
+                    try {
+                        connection.close();
+                    } catch (SQLException ignored) {
+                        /* ignore */
+                    }
+                    connection = null;
+                }
+            }
 
             if (connection == null || connection.isClosed()) {
                 connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);

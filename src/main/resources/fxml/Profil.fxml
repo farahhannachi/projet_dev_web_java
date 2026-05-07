@@ -13,64 +13,9 @@
            fx:id="mainStack" styleClass="profil-root">
 
     <VBox>
-        <HBox styleClass="navbar-pill" alignment="CENTER" minHeight="60">
-            <VBox.margin>
-                <Insets top="10" left="40" right="40" bottom="10"/>
-            </VBox.margin>
-
-            <Label text="CuraVita" styleClass="logo-text"/>
-            <Region HBox.hgrow="SOMETIMES"/>
-
-            <HBox styleClass="menu-container" alignment="CENTER" spacing="5">
-                <Button text="Accueil" styleClass="menu-item" onAction="#goToAccueil"/>
-                <Button text="Produits" styleClass="menu-item"/>
-                <Button text="Commandes" styleClass="menu-item"/>
-                <Button text="Traitement" styleClass="menu-item" onAction="#goToTraitement"/>
-                <StackPane fx:id="ordonnanceMenuContainer">
-                    <Button text="Ordonnance &#9662;" styleClass="menu-item"/>
-                    <VBox fx:id="ordonnanceDropdownNav" styleClass="nav-dropdown" visible="false" managed="false">
-                        <StackPane.margin>
-                            <Insets top="45"/>
-                        </StackPane.margin>
-                        <Button text="Créer une ordonnance" styleClass="dropdown-item" onAction="#goToCreerOrdonnance"/>
-                        <Button text="Mes ordonnances" styleClass="dropdown-item" onAction="#goToMesOrdonnances"/>
-                    </VBox>
-                </StackPane>
-                <Button text="Guide Santé" styleClass="menu-item"/>
-                <Button text="Contact" styleClass="menu-item"/>
-                <Button text="À propos" styleClass="menu-item"/>
-            </HBox>
-
-            <Region HBox.hgrow="SOMETIMES"/>
-
-            <HBox styleClass="navbar-right-section" alignment="CENTER" spacing="15">
-                <Button text="&#128269;" styleClass="navbar-search-btn"/>
-
-                <StackPane>
-                    <HBox fx:id="profileContainer" styleClass="navbar-profile-container"
-                          alignment="CENTER" spacing="10" onMouseClicked="#toggleProfileDropdown">
-                        <StackPane styleClass="navbar-avatar-container">
-                            <Circle fx:id="navbarAvatarCircle" radius="18" styleClass="navbar-avatar-circle"/>
-                            <Label fx:id="navbarAvatarLabel" text="&#128100;" styleClass="navbar-avatar-emoji" alignment="CENTER"/>
-                            <Circle radius="4" styleClass="online-dot" StackPane.alignment="BOTTOM_RIGHT"/>
-                        </StackPane>
-
-                        <Label fx:id="navbarUsername" text="Utilisateur" styleClass="navbar-username"/>
-                        <Label text="&#9660;" styleClass="navbar-dropdown-arrow"/>
-                    </HBox>
-
-                    <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false" StackPane.alignment="TOP_RIGHT">
-                        <VBox.margin>
-                            <Insets top="52"/>
-                        </VBox.margin>
-                        <Button text="Mon Profil" styleClass="dropdown-item" onAction="#closeDropdownIfOpen"/>
-                        <Button text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
-                        <Button text="Déconnexion" styleClass="dropdown-item" onAction="#logout"/>
-                    </VBox>
-                </StackPane>
-            </HBox>
-        </HBox>
-
+        <StackPane VBox.vgrow="ALWAYS" maxWidth="Infinity" maxHeight="Infinity">
+            <VBox spacing="0" maxWidth="Infinity" maxHeight="Infinity">
+                <Region prefHeight="96" minHeight="96" maxHeight="96"/>
         <ScrollPane fitToWidth="true" styleClass="profil-scroll-pane" VBox.vgrow="ALWAYS">
             <VBox styleClass="profil-content-container" spacing="24">
                 <padding>
@@ -97,7 +42,7 @@
                                     <StackPane fx:id="heroAvatarFrame" styleClass="profile-avatar-modern">
                                         <Circle radius="82" styleClass="avatar-border-circle"/>
                                         <ImageView fx:id="heroAvatarImage" styleClass="hero-avatar-image-calvino"
-                                                   fitHeight="148" fitWidth="148" preserveRatio="false"/>
+                                                   fitHeight="148" fitWidth="148" preserveRatio="true" smooth="true"/>
                                     </StackPane>
 
                                     <Button fx:id="editAvatarOverlayBtn" styleClass="avatar-edit-btn-calvino"
@@ -204,6 +149,57 @@
                 </VBox>
             </VBox>
         </ScrollPane>
+            </VBox>
+
+            <VBox alignment="TOP_CENTER" pickOnBounds="false" maxWidth="Infinity" StackPane.alignment="TOP_CENTER">
+                <padding><Insets top="15" right="30" bottom="0" left="30"/></padding>
+                <HBox styleClass="navbar-pill" alignment="CENTER">
+                    <Label text="CuraVita" styleClass="logo-text"/>
+                    <Region HBox.hgrow="SOMETIMES"/>
+                    <HBox styleClass="menu-container" alignment="CENTER">
+                        <Button text="Accueil" styleClass="menu-item" onAction="#goToAccueil"/>
+                        <Button text="Produits" styleClass="menu-item" onAction="#handleNavProduits"/>
+                        <Button text="Commandes" styleClass="menu-item" onAction="#handleNavCommandes"/>
+                        <Button text="Traitement" styleClass="menu-item" onAction="#goToTraitement"/>
+                        <MenuButton mnemonicParsing="false" text="Ordonnance" popupSide="BOTTOM" styleClass="nav-ordonnance-menubutton">
+                            <items>
+                                <MenuItem text="Cr&#233;er une ordonnance" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-create" onAction="#goToCreerOrdonnance"/>
+                                <SeparatorMenuItem styleClass="nav-ordonnance-sep"/>
+                                <MenuItem text="Mes ordonnances" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-list" onAction="#goToMesOrdonnances"/>
+                            </items>
+                        </MenuButton>
+                        <Button text="Guide Sant&#233;" styleClass="menu-item" onAction="#handleNavGuide"/>
+                        <Button text="Contact" styleClass="menu-item" onAction="#handleNavContact"/>
+                        <Button text="&#192; propos" styleClass="menu-item" onAction="#handleNavAbout"/>
+                    </HBox>
+                    <Region HBox.hgrow="SOMETIMES"/>
+                    <HBox styleClass="navbar-right-section" alignment="CENTER" spacing="15">
+                        <Button text="&#128269;" styleClass="navbar-search-btn" onAction="#handleNavbarSearch"/>
+                        <Button text="&#128276;" styleClass="navbar-notif-btn" onAction="#goToMessagesPage"/>
+                        <StackPane>
+                            <HBox fx:id="profileContainer" styleClass="navbar-profile-container"
+                                  alignment="CENTER" spacing="10" onMouseClicked="#toggleProfileDropdown">
+                                <StackPane styleClass="navbar-avatar-container">
+                                    <Circle fx:id="navbarAvatarCircle" radius="18" styleClass="navbar-avatar-circle"/>
+                                    <Label fx:id="navbarAvatarLabel" text="&#128100;" styleClass="navbar-avatar-emoji" alignment="CENTER"/>
+                                    <Circle radius="4" styleClass="online-dot" StackPane.alignment="BOTTOM_RIGHT"/>
+                                </StackPane>
+                                <Label fx:id="navbarUsername" text="Utilisateur" styleClass="navbar-username"/>
+                                <Label text="&#9660;" styleClass="navbar-dropdown-arrow"/>
+                            </HBox>
+                            <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false" StackPane.alignment="TOP_RIGHT">
+                                <VBox.margin>
+                                    <Insets top="52"/>
+                                </VBox.margin>
+                                <Button text="Mon Profil" styleClass="dropdown-item" onAction="#closeDropdownIfOpen"/>
+                                <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                                <Button text="D&#233;connexion" styleClass="dropdown-item" onAction="#logout"/>
+                            </VBox>
+                        </StackPane>
+                    </HBox>
+                </HBox>
+            </VBox>
+        </StackPane>
     </VBox>
 
     <VBox fx:id="assistantPanel" managed="false" visible="false" styleClass="assistant-panel" StackPane.alignment="BOTTOM_RIGHT">
@@ -254,7 +250,7 @@
             <VBox alignment="CENTER" spacing="18" styleClass="avatar-panel-body">
                 <StackPane fx:id="previewAvatarFrame" styleClass="avatar-preview-circle">
                     <Circle radius="78" styleClass="avatar-preview-ring"/>
-                    <ImageView fx:id="previewImageView" styleClass="avatar-imageview-preview" preserveRatio="false">
+                    <ImageView fx:id="previewImageView" styleClass="avatar-imageview-preview" preserveRatio="true" smooth="true">
                         <fitWidth>144</fitWidth>
                         <fitHeight>144</fitHeight>
                     </ImageView>

@@ -8,9 +8,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 public class SmsService {
-    // No hardcoded credentials here. To use SMS locally, set environment variables
-    // TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_FROM_NUMBER, or configure
-    // them in your runtime environment. Do NOT commit secrets to source control.
+    private static SmsService instance;
+    // Définir TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER (env ou -D) — ne pas committer de secrets.
     private static final String DEFAULT_ACCOUNT_SID = "";
     private static final String DEFAULT_AUTH_TOKEN = "";
     private static final String DEFAULT_FROM_NUMBER = "";
@@ -20,18 +19,52 @@ public class SmsService {
     private final String fromNumber;
 
     public SmsService() {
-        // Use the hardcoded credentials directly
-        this.accountSid = DEFAULT_ACCOUNT_SID;
-        this.authToken = DEFAULT_AUTH_TOKEN;
-        this.fromNumber = DEFAULT_FROM_NUMBER;
+        this.accountSid = firstNonBlank(System.getenv("TWILIO_ACCOUNT_SID"), System.getProperty("twilio.account.sid"), DEFAULT_ACCOUNT_SID);
+        this.authToken = firstNonBlank(System.getenv("TWILIO_AUTH_TOKEN"), System.getProperty("twilio.auth.token"), DEFAULT_AUTH_TOKEN);
+        this.fromNumber = firstNonBlank(System.getenv("TWILIO_FROM_NUMBER"), System.getProperty("twilio.from.number"), DEFAULT_FROM_NUMBER);
 
-        // Diagnostic: print whether credentials were found (mask sensitive parts)
         try {
-            String sidMask = (this.accountSid == null) ? "<missing>" : (this.accountSid.length() > 6 ? this.accountSid.substring(0, 6) + "..." : this.accountSid);
-            String tokenMask = (this.authToken == null) ? "<missing>" : (this.authToken.length() > 6 ? this.authToken.substring(0, 6) + "..." : this.authToken);
-            String fromMask = (this.fromNumber == null) ? "<missing>" : this.fromNumber;
-            System.out.println("[SMS] Using Twilio SID=" + sidMask + " From=" + fromMask + " Token=" + tokenMask);
+            String sidMask = masked(this.accountSid, "SID");
+            String tokenMask = masked(this.authToken, "token");
+            String fromMask = (this.fromNumber == null || this.fromNumber.isBlank()) ? "<missing>" : this.fromNumber;
+            System.out.println("[SMS] Twilio SID=" + sidMask + " From=" + fromMask + " Token=" + tokenMask);
         } catch (Exception ignored) {}
+    }
+
+    private static String firstNonBlank(String... candidates) {
+        if (candidates == null) {
+            return "";
+        }
+        for (String c : candidates) {
+            if (c != null && !c.isBlank()) {
+                return c.trim();
+            }
+        }
+        return "";
+    }
+
+    private static String masked(String value, String label) {
+        if (value == null || value.isBlank()) {
+            return "<missing " + label + ">";
+        }
+        return value.length() > 6 ? value.substring(0, 6) + "..." : "***";
+    }
+
+    private static boolean credentialsConfigured(String sid, String token, String from) {
+        return sid != null && !sid.isBlank()
+                && token != null && !token.isBlank()
+                && from != null && !from.isBlank();
+    }
+
+    public static SmsService getInstance() {
+        if (instance == null) {
+            instance = new SmsService();
+        }
+        return instance;
+    }
+
+    public boolean send(String toNumber, String message) {
+        return sendSms(toNumber, message);
     }
 
     /**
@@ -39,16 +72,24 @@ public class SmsService {
      * This method is defensive: if Twilio credentials are missing, it logs and returns false.
      */
     public boolean sendWelcomeSMS(String toNumber) {
-        if (accountSid == null || authToken == null || fromNumber == null) {
-            System.out.println("[SMS] Twilio credentials not configured (TWILIO_ACCOUNT_SID/TWILIO_AUTH_TOKEN/TWILIO_FROM_NUMBER)");
+        return sendSms(toNumber, "Welcome to CuraVita! Your account has been successfully created.");
+    }
+
+    private boolean sendSms(String toNumber, String body) {
+        if (!credentialsConfigured(accountSid, authToken, fromNumber)) {
+            System.out.println("[SMS] Twilio non configuré : définissez TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN et TWILIO_FROM_NUMBER (non vides).");
+            return false;
+        }
+        if (toNumber == null || toNumber.isBlank()) {
+            System.out.println("[SMS] Envoi annulé : numéro du destinataire absent (enregistrez un téléphone pour le patient).");
             return false;
         }
 
         try {
             String url = "https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json";
-            String body = "Welcome to CuraVita! Your account has been successfully created.";
 
-            String payload = "To=" + encode(toNumber) + "&From=" + encode(fromNumber) + "&Body=" + encode(body);
+            String safeBody = body != null ? body : "";
+            String payload = "To=" + encode(toNumber.trim()) + "&From=" + encode(fromNumber) + "&Body=" + encode(safeBody);
 
             byte[] postData = payload.getBytes(StandardCharsets.UTF_8);
 
@@ -83,7 +124,10 @@ public class SmsService {
         }
     }
 
-    private String encode(String s) {
+    private static String encode(String s) {
+        if (s == null) {
+            return "";
+        }
         return java.net.URLEncoder.encode(s, StandardCharsets.UTF_8);
     }
 }

@@ -8,14 +8,15 @@
             <Label text="CuraVita" styleClass="sidebar-logo"/>
             <VBox spacing="10">
                 <Button text="Clients" onAction="#goToClients" styleClass="sidebar-item"/>
-                <Button text="Produits" styleClass="sidebar-item"/>
-                <Button text="Commandes" styleClass="sidebar-item"/>
-                <Button text="Promotions" styleClass="sidebar-item"/>
-                <Button text="Coupons" styleClass="sidebar-item"/>
-                <Button text="D&#233;p&#244;ts" styleClass="sidebar-item"/>
-                <Button text="Stocks" styleClass="sidebar-item"/>
+                <Button text="Produits" onAction="#goToDashboard" styleClass="sidebar-item"/>
+                <Button text="Commandes" onAction="#goToDashboard" styleClass="sidebar-item"/>
+                <Button text="Promotions" onAction="#goToDashboard" styleClass="sidebar-item"/>
+                <Button text="Coupons" onAction="#goToDashboard" styleClass="sidebar-item"/>
+                <Button text="D&#233;p&#244;ts" onAction="#goToDashboard" styleClass="sidebar-item"/>
+                <Button text="Stocks" onAction="#goToDashboard" styleClass="sidebar-item"/>
                 <Button text="Ordonnances" styleClass="sidebar-item-active"/>
                 <Button text="Traitements" onAction="#goToTraitements" styleClass="sidebar-item"/>
+                <Button text="Contact" onAction="#goToContactSupport" styleClass="sidebar-item"/>
             </VBox>
             <Region VBox.vgrow="ALWAYS"/>
             <Button text="&#8592; Back" onAction="#goToDashboard" styleClass="sidebar-button-bottom"/>

@@ -2,19 +2,13 @@ package org.example.controller;
 
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.service.PasswordResetService;
 import org.mindrot.jbcrypt.BCrypt;
-
-import java.io.IOException;
 
 /**
  * Controller for New Password page
@@ -212,21 +206,8 @@ public class NewPasswordController {
      */
     @FXML
     private void handleBackToSignIn() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-            Parent root = loader.load();
-            
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            
-            Stage stage = (Stage) newPasswordInput.getScene().getWindow();
-            stage.setScene(scene);
-            
-            System.out.println("[RESET] Navigated back to Sign In");
-        } catch (IOException e) {
-            System.err.println("[ERROR] Failed to load Login page: " + e.getMessage());
-            e.printStackTrace();
-        }
+        org.example.util.SceneNavigation.replaceScene(newPasswordInput, "/fxml/Login.fxml");
+        System.out.println("[RESET] Navigated back to Sign In");
     }
 }
 

@@ -1,0 +1,325 @@
+<div class="guide-page">
+    <section class="hero-guide">
+        <div class="heartbeat-line">
+            <svg class="heartbeat-svg" viewBox="0 0 1200 100" preserveAspectRatio="none">
+                <path d="M0,50 L100,50 L120,50 L140,20 L160,80 L180,50 L200,50 L220,50 L240,30 L260,70 L280,50 L300,50 L400,50 L420,50 L440,15 L460,85 L480,50 L500,50 L600,50"
+                      stroke="rgba(255,255,255,0.35)" stroke-width="2" fill="none"/>
+                <path d="M600,50 L700,50 L720,50 L740,20 L760,80 L780,50 L800,50 L820,50 L840,30 L860,70 L880,50 L900,50 L1000,50 L1020,50 L1040,15 L1060,85 L1080,50 L1100,50 L1200,50"
+                      stroke="rgba(255,255,255,0.35)" stroke-width="2" fill="none"/>
+            </svg>
+        </div>
+        <div class="hero-content-guide">
+            <div class="hero-icon-pulse">❤️</div>
+            <h1 class="hero-title-guide">Votre <span>Guide Santé</span><br>Complet</h1>
+            <p class="hero-subtitle-guide">
+                Conseils d'experts, informations fiables et outils interactifs pour votre santé au quotidien — CuraVita.
+            </p>
+            <div class="hero-stats">
+                <div class="hero-stat"><span class="hero-stat-number">150+</span><span class="hero-stat-label">Articles</span></div>
+                <div class="hero-stat"><span class="hero-stat-number">6</span><span class="hero-stat-label">Thématiques</span></div>
+                <div class="hero-stat"><span class="hero-stat-number">24/7</span><span class="hero-stat-label">Accompagnement</span></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="categories-section">
+        <div class="container-guide">
+            <div class="section-header-guide">
+                <span class="section-tag-guide">📚 Explorez</span>
+                <h2 class="section-title-guide">Nos Thématiques Santé</h2>
+                <p class="section-subtitle-guide">Informations rédigées pour vous aider à prendre soin de vous (information générale, non médicale personnalisée).</p>
+            </div>
+            <div class="categories-grid">
+                <div class="category-card category-immunity" onclick="showGuide('immunity')">
+                    <div class="category-icon">🛡️</div>
+                    <h3 class="category-title">Immunité</h3>
+                    <p class="category-desc">Vitamines, alimentation et réflexes pour soutenir vos défenses naturelles.</p>
+                    <span class="category-link">Découvrir →</span>
+                </div>
+                <div class="category-card category-nutrition" onclick="showGuide('nutrition')">
+                    <div class="category-icon">🥗</div>
+                    <h3 class="category-title">Nutrition</h3>
+                    <p class="category-desc">Équilibre alimentaire, assiette idéale et exemples de menus.</p>
+                    <span class="category-link">Découvrir →</span>
+                </div>
+                <div class="category-card category-mental" onclick="showGuide('mental')">
+                    <div class="category-icon">🧠</div>
+                    <h3 class="category-title">Santé mentale</h3>
+                    <p class="category-desc">Stress, sommeil émotionnel et techniques de relaxation.</p>
+                    <span class="category-link">Découvrir →</span>
+                </div>
+                <div class="category-card category-fitness" onclick="showGuide('fitness')">
+                    <div class="category-icon">🏃</div>
+                    <h3 class="category-title">Activité physique</h3>
+                    <p class="category-desc">Programmes légers, exercices sans matériel et précautions.</p>
+                    <span class="category-link">Découvrir →</span>
+                </div>
+                <div class="category-card category-sleep" onclick="showGuide('sleep')">
+                    <div class="category-icon">😴</div>
+                    <h3 class="category-title">Sommeil</h3>
+                    <p class="category-desc">Cycles du sommeil, routine du coucher et hygiène de vie.</p>
+                    <span class="category-link">Découvrir →</span>
+                </div>
+                <div class="category-card category-prevention" onclick="showGuide('prevention')">
+                    <div class="category-icon">💉</div>
+                    <h3 class="category-title">Prévention</h3>
+                    <p class="category-desc">Dépistages, vaccinations à discuter avec votre médecin, trousse à pharmacie.</p>
+                    <span class="category-link">Découvrir →</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="tips-section">
+        <div class="container-guide">
+            <div class="tips-header">
+                <span class="section-tag-guide">💡 Conseils</span>
+                <h2 class="section-title-guide">Habitudes pour une vie plus saine</h2>
+                <p class="section-subtitle-guide">Des gestes simples au quotidien — adaptez-les à votre situation.</p>
+            </div>
+            <div class="tips-carousel">
+                <div class="tip-card"><div class="tip-number">1</div><h4 class="tip-title">Hydratation</h4><p class="tip-content">Buvez régulièrement dans la journée ; adaptez la quantité à votre activité et aux avis médicaux.</p></div>
+                <div class="tip-card"><div class="tip-number">2</div><h4 class="tip-title">Sommeil</h4><p class="tip-content">Viser des horaires réguliers et limiter les écrans avant le coucher.</p></div>
+                <div class="tip-card"><div class="tip-number">3</div><h4 class="tip-title">Mouvement</h4><p class="tip-content">Marche, vélo, étirements : privilégiez la régularité plutôt que l'intensité au début.</p></div>
+                <div class="tip-card"><div class="tip-number">4</div><h4 class="tip-title">Alimentation variée</h4><p class="tip-content">Fruits, légumes, protéines, féculents complets ; limitez les excès de sucre et produits ultra-transformés.</p></div>
+                <div class="tip-card"><div class="tip-number">5</div><h4 class="tip-title">Gestion du stress</h4><p class="tip-content">Respiration, pauses courtes, activités qui vous ressourcent.</p></div>
+                <div class="tip-card"><div class="tip-number">6</div><h4 class="tip-title">Alcool &amp; tabac</h4><p class="tip-content">Réduire progressivement ; demandez de l'aide aux professionnels de santé si besoin.</p></div>
+                <div class="tip-card"><div class="tip-number">7</div><h4 class="tip-title">Consultations</h4><p class="tip-content">Les bilans et dépistages se décident avec un médecin selon votre âge et vos antécédents.</p></div>
+                <div class="tip-card"><div class="tip-number">8</div><h4 class="tip-title">Observation</h4><p class="tip-content">En cas de symptômes persistants ou inquiétants, consultez sans attendre.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bmi-section">
+        <div class="bmi-container">
+            <div class="section-header-guide" style="margin-bottom:2.5rem;">
+                <span class="section-tag-guide">🧮 Outil</span>
+                <h2 class="section-title-guide">Calculez votre IMC</h2>
+                <p class="section-subtitle-guide">Indicateur simple — il ne remplace pas un avis médical.</p>
+            </div>
+            <div class="bmi-card">
+                <div class="bmi-form">
+                    <h3>Entrez vos mesures</h3>
+                    <p>Taille en cm et poids en kg</p>
+                    <div class="bmi-input-group"><label for="height">Taille (cm)</label><input type="number" id="height" placeholder="Ex: 175" min="100" max="250"></div>
+                    <div class="bmi-input-group"><label for="weight">Poids (kg)</label><input type="number" id="weight" placeholder="Ex: 70" min="30" max="300"></div>
+                    <button type="button" class="bmi-btn" onclick="calculateBMI()">Calculer mon IMC</button>
+                </div>
+                <div class="bmi-result">
+                    <div class="bmi-gauge">
+                        <svg viewBox="0 0 150 150">
+                            <circle class="bmi-gauge-circle" cx="75" cy="75" r="70"></circle>
+                            <circle class="bmi-gauge-value" id="bmi-gauge" cx="75" cy="75" r="70"></circle>
+                        </svg>
+                        <div class="bmi-value-display">
+                            <span class="bmi-value-number" id="bmi-value">--</span>
+                            <span class="bmi-value-label">IMC</span>
+                        </div>
+                    </div>
+                    <div id="bmi-status" class="bmi-status" style="display:none;">—</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="emergency-section">
+        <div class="emergency-container">
+            <div class="emergency-content">
+                <div class="emergency-icon">🚨</div>
+                <h2 class="emergency-title">Urgences &amp; numéros utiles</h2>
+                <p class="emergency-text">En cas de détresse vitale, contactez immédiatement les services d'urgence.</p>
+            </div>
+            <div class="emergency-numbers">
+                <a href="tel:190" class="emergency-number"><span class="emergency-number-value">190</span><span class="emergency-number-label">SAMU</span></a>
+                <a href="tel:198" class="emergency-number"><span class="emergency-number-value">198</span><span class="emergency-number-label">Pompiers</span></a>
+                <a href="tel:197" class="emergency-number"><span class="emergency-number-value">197</span><span class="emergency-number-label">Police secours</span></a>
+            </div>
+        </div>
+    </section>
+
+    <section class="newsletter-section">
+        <div class="container-guide">
+            <div class="newsletter-card">
+                <h2 class="newsletter-title">Restez informé</h2>
+                <p class="newsletter-text">Pour les alertes et actualités CuraVita, utilisez les canaux officiels de la pharmacie.</p>
+                <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Merci pour votre intérêt — fonctionnalité à brancher côté serveur.');">
+                    <input type="email" class="newsletter-input" placeholder="Votre adresse e-mail" required>
+                    <button type="submit" class="newsletter-btn">S'inscrire</button>
+                </form>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div id="guideModal" class="guide-modal">
+    <div class="guide-modal-content">
+        <button type="button" class="guide-modal-close" onclick="closeGuide()" aria-label="Fermer">&times;</button>
+
+        <div id="guide-immunity" class="guide-detail" style="display:none;">
+            <div class="guide-header immunity-bg">
+                <span class="guide-icon">🛡️</span>
+                <h2>Renforcer son immunité</h2>
+            </div>
+            <div class="guide-body">
+                <h3>Système immunitaire</h3>
+                <p>L'immunité associe organes, cellules et barrières (peau, muqueuses, intestin). Une partie importante est liée à l'intestin : une alimentation variée et une bonne hydratation contribuent au bien-être général.</p>
+                <div class="guide-info-box">
+                    <strong>À retenir</strong>
+                    <p>Les compléments ou médicaments se discutent avec votre médecin ou votre pharmacien.</p>
+                </div>
+                <h3>Nutriments souvent cités</h3>
+                <div class="guide-list">
+                    <div class="guide-list-item"><strong>Vitamine C</strong><p>Présente dans les fruits et légumes frais.</p></div>
+                    <div class="guide-list-item"><strong>Vitamine D</strong><p>Synthèse cutanée au soleil ; apports alimentaires selon les besoins.</p></div>
+                    <div class="guide-list-item"><strong>Zinc</strong><p>Viandes maigres, légumineuses, oléagineux.</p></div>
+                </div>
+                <div class="guide-warning">
+                    <strong>Quand consulter ?</strong>
+                    <p>Fatigue prolongée, infections à répétition : faites évaluer la situation par un professionnel de santé.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="guide-nutrition" class="guide-detail" style="display:none;">
+            <div class="guide-header nutrition-bg"><span class="guide-icon">🥗</span><h2>Nutrition équilibrée</h2></div>
+            <div class="guide-body">
+                <h3>Assiette type</h3>
+                <div class="nutrition-plate">
+                    <div class="plate-section vegetables"><strong>Légumes</strong><p>≈ la moitié de l'assiette, couleurs variées.</p></div>
+                    <div class="plate-section proteins"><strong>Protéines</strong><p>Poisson, volaille, œufs, légumineuses…</p></div>
+                    <div class="plate-section carbs"><strong>Féculents</strong><p>Riz, pâtes complètes, pommes de terre…</p></div>
+                </div>
+                <h3>Menus (exemples)</h3>
+                <div class="menu-example">
+                    <div class="menu-meal"><strong>Matin</strong><p>Céréales / pain complet, produit laitier, fruit.</p></div>
+                    <div class="menu-meal"><strong>Midi</strong><p>Légumes + protéine + féculent, huile d'olive.</p></div>
+                    <div class="menu-meal"><strong>Collation</strong><p>Fruit, yaourt ou poignée d'oléagineux.</p></div>
+                    <div class="menu-meal"><strong>Soir</strong><p>Soupe ou salade, plat léger, éviter les excès tardifs.</p></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="guide-mental" class="guide-detail" style="display:none;">
+            <div class="guide-header mental-bg"><span class="guide-icon">🧠</span><h2>Santé mentale</h2></div>
+            <div class="guide-body">
+                <p>Prendre soin de sa santé psychique est aussi important que la santé physique. Parlez des difficultés et sollicitez de l'aide tôt.</p>
+                <h3>Techniques utiles</h3>
+                <div class="stress-techniques">
+                    <div class="technique-card"><h4>Respiration</h4><p>Inspirez lentement, expirez plus longtemps : calme le système nerveux.</p></div>
+                    <div class="technique-card"><h4>Mouvement</h4><p>Marche courte régulière ; effet positif sur l'humeur.</p></div>
+                    <div class="technique-card"><h4>Rythme</h4><p>Horaires de sommeil stables, pause écran avant la nuit.</p></div>
+                    <div class="technique-card"><h4>Parole</h4><p>Professionnels de santé, lignes d'écoute : n'hésitez pas.</p></div>
+                </div>
+                <div class="guide-warning"><strong>Urgence psychologique</strong><p>Si vous êtes en danger ou risque suicidaire, contactez les urgences (15 ou 112 selon le pays) ou un proche de confiance immédiatement.</p></div>
+            </div>
+        </div>
+
+        <div id="guide-fitness" class="guide-detail" style="display:none;">
+            <div class="guide-header fitness-bg"><span class="guide-icon">🏃</span><h2>Activité physique</h2></div>
+            <div class="guide-body">
+                <p>L'OMS recommande environ 150 min/semaine d'activité modérée, complétée par du renforcement musculaire — adaptez à votre condition.</p>
+                <div class="fitness-program">
+                    <div class="week-plan"><strong>Débutant</strong><ul><li>3 × 20–30 min de marche rapide</li><li>Étirements légers</li><li>Repos entre les jours intenses</li></ul></div>
+                    <div class="week-plan"><strong>Régulier</strong><ul><li>Cardio + renforcement simple</li><li>Échauffement 5–10 min</li><li>Hydratation</li></ul></div>
+                </div>
+                <div class="exercise-grid">
+                    <div class="exercise-card"><h4>Squats</h4><p>Sans charge au début.</p></div>
+                    <div class="exercise-card"><h4>Pompes</h4><p>Sur genoux si besoin.</p></div>
+                    <div class="exercise-card"><h4>Planche</h4><p>Durées courtes.</p></div>
+                </div>
+                <div class="guide-warning"><strong>Précaution</strong><p>Douleur thoracique, vertiges ou douleur persistante : arrêtez et consultez.</p></div>
+            </div>
+        </div>
+
+        <div id="guide-sleep" class="guide-detail" style="display:none;">
+            <div class="guide-header sleep-bg"><span class="guide-icon">😴</span><h2>Sommeil</h2></div>
+            <div class="guide-body">
+                <p>La majorité des adultes ont besoin d'environ 7 à 9 h de sommeil. La régularité des horaires aide la qualité.</p>
+                <div class="sleep-cycles">
+                    <div class="cycle"><strong>Léger</strong><p>Endormissement et transitions.</p></div>
+                    <div class="cycle"><strong>Profond</strong><p>Récupération physique.</p></div>
+                    <div class="cycle"><strong>Paradoxal</strong><p>Mémoire, rêves.</p></div>
+                </div>
+                <h3>Routine</h3>
+                <div class="routine-step"><span class="routine-time">−2h</span><span class="routine-action">Repas léger, limiter caféine/alcool.</span></div>
+                <div class="routine-step"><span class="routine-time">−1h</span><span class="routine-action">Baisser luminosité, arrêter les écrans si possible.</span></div>
+                <div class="routine-step"><span class="routine-time">−30</span><span class="routine-action">Lecture, respiration, étirements doux.</span></div>
+                <div class="routine-step"><span class="routine-time">0</span><span class="routine-action">Heure de coucher stable.</span></div>
+            </div>
+        </div>
+
+        <div id="guide-prevention" class="guide-detail" style="display:none;">
+            <div class="guide-header prevention-bg"><span class="guide-icon">💉</span><h2>Prévention</h2></div>
+            <div class="guide-body">
+                <p>Les calendriers vaccinaux et les dépistages dépendent de l'âge, du sexe et des antécédents : ils se décident avec un médecin.</p>
+                <h3>Exemples de thèmes à aborder</h3>
+                <div class="screening-row"><span class="age-range">Adulte</span><div class="screenings"><span class="screening">Tension</span><span class="screening">Lipides</span><span class="screening">Glycémie</span></div></div>
+                <div class="screening-row"><span class="age-range">Suivi</span><div class="screenings"><span class="screening">Vision</span><span class="screening">Dents</span><span class="screening">Peau</span></div></div>
+                <h3>Trousse utile (à compléter avec votre pharmacien)</h3>
+                <div class="pharmacy-kit">
+                    <div class="kit-category"><strong>Soins</strong><span>Compresses, antiseptique, pansements.</span></div>
+                    <div class="kit-category"><strong>Soulagement léger</strong><span>Antalgique conseillé par le professionnel.</span></div>
+                    <div class="kit-category"><strong>Mesure</strong><span>Thermomètre.</span></div>
+                    <div class="kit-category"><strong>Urgences</strong><span>Numéros SAMU / pompiers.</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function calculateBMI() {
+    var height = parseFloat(document.getElementById('height').value) / 100;
+    var weight = parseFloat(document.getElementById('weight').value);
+    if (!height || !weight || height <= 0 || weight <= 0) {
+        alert('Veuillez entrer des valeurs valides.');
+        return;
+    }
+    var bmi = weight / (height * height);
+    var bmiRounded = bmi.toFixed(1);
+    document.getElementById('bmi-value').textContent = bmiRounded;
+    var gauge = document.getElementById('bmi-gauge');
+    var maxBMI = 40;
+    var percentage = Math.min(bmi / maxBMI, 1);
+    var dashOffset = 440 - (440 * percentage);
+    gauge.style.strokeDashoffset = dashOffset;
+    var statusEl = document.getElementById('bmi-status');
+    statusEl.style.display = 'inline-block';
+    statusEl.className = 'bmi-status';
+    if (bmi < 18.5) {
+        statusEl.textContent = 'Insuffisance pondérale';
+        statusEl.classList.add('bmi-underweight');
+        gauge.style.stroke = '#17a2b8';
+    } else if (bmi < 25) {
+        statusEl.textContent = 'Poids normal';
+        statusEl.classList.add('bmi-normal');
+        gauge.style.stroke = '#28a745';
+    } else if (bmi < 30) {
+        statusEl.textContent = 'Surpoids';
+        statusEl.classList.add('bmi-overweight');
+        gauge.style.stroke = '#ffc107';
+    } else {
+        statusEl.textContent = 'Obésité';
+        statusEl.classList.add('bmi-obese');
+        gauge.style.stroke = '#dc3545';
+    }
+}
+function showGuide(guideId) {
+    var nodes = document.querySelectorAll('.guide-detail');
+    for (var i = 0; i < nodes.length; i++) nodes[i].style.display = 'none';
+    var el = document.getElementById('guide-' + guideId);
+    if (el) el.style.display = 'block';
+    document.getElementById('guideModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closeGuide() {
+    document.getElementById('guideModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+document.getElementById('guideModal').addEventListener('click', function(e) {
+    if (e.target === this) closeGuide();
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeGuide();
+});
+</script>

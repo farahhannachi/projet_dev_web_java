@@ -13,7 +13,7 @@ import org.mindrot.jbcrypt.BCrypt;
 public class UserService {
     private static UserService instance;
     private static User currentUser = null;
-    private static ClientService clientService = new ClientService();
+    private static final ClientService clientService = new ClientService();
 
     public UserService() {
     }
@@ -30,7 +30,7 @@ public class UserService {
         
         System.out.println("[DEBUG] Login attempt for: " + email);
         
-        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, email);
@@ -124,20 +124,38 @@ public class UserService {
                     if (roles != null && roles.contains("ROLE_ADMIN")) {
                         userType = "admin";
                     }
-                    
+
                     String nom = rs.getString("nom") != null ? rs.getString("nom") : "";
                     String prenom = rs.getString("prenom") != null ? rs.getString("prenom") : "";
                     String fullName = prenom.isBlank() ? nom : (prenom + " " + nom).trim();
-                    
-                    currentUser = new User(rs.getInt("id_utilisateur"), email, storedPassword, userType, fullName.trim());
-                    currentUser.setTelephone(rs.getString("telephone"));
-                    currentUser.setBlocked("bloqué".equals(rs.getString("etat_compte")) || "bloque".equals(rs.getString("etat_compte")));
-                    currentUser.setTotpEnabled(rs.getBoolean("totp_enabled"));
-                    currentUser.setTotpSecret(rs.getString("totp_secret"));
-                    currentUser.setAvatarConfig(rs.getString("avatar_seed"));
-                    if (rs.getTimestamp("date_creation") != null)
-                        currentUser.setCreatedAt(rs.getTimestamp("date_creation").toLocalDateTime().toLocalDate().toString());
-                    return currentUser;
+
+                    User user = new User(rs.getInt("id_utilisateur"), email, storedPassword, userType, fullName.trim());
+                    user.setTelephone(rs.getString("telephone"));
+                    user.setBlocked("bloqué".equals(rs.getString("etat_compte")) || "bloque".equals(rs.getString("etat_compte")));
+                    user.setTotpEnabled(readTotpEnabled(rs));
+                    String totpSecret = rs.getString("totp_secret");
+                    user.setTotpSecret(totpSecret != null ? totpSecret.trim() : null);
+                    user.setAvatarConfig(rs.getString("avatar_seed"));
+                    if (rs.getTimestamp("date_creation") != null) {
+                        user.setCreatedAt(rs.getTimestamp("date_creation").toLocalDateTime().toLocalDate().toString());
+                    }
+
+                    if (user.isBlocked()) {
+                        currentUser = null;
+                        return null;
+                    }
+
+                    boolean totpRequired = user.isTotpEnabled()
+                            && user.getTotpSecret() != null
+                            && !user.getTotpSecret().isBlank();
+                    if (totpRequired) {
+                        // Session ouverte seulement après validation du code TOTP (LoginController)
+                        currentUser = null;
+                        return user;
+                    }
+
+                    currentUser = user;
+                    return user;
                 }
             }
         } catch (SQLException e) {
@@ -147,70 +165,104 @@ public class UserService {
         return null;
     }
 
-    public boolean signup(String email, String password, String name) {
+    /**
+     * Normalise un numéro saisi (espaces, tirets, parenthèses ; préfixe international 00 → +).
+     */
+    public static String normalizePhoneNumber(String raw) {
+        if (raw == null) {
+            return "";
+        }
+        String s = raw.trim().replaceAll("[\\s\\-().]", "");
+        if (s.startsWith("00") && s.length() > 2) {
+            s = "+" + s.substring(2);
+        }
+        return s;
+    }
+
+    /**
+     * Numéro exploitable pour SMS / profil : au moins 8 chiffres, longueur DB ≤ 20 caractères.
+     */
+    public static boolean isValidPhoneNumber(String normalized) {
+        if (normalized == null || normalized.isBlank()) {
+            return false;
+        }
+        if (normalized.length() > 20) {
+            return false;
+        }
+        return normalized.matches("^\\+?[0-9]{8,}$");
+    }
+
+    public boolean signup(String email, String password, String name, String telephoneNormalized) {
+        if (telephoneNormalized == null || telephoneNormalized.isBlank() || !isValidPhoneNumber(telephoneNormalized)) {
+            return false;
+        }
+
         // Check if email already exists in database
         if (emailExists(email)) {
             return false; // Email exists
         }
-        
+
         // Validate email format
         if (!isValidEmail(email)) {
             return false;
         }
-        
+
         // Hash the password
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-        
-        // Insert new user into database
-        String sql = "INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, etat_compte, date_creation, roles, loyalty_points, loyalty_level, segment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+
+        String sql = "INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, etat_compte, date_creation, roles, loyalty_points, loyalty_level, segment, telephone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
-            // Split name into first name and last name
+
             String[] nameParts = name.split(" ", 2);
             String prenom = nameParts[0];
             String nom = nameParts.length > 1 ? nameParts[1] : "";
-            
-            stmt.setString(1, nom);                    // nom (last name)
-            stmt.setString(2, prenom);                 // prenom (first name)
-            stmt.setString(3, email);                  // email
-            stmt.setString(4, hashedPassword);         // mot_de_passe
-            stmt.setString(5, "actif");                // etat_compte
-            stmt.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now())); // date_creation
-            stmt.setString(7, "[\"ROLE_CLIENT\"]");    // roles
-            stmt.setInt(8, 0);                         // loyalty_points
-            stmt.setString(9, "BRONZE");               // loyalty_level
-            stmt.setString(10, "NEW_CUSTOMER");        // segment
-            
+
+            stmt.setString(1, nom);
+            stmt.setString(2, prenom);
+            stmt.setString(3, email);
+            stmt.setString(4, hashedPassword);
+            stmt.setString(5, "actif");
+            stmt.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now()));
+            stmt.setString(7, "[\"ROLE_CLIENT\"]");
+            stmt.setInt(8, 0);
+            stmt.setString(9, "BRONZE");
+            stmt.setString(10, "NEW_CUSTOMER");
+            stmt.setString(11, telephoneNormalized);
+
             int rowsAffected = stmt.executeUpdate();
-            
+
             if (rowsAffected > 0) {
-                // Get the generated ID
                 ResultSet generatedKeys = stmt.getGeneratedKeys();
                 int userId = 0;
                 if (generatedKeys.next()) {
                     userId = generatedKeys.getInt(1);
                 }
-                
+
                 currentUser = new User(userId, email, hashedPassword, "client", name);
-                
-                // Also create a Client entry in ClientService for full client details
-                clientService.add(new Client(0, name, "", email, "", LocalDate.now(), ""));
-                
+                currentUser.setTelephone(telephoneNormalized);
+
+                clientService.add(new Client(0, name, "", email, telephoneNormalized, LocalDate.now(), ""));
+
                 return true;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        
+
         return false;
+    }
+
+    /** Pour éviter d’envoyer un SMS Verify si l’email est déjà pris. */
+    public boolean isEmailTaken(String email) {
+        return emailExists(email);
     }
 
     private boolean emailExists(String email) {
         String sql = "SELECT COUNT(*) FROM utilisateur WHERE email = ?";
         
-        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, email);
@@ -239,6 +291,30 @@ public class UserService {
         currentUser = null;
     }
 
+    /**
+     * Établit la session après un mot de passe valide + code TOTP correct
+     * ({@link #login} retourne l'utilisateur sans fixer {@link #currentUser} tant que le 2FA est requis).
+     */
+    public void establishSessionAfterTotp(User user) {
+        currentUser = user;
+    }
+
+    /** Lecture tolérante de totp_enabled (BIT/TINYINT/boolean ou chaîne). */
+    private static boolean readTotpEnabled(ResultSet rs) throws SQLException {
+        Object o = rs.getObject("totp_enabled");
+        if (o == null) {
+            return false;
+        }
+        if (o instanceof Boolean b) {
+            return b;
+        }
+        if (o instanceof Number n) {
+            return n.intValue() != 0;
+        }
+        String s = o.toString().trim();
+        return "1".equals(s) || "true".equalsIgnoreCase(s);
+    }
+
     public boolean isAdmin() {
         return currentUser != null && currentUser.getType().equals("admin");
     }
@@ -251,7 +327,7 @@ public class UserService {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM utilisateur";
         
-        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
@@ -302,7 +378,7 @@ public class UserService {
      */
     public boolean deleteUser(int userId) {
         String sql = "DELETE FROM utilisateur WHERE id_utilisateur = ?";
-        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             return stmt.executeUpdate() > 0;
@@ -319,7 +395,7 @@ public class UserService {
         // On stocke le nom complet dans la colonne 'nom' et on vide 'prenom'
         // pour que le login recharge correctement le nom complet
         String sql = "UPDATE utilisateur SET nom = ?, prenom = '', email = ?, mot_de_passe = ? WHERE id_utilisateur = ?";
-        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, nom);
             stmt.setString(2, email);
@@ -337,7 +413,7 @@ public class UserService {
      */
     public boolean updateUserAvatar(int userId, String avatarJson) {
         String sql = "UPDATE utilisateur SET avatar_seed = ? WHERE id_utilisateur = ?";
-        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, avatarJson);
             stmt.setInt(2, userId);
@@ -353,7 +429,7 @@ public class UserService {
      */
     public boolean updateUserTwoFactor(int userId, String secret, boolean enabled) {
         String sql = "UPDATE utilisateur SET totp_secret = ?, totp_enabled = ? WHERE id_utilisateur = ?";
-        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, secret);
             stmt.setBoolean(2, enabled);
@@ -370,7 +446,7 @@ public class UserService {
      */
     public boolean disableUserTwoFactor(int userId) {
         String sql = "UPDATE utilisateur SET totp_secret = NULL, totp_enabled = 0 WHERE id_utilisateur = ?";
-        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             return stmt.executeUpdate() > 0;
@@ -386,7 +462,7 @@ public class UserService {
     public boolean addUser(String nom, String email, String password, String type) {
         String roles = "admin".equals(type) ? "[\"ROLE_ADMIN\"]" : "[\"ROLE_USER\"]";
         String sql = "INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, etat_compte, date_creation, roles) VALUES (?, '', ?, ?, 'actif', NOW(), ?)";
-        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, nom);
             stmt.setString(2, email);
@@ -404,7 +480,7 @@ public class UserService {
      */
     public boolean updateUserBlocked(int userId, boolean blocked) {
         String sql = "UPDATE utilisateur SET etat_compte = ? WHERE id_utilisateur = ?";
-        try (Connection conn = DatabaseUtil.getInstance().getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, blocked ? "bloqué" : "actif");
             stmt.setInt(2, userId);

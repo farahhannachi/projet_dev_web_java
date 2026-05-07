@@ -1,10 +1,8 @@
 package org.example;
 
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.example.util.SceneNavigation;
 
 public class CuraVitaApp extends Application {
 
@@ -13,14 +11,8 @@ public class CuraVitaApp extends Application {
         // Démarrer le serveur HTTP local pour les QR codes PDF
         org.example.util.QRPdfServerService.getInstance();
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-
         primaryStage.setTitle("CuraVita - Pharmacy Management System");
-        primaryStage.setScene(scene);
-        primaryStage.setFullScreen(true);
+        SceneNavigation.replaceStageScene(primaryStage, "/fxml/Login.fxml");
         primaryStage.setFullScreenExitHint("Press ESC to exit fullscreen");
         primaryStage.show();
     }
