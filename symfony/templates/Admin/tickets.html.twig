@@ -1,0 +1,340 @@
+{% extends 'admin/_base_modern.html.twig' %}
+
+{% block title %}Tickets Support • Administration{% endblock %}
+
+{% block stylesheets %}
+<style>
+    :root {
+        --admin-primary: #16563f;
+        --admin-accent: #28a745;
+        --admin-bg: #f4f6f9;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+    
+    .fade-in-up {
+        animation: fadeInUp 0.5s ease-out backwards;
+    }
+    
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .admin-stats-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+        transition: transform 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.04);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .admin-stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    }
+    
+    .stat-icon-bg {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        font-size: 5rem;
+        opacity: 0.05;
+        transform: rotate(15deg);
+        z-index: 0;
+    }
+    
+    .stat-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .filter-bar {
+        background: white;
+        padding: 1rem;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .modern-input {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 0.7rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+        outline: none;
+    }
+    
+    .modern-input:focus {
+        border-color: var(--admin-accent);
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+    
+    .modern-table-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+    }
+    
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    
+    .modern-table th {
+        background: #f8f9fa;
+        padding: 1rem 1.5rem;
+        font-weight: 700;
+        color: #495057;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .modern-table td {
+        padding: 1rem 1.5rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f3f5;
+        transition: background 0.2s;
+    }
+    
+    .modern-table tr:hover td {
+        background: #f8fbf9;
+    }
+    
+    .modern-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .ticket-badge {
+        padding: 6px 12px;
+        border-radius: 30px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .badge-ouvert { background: #d1fae5; color: #065f46; }
+    .badge-en_cours { background: #fef3c7; color: #92400e; }
+    .badge-ferme { background: #f3f4f6; color: #374151; }
+    .badge-resolu { background: #dbeafe; color: #1e40af; }
+    
+    .action-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        background: #f8f9fa;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    
+    .action-btn:hover {
+        background: var(--admin-accent);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .user-avatar-initials {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+
+</style>
+{% endblock %}
+
+{% block page_title %}Tickets Support{% endblock %}
+{% block page_subtitle %}Gestion de la relation client{% endblock %}
+
+{% block main %}
+<div style="padding: 2rem;">
+
+    <!-- STATS CARDS -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+        
+        <!-- Total -->
+        <div class="admin-stats-card fade-in-up" style="animation-delay: 0.1s; border-left: 5px solid #16563f;">
+            <i class="fas fa-inbox stat-icon-bg"></i>
+            <div class="stat-content">
+                <h4 style="margin:0; font-size: 2.5rem; font-weight: 800; color: #16563f;">{{ questions|length }}</h4>
+                <p style="margin:0; color: #6c757d; font-weight: 600;">Total Tickets</p>
+            </div>
+        </div>
+
+        <!-- Ouverts -->
+        <div class="admin-stats-card fade-in-up" style="animation-delay: 0.2s; border-left: 5px solid #28a745;">
+            <i class="fas fa-door-open stat-icon-bg"></i>
+            <div class="stat-content">
+                <h4 style="margin:0; font-size: 2.5rem; font-weight: 800; color: #28a745;">{{ questions|filter(q => q.statut == 'ouvert')|length }}</h4>
+                <p style="margin:0; color: #6c757d; font-weight: 600;">Nouveaux</p>
+            </div>
+        </div>
+
+        <!-- En Cours -->
+        <div class="admin-stats-card fade-in-up" style="animation-delay: 0.3s; border-left: 5px solid #ffc107;">
+            <i class="fas fa-spinner stat-icon-bg"></i>
+            <div class="stat-content">
+                <h4 style="margin:0; font-size: 2.5rem; font-weight: 800; color: #ffc107;">{{ questions|filter(q => q.statut == 'en_cours')|length }}</h4>
+                <p style="margin:0; color: #6c757d; font-weight: 600;">En Traitement</p>
+            </div>
+        </div>
+        
+        <!-- Priorité Haute -->
+        <div class="admin-stats-card fade-in-up" style="animation-delay: 0.4s; border-left: 5px solid #dc3545;">
+            <i class="fas fa-fire stat-icon-bg"></i>
+            <div class="stat-content">
+                <h4 style="margin:0; font-size: 2.5rem; font-weight: 800; color: #dc3545;">{{ questions|filter(q => q.priorite == 'haute')|length }}</h4>
+                <p style="margin:0; color: #6c757d; font-weight: 600;">Urgent</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar fade-in-up" style="animation-delay: 0.5s;">
+        <form method="GET" action="{{ path('app_question_index') }}" style="display: flex; width: 100%; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            
+            <div style="flex: 1; min-width: 250px; position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #adb5bd;"></i>
+                <input type="text" name="search" value="{{ currentSearch|default('') }}" 
+                       class="modern-input" 
+                       style="padding-left: 2.5rem; width: 100%;" 
+                       placeholder="Rechercher...">
+            </div>
+
+            <select name="statut" class="modern-input" onchange="this.form.submit()">
+                <option value="">Status: Tous</option>
+                <option value="ouvert" {{ currentStatut == 'ouvert' ? 'selected' : '' }}>Ouvert</option>
+                <option value="en_cours" {{ currentStatut == 'en_cours' ? 'selected' : '' }}>En cours</option>
+                <option value="resolu" {{ currentStatut == 'resolu' ? 'selected' : '' }}>Résolu</option>
+            </select>
+
+            <select name="priorite" class="modern-input" onchange="this.form.submit()">
+                <option value="">Priorité: Toutes</option>
+                <option value="haute" {{ currentPriorite == 'haute' ? 'selected' : '' }}>Haute</option>
+                <option value="normale" {{ currentPriorite == 'normale' ? 'selected' : '' }}>Normale</option>
+            </select>
+
+            <button type="submit" class="modern-input" style="background: var(--admin-primary); color: white; cursor: pointer; border: none;">
+                <i class="fas fa-filter"></i> Filtrer
+            </button>
+            
+            {% if currentSearch or currentStatut or currentPriorite %}
+                <a href="{{ path('app_question_index') }}" class="modern-input" style="text-decoration: none; color: #6c757d; background: #e9ecef; display:flex; align-items: center;">
+                    <i class="fas fa-times"></i>
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- TABLE -->
+    <div class="modern-table-container fade-in-up" style="animation-delay: 0.6s; overflow-x: auto;">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>#ID</th>
+                    <th>Client</th>
+                    <th>Objet</th>
+                    <th>Date</th>
+                    <th>Priorité</th>
+                    <th>Statut</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for question in pagination|default(questions) %}
+                    <tr style="animation: fadeInUp 0.3s ease-out backwards; animation-delay: {{ loop.index0 * 0.05 }}s;">
+                        <td>
+                            <span style="font-weight: 700; color: #adb5bd;">#{{ question.id }}</span>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="user-avatar-initials">
+                                    {{ question.utilisateur.prenom|first|upper }}{{ question.utilisateur.nom|first|upper }}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; color: #343a40;">{{ question.utilisateur.prenom }} {{ question.utilisateur.nom }}</div>
+                                    <div style="font-size: 0.8rem; color: #adb5bd;">{{ question.utilisateur.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; color: #495057;">{{ question.objet|length > 40 ? question.objet|slice(0, 40) ~ '...' : question.objet }}</div>
+                            <div style="font-size: 0.8rem; color: #adb5bd;">{{ question.type|default('support')|capitalize }}</div>
+                        </td>
+                        <td>
+                            <span style="font-size: 0.9rem; color: #6c757d;">{{ question.createdAt|date('d/m/Y') }}</span>
+                            <div style="font-size: 0.75rem; color: #adb5bd;">{{ question.createdAt|date('H:i') }}</div>
+                        </td>
+                        <td>
+                            {% if question.priorite == 'haute' %}
+                                <span style="color: #dc3545; font-weight: 700; font-size: 0.85rem;"><i class="fas fa-bolt"></i> Haute</span>
+                            {% elseif question.priorite == 'moyenne' %}
+                                <span style="color: #fd7e14; font-weight: 600; font-size: 0.85rem;">Moyenne</span>
+                            {% else %}
+                                <span style="color: #28a745; font-weight: 600; font-size: 0.85rem;">Basse</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="ticket-badge badge-{{ question.statut }}">
+                                {% if question.statut == 'ouvert' %}🟢 Ouvert
+                                {% elseif question.statut == 'en_cours' %}🟡 En cours
+                                {% elseif question.statut == 'resolu' %}✅ Résolu
+                                {% else %}⚫ Fermé
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                                <a href="{{ path('app_question_show', {'id': question.id}) }}" class="action-btn" title="Voir détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ path('app_question_edit', {'id': question.id}) }}" class="action-btn" title="Modifier">
+                                    <i class="fas fa-pen"></i>
+                                </a>
+                                <a href="{{ path('app_question_export_pdf', {'id': question.id}) }}" class="action-btn" title="Exporter PDF" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 4rem;">
+                            <div style="opacity: 0.5;">
+                                <i class="fas fa-inbox" style="font-size: 3rem; color: #adb5bd; margin-bottom: 1rem;"></i>
+                                <p>Aucun ticket trouvé.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {# Pagination would go here #}
+    </div>
+</div>
+{% endblock %}

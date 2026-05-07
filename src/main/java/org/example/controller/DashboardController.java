@@ -179,7 +179,7 @@ public class DashboardController {
     }
 
     @FXML
-    private void showDashboardHome() {
+    public void showDashboardHome() {
         if (dashboardCenter != null) {
             mainPane.setCenter(dashboardCenter);
         }

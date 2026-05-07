@@ -333,8 +333,7 @@ CREATE TABLE `traitement` (
   `status` varchar(50) NOT NULL,
   `notes` longtext DEFAULT NULL,
   `id_ordonnance_id` int(11) NOT NULL,
-  `id_produit_id` int(11) DEFAULT NULL,
-  `repas` varchar(100) DEFAULT NULL
+  `id_produit_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------

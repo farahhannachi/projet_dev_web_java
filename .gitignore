@@ -3,8 +3,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .kotlin
-
 ### IntelliJ IDEA ###
+.idea/
 .idea/modules.xml
 .idea/jarRepositories.xml
 .idea/compiler.xml
@@ -31,12 +31,28 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
-
 ### VS Code ###
 .vscode/
-
 ### Mac OS ###
 .DS_Store
+
+### Logs / outputs ###
+*.log
+out/
+*.class
+*.jar
+
+### Sensitive/local environment ###
+symfony/.env
+symfony/.env.*
+
+### Uploads / generated assets ###
+uploads/
+symfony/public/uploads/produits/
+
+### Bundled tools (do not version) ###
+Projet/apache-maven-*/
+Projet/*.zip
 
 ### Credentials sensibles - NE PAS PUSHER ###
 src/main/java/org/example/util/SmsService.java

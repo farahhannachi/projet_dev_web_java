@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.controller.ReservationFormController"
+      spacing="15" style="-fx-padding: 30px; -fx-background-color: white;">
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="📅 Réserver un Service" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1F6F54;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="✕" onAction="#handleCancel" style="-fx-font-size: 16px; -fx-padding: 5 10; -fx-background-color: #E74C3C; -fx-text-fill: white;"/>
+    </HBox>
+
+    <Separator/>
+
+    <!-- Service Info -->
+    <VBox spacing="5" style="-fx-border-color: #e0e0e0; -fx-border-radius: 8; -fx-padding: 15; -fx-background-color: #f8f9fa;">
+        <Label text="Service sélectionné:" style="-fx-font-size: 12px; -fx-text-fill: #666; -fx-font-weight: bold;"/>
+        <HBox spacing="10">
+            <Label fx:id="serviceName" text="N/A" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1F6F54;"/>
+            <Label fx:id="serviceType" text="N/A" style="-fx-font-size: 12px; -fx-padding: 4 8; -fx-background-color: #e8f5e9; -fx-text-fill: #1F6F54; -fx-background-radius: 12;"/>
+        </HBox>
+        <Label fx:id="serviceSpecialite" text="N/A" style="-fx-font-size: 12px; -fx-text-fill: #666;"/>
+    </VBox>
+
+    <!-- Form Fields -->
+    <VBox spacing="10">
+        <!-- Nom Client -->
+        <VBox spacing="5">
+            <Label text="Nom complet *" style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
+            <TextField fx:id="nomClientField" promptText="Ex: Jean Dupont" style="-fx-padding: 10px; -fx-border-radius: 8; -fx-border-color: #ced4da;"/>
+        </VBox>
+
+        <!-- Email -->
+        <VBox spacing="5">
+            <Label text="Email *" style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
+            <TextField fx:id="emailField" promptText="Ex: jean.dupont@email.com" style="-fx-padding: 10px; -fx-border-radius: 8; -fx-border-color: #ced4da;"/>
+        </VBox>
+
+        <!-- Téléphone -->
+        <VBox spacing="5">
+            <Label text="Téléphone *" style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
+            <TextField fx:id="telephoneField" promptText="Ex: 06 12 34 56 78" style="-fx-padding: 10px; -fx-border-radius: 8; -fx-border-color: #ced4da;"/>
+        </VBox>
+
+        <!-- Date Rendez-vous -->
+        <VBox spacing="5">
+            <Label text="Date du rendez-vous *" style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
+            <DatePicker fx:id="datePicker" style="-fx-padding: 10px; -fx-border-radius: 8;"/>
+        </VBox>
+
+        <!-- Heure Rendez-vous -->
+        <VBox spacing="5">
+            <Label text="Heure du rendez-vous *" style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
+            <ComboBox fx:id="heureCombo" style="-fx-padding: 10px; -fx-border-radius: 8;"/>
+        </VBox>
+
+        <!-- Motif -->
+        <VBox spacing="5">
+            <Label text="Motif de la consultation *" style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
+            <TextArea fx:id="motifArea" promptText="Décrivez votre problème/demande..." wrapText="true" prefRowCount="3"
+                     style="-fx-padding: 10px; -fx-border-radius: 8; -fx-border-color: #ced4da; -fx-font-size: 12px;"/>
+        </VBox>
+    </VBox>
+
+    <!-- Buttons -->
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button text="Annuler" onAction="#handleCancel" style="-fx-font-size: 13px; -fx-padding: 10 20; -fx-background-color: #6c757d; -fx-text-fill: white; -fx-background-radius: 8;"/>
+        <Button text="✓ Réserver" onAction="#handleReserve" style="-fx-font-size: 13px; -fx-padding: 10 20; -fx-background-color: #1F6F54; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-weight: bold;"/>
+    </HBox>
+
+    <!-- Error Message -->
+    <Label fx:id="errorLabel" text="" style="-fx-font-size: 12px; -fx-text-fill: #E74C3C; -fx-wrap-text: true;"/>
+
+</VBox>
+
