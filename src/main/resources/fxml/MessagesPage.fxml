@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+
+<?import javafx.geometry.Insets?>
+
+<?import javafx.scene.control.*?>
+
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.shape.Circle?>
+
+
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+
+      fx:controller="org.example.controller.MessagesPageController" styleClass="root"
+
+      style="-fx-background-color: #f1f5f9;">
+
+
+
+    <VBox maxWidth="Infinity" maxHeight="Infinity">
+
+        <Region prefHeight="96" minHeight="96" maxHeight="96"/>
+
+        <VBox styleClass="messages-page-content" VBox.vgrow="ALWAYS" spacing="20">
+
+            <VBox.margin>
+
+                <Insets top="30" left="40" right="40" bottom="30"/>
+
+            </VBox.margin>
+
+
+
+            <Label text="Mes messages / Notifications" style="-fx-font-size: 22; -fx-font-weight: bold;"/>
+
+
+
+            <TableView fx:id="messagesTable" VBox.vgrow="ALWAYS">
+
+                <columns>
+
+                    <TableColumn fx:id="questionColumn" text="Question" prefWidth="200"/>
+
+                    <TableColumn fx:id="responseColumn" text="Réponse" prefWidth="280"/>
+
+                    <TableColumn fx:id="roleColumn" text="Rôle" prefWidth="120"/>
+
+                    <TableColumn fx:id="createdAtColumn" text="Date" prefWidth="160"/>
+
+                </columns>
+
+            </TableView>
+
+        </VBox>
+
+    </VBox>
+
+
+
+    <VBox alignment="TOP_CENTER" pickOnBounds="false" maxWidth="Infinity" StackPane.alignment="TOP_CENTER">
+
+        <padding><Insets top="15" right="30" bottom="0" left="30"/></padding>
+
+        <HBox styleClass="navbar-pill" alignment="CENTER">
+
+            <Label text="CuraVita" styleClass="logo-text"/>
+
+            <Region HBox.hgrow="SOMETIMES"/>
+
+            <HBox styleClass="menu-container" alignment="CENTER">
+
+                <Button text="Accueil" styleClass="menu-item" onAction="#goHome"/>
+
+                <Button text="Produits" styleClass="menu-item" onAction="#handleNavProduits"/>
+
+                <Button text="Commandes" styleClass="menu-item" onAction="#handleNavCommandes"/>
+
+                <Button text="Traitement" styleClass="menu-item" onAction="#handleNavTraitement"/>
+
+                <MenuButton mnemonicParsing="false" text="Ordonnance" popupSide="BOTTOM" styleClass="nav-ordonnance-menubutton">
+                    <items>
+                        <MenuItem text="Cr&#233;er une ordonnance" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-create" onAction="#goToCreerOrdonnance"/>
+                        <SeparatorMenuItem styleClass="nav-ordonnance-sep"/>
+                        <MenuItem text="Mes ordonnances" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-list" onAction="#goToMesOrdonnances"/>
+                    </items>
+                </MenuButton>
+
+                <Button text="Guide Sant&#233;" styleClass="menu-item" onAction="#handleNavGuide"/>
+
+                <Button text="Contact" styleClass="menu-item" onAction="#goContact"/>
+
+                <Button text="&#192; propos" styleClass="menu-item" onAction="#handleNavAbout"/>
+
+            </HBox>
+
+            <Region HBox.hgrow="SOMETIMES"/>
+
+            <HBox styleClass="navbar-right-section" alignment="CENTER" spacing="15">
+
+                <Button text="&#128269;" styleClass="navbar-search-btn" onAction="#handleSearch"/>
+
+                <StackPane styleClass="navbar-notif-wrap">
+
+                    <Button fx:id="messagesButton" text="&#128276;" styleClass="navbar-notif-btn" onAction="#handleMessages"/>
+
+                    <Label fx:id="messagesBadge" text="0" styleClass="message-badge-navbar" StackPane.alignment="TOP_RIGHT"/>
+
+                </StackPane>
+
+                <StackPane>
+
+                    <HBox fx:id="profileContainer" styleClass="navbar-profile-container"
+
+                          alignment="CENTER" spacing="10" onMouseClicked="#toggleProfileDropdown">
+
+                        <StackPane styleClass="navbar-avatar-container">
+
+                            <Circle fx:id="navbarAvatarCircle" radius="18" styleClass="navbar-avatar-circle"/>
+
+                            <Label fx:id="navbarAvatarLabel" text="&#128100;" styleClass="navbar-avatar-emoji" alignment="CENTER"/>
+
+                            <Circle radius="4" styleClass="online-dot" StackPane.alignment="BOTTOM_RIGHT"/>
+
+                        </StackPane>
+
+                        <Label fx:id="navbarUsername" text="Utilisateur" styleClass="navbar-username"/>
+
+                        <Label text="&#9660;" styleClass="navbar-dropdown-arrow"/>
+
+                    </HBox>
+
+                    <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false" StackPane.alignment="TOP_RIGHT">
+
+                        <VBox.margin>
+
+                            <Insets top="52"/>
+
+                        </VBox.margin>
+
+                        <Button text="Mon Profil" styleClass="dropdown-item" onAction="#goToProfil"/>
+
+                        <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+
+                        <Button text="D&#233;connexion" styleClass="dropdown-item" onAction="#logout"/>
+
+                    </VBox>
+
+                </StackPane>
+
+            </HBox>
+
+        </HBox>
+
+    </VBox>
+
+</StackPane>
+
