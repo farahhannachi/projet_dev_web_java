@@ -302,7 +302,7 @@ public class CommandeService {
         // Libérer le stock si la commande était confirmée
         if (commande.estConfirmee()) {
             for (LigneCommande ligne : commande.getLignes()) {
-                stockService.libererStock(ligne.getProduitId(), ligne.getQuantite());
+                stockService .libererStock(ligne.getProduitId(), ligne.getQuantite());
             }
         }
 
