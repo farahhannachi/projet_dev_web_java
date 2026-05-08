@@ -44,7 +44,7 @@ public class MailerService {
         fromName = pick("MAIL_FROM_NAME", fileEnv, "CURAVITA Support");
         adminEmail = pick("MAIL_ADMIN", fileEnv, "curavita123@gmail.com");
 
-        // Symfony compatibility: prefer MAILER_DSN_Yassine when present, then MAILER_DSN.
+        // Optional MAILER_DSN from .env: prefer MAILER_DSN_Yassine when present, then MAILER_DSN.
         String dsn = resolveMailerDsn(fileEnv);
         if (dsn != null && !dsn.isBlank() && !"null://null".equalsIgnoreCase(dsn)) {
             applyMailerDsn(dsn);
@@ -362,7 +362,6 @@ public class MailerService {
         Map<String, String> values = new HashMap<>();
         Path[] candidates = new Path[] {
                 Path.of(System.getProperty("user.dir"), ".env"),
-                Path.of(System.getProperty("user.dir"), "symfony", ".env")
         };
 
         for (Path path : candidates) {

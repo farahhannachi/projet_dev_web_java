@@ -49,7 +49,7 @@ public class CommandesController {
 
     private final CommandeService commandeService = new CommandeService();
     private final CouponService couponService = new CouponService();
-    private final ProduitService produitService = new ProduitService();
+    private final ProduitService produitService = ProduitService.getInstance();
     private final PromotionService promotionService = new PromotionService();
     private final MailerService mailerService = new MailerService();
     private ObservableList<Commande> commandesList;
@@ -77,6 +77,7 @@ public class CommandesController {
 
     @FXML
     public void initialize() {
+        commandesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         clientCol.setCellValueFactory(new PropertyValueFactory<>("clientNom"));
         statutCol.setCellValueFactory(new PropertyValueFactory<>("statut"));
@@ -223,7 +224,7 @@ public class CommandesController {
 
     @FXML
     private void handleAjouterCommande() {
-        showWarning("Ajout de commande interdit depuis le back-office. Utilisez le front-office comme dans Symfony.");
+        showWarning("Ajout de commande interdit depuis le back-office. Passez une commande depuis l'espace client (front-office).");
     }
 
     @FXML

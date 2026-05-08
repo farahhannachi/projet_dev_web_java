@@ -24,7 +24,7 @@ public class MapsApiService {
     private static final String NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse";
     private static final String IP_GEO_URL = "http://ip-api.com/json/?fields=status,message,lat,lon,city,country,query";
     private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(8))
+            .connectTimeout(Duration.ofSeconds(15))
             .build();
 
     public GeocodeResult geocodeAddress(String address) {
@@ -37,7 +37,7 @@ public class MapsApiService {
             String url = NOMINATIM_URL + "?format=json&limit=1&q=" + query;
 
             HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-                    .timeout(Duration.ofSeconds(12))
+                    .timeout(Duration.ofSeconds(20))
                     .header("User-Agent", "CuraVita-JavaFX/1.0 (contact: support@curavita.local)")
                     .GET()
                     .build();
@@ -59,7 +59,11 @@ public class MapsApiService {
 
             return new GeocodeResult(true, lat, lon, displayName, "");
         } catch (IOException | InterruptedException | RuntimeException e) {
-            return new GeocodeResult(false, 0, 0, "", "Erreur maps: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && msg.toLowerCase().contains("timeout")) {
+                return new GeocodeResult(false, 0, 0, "", "Délai de connexion dépassé. Vérifiez votre connexion Internet.");
+            }
+            return new GeocodeResult(false, 0, 0, "", "Erreur maps: " + msg);
         }
     }
 
@@ -76,7 +80,7 @@ public class MapsApiService {
             String url = NOMINATIM_URL + "?format=json&limit=" + safeLimit + "&q=" + query;
 
             HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-                    .timeout(Duration.ofSeconds(12))
+                    .timeout(Duration.ofSeconds(20))
                     .header("User-Agent", "CuraVita-JavaFX/1.0 (contact: support@curavita.local)")
                     .GET()
                     .build();

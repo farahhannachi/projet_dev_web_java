@@ -47,6 +47,7 @@ public class ServiceController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        serviceTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         // Initialisation des colonnes
         colNom.setCellValueFactory(new PropertyValueFactory<>("nom"));
         colType.setCellValueFactory(new PropertyValueFactory<>("type"));

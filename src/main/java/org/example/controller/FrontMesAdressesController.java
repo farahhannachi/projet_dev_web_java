@@ -1,10 +1,7 @@
 package org.example.controller;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -12,29 +9,31 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import org.example.model.Address;
 import org.example.model.User;
 import org.example.service.AddressService;
 import org.example.service.UserService;
+import org.example.util.SceneNavigation;
 
-import java.io.IOException;
 import java.util.List;
 
 public class FrontMesAdressesController {
     @FXML private VBox addressesContainer;
-    @FXML private Button profileButton;
-    @FXML private VBox profileDropdown;
-    @FXML private Button dashboardMenuItem;
+    @FXML private FrontShopNavBarController shopNavController;
 
     private final AddressService addressService = new AddressService();
     private final UserService userService = new UserService();
 
     @FXML
     public void initialize() {
-        if (dashboardMenuItem != null) {
-            dashboardMenuItem.setVisible(userService.isAdmin());
-            dashboardMenuItem.setManaged(userService.isAdmin());
+        if (shopNavController != null) {
+            shopNavController.configure(
+                    FrontShopNavBarController.ActiveShopPage.ADRESSES,
+                    () -> {
+                        if (addressesContainer != null) {
+                            addressesContainer.requestFocus();
+                        }
+                    });
         }
         loadAddresses();
     }
@@ -128,18 +127,14 @@ public class FrontMesAdressesController {
     }
 
     @FXML
-    private void openNewAddressForm() throws IOException {
+    private void openNewAddressForm() {
         FrontAdresseFormController.setEditingAddressId(null);
         navigate("/fxml/FrontAdresseForm.fxml");
     }
 
     private void openEditForm(int addressId) {
-        try {
-            FrontAdresseFormController.setEditingAddressId(addressId);
-            navigate("/fxml/FrontAdresseForm.fxml");
-        } catch (IOException e) {
-            new Alert(Alert.AlertType.ERROR, "Erreur ouverture formulaire: " + e.getMessage()).showAndWait();
-        }
+        FrontAdresseFormController.setEditingAddressId(addressId);
+        navigate("/fxml/FrontAdresseForm.fxml");
     }
 
     private void confirmDelete(Address address) {
@@ -155,74 +150,7 @@ public class FrontMesAdressesController {
         });
     }
 
-    @FXML
-    private void goHome() throws IOException {
-        navigate("/fxml/Accueil.fxml");
-    }
-
-    @FXML
-    private void showFrontProduits() throws IOException {
-        navigate("/fxml/FrontProduits.fxml");
-    }
-
-    @FXML
-    private void showFrontServices() throws IOException {
-        navigate("/fxml/FrontServices.fxml");
-    }
-
-    @FXML
-    private void showFrontPanier() throws IOException {
-        navigate("/fxml/FrontCommande.fxml");
-    }
-
-    @FXML
-    private void showFrontAddresses() {
-        // already on addresses page
-    }
-
-    @FXML
-    private void showFrontTracking() throws IOException {
-        navigate("/fxml/FrontMesCommandes.fxml");
-    }
-
-    @FXML
-    private void handleSearch() {
-        if (addressesContainer != null) {
-            addressesContainer.requestFocus();
-        }
-    }
-
-    @FXML
-    private void toggleProfileDropdown() {
-        boolean visible = profileDropdown.isVisible();
-        profileDropdown.setVisible(!visible);
-        profileDropdown.setManaged(!visible);
-    }
-
-    @FXML
-    private void showProfile() {
-        profileDropdown.setVisible(false);
-        profileDropdown.setManaged(false);
-    }
-
-    @FXML
-    private void goToDashboard() throws IOException {
-        navigate("/fxml/Dashboard.fxml");
-    }
-
-    @FXML
-    private void logout() throws IOException {
-        userService.logout();
-        navigate("/fxml/Login.fxml");
-    }
-
-    private void navigate(String fxmlPath) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) profileButton.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+    private void navigate(String fxmlPath) {
+        SceneNavigation.replaceScene(addressesContainer, fxmlPath);
     }
 }

@@ -350,12 +350,27 @@ public class AccueilController {
 
     @FXML
     private void handleNavProduits() {
-        /* Déjà sur la vitrine produits / accueil */
+        switchScene("/fxml/FrontProduits.fxml");
     }
 
     @FXML
     private void handleNavCommandes() {
-        /* Hub accueil : pas de page commandes client dédiée pour l’instant */
+        switchScene("/fxml/FrontMesCommandes.fxml");
+    }
+
+    @FXML
+    private void handleNavServices() {
+        switchScene("/fxml/FrontServices.fxml");
+    }
+
+    @FXML
+    private void handleNavPanier() {
+        switchScene("/fxml/FrontCommande.fxml");
+    }
+
+    @FXML
+    private void handleNavAdresses() {
+        switchScene("/fxml/FrontMesAdresses.fxml");
     }
 
     @FXML

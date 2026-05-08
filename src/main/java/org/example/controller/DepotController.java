@@ -48,6 +48,7 @@ public class DepotController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         System.out.println("[DEBUG] DepotController.initialize() - START");
+        depotTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         // Initialisation des colonnes
         colNom.setCellValueFactory(new PropertyValueFactory<>("nom"));
         colAdresse.setCellValueFactory(new PropertyValueFactory<>("adresse"));

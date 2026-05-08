@@ -3,9 +3,6 @@ package org.example.controller;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -14,15 +11,14 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.model.Address;
 import org.example.model.User;
 import org.example.service.AddressService;
 import org.example.service.MapsApiService;
 import org.example.service.UserService;
+import org.example.util.SceneNavigation;
 
-import java.io.IOException;
 import java.util.List;
 
 public class FrontAdresseFormController {
@@ -40,9 +36,7 @@ public class FrontAdresseFormController {
     @FXML private TextField regionField;
     @FXML private TextField postalCodeField;
     @FXML private TextField countryField;
-    @FXML private Button profileButton;
-    @FXML private VBox profileDropdown;
-    @FXML private Button dashboardMenuItem;
+    @FXML private FrontShopNavBarController shopNavController;
 
     private static Integer editingAddressId;
 
@@ -60,9 +54,8 @@ public class FrontAdresseFormController {
 
     @FXML
     public void initialize() {
-        if (dashboardMenuItem != null) {
-            dashboardMenuItem.setVisible(userService.isAdmin());
-            dashboardMenuItem.setManaged(userService.isAdmin());
+        if (shopNavController != null) {
+            shopNavController.configure(FrontShopNavBarController.ActiveShopPage.ADRESSES, geoSearchField);
         }
 
         initMode();
@@ -268,78 +261,11 @@ public class FrontAdresseFormController {
     }
 
     @FXML
-    private void goBackToAddresses() throws IOException {
+    private void goBackToAddresses() {
         navigate("/fxml/FrontMesAdresses.fxml");
     }
 
-    @FXML
-    private void goHome() throws IOException {
-        navigate("/fxml/Accueil.fxml");
-    }
-
-    @FXML
-    private void showFrontProduits() throws IOException {
-        navigate("/fxml/FrontProduits.fxml");
-    }
-
-    @FXML
-    private void showFrontServices() throws IOException {
-        navigate("/fxml/FrontServices.fxml");
-    }
-
-    @FXML
-    private void showFrontPanier() throws IOException {
-        navigate("/fxml/FrontCommande.fxml");
-    }
-
-    @FXML
-    private void showFrontAddresses() throws IOException {
-        navigate("/fxml/FrontMesAdresses.fxml");
-    }
-
-    @FXML
-    private void showFrontTracking() throws IOException {
-        navigate("/fxml/FrontMesCommandes.fxml");
-    }
-
-    @FXML
-    private void handleSearch() {
-        if (geoSearchField != null) {
-            geoSearchField.requestFocus();
-        }
-    }
-
-    @FXML
-    private void toggleProfileDropdown() {
-        boolean visible = profileDropdown.isVisible();
-        profileDropdown.setVisible(!visible);
-        profileDropdown.setManaged(!visible);
-    }
-
-    @FXML
-    private void showProfile() {
-        profileDropdown.setVisible(false);
-        profileDropdown.setManaged(false);
-    }
-
-    @FXML
-    private void goToDashboard() throws IOException {
-        navigate("/fxml/Dashboard.fxml");
-    }
-
-    @FXML
-    private void logout() throws IOException {
-        userService.logout();
-        navigate("/fxml/Login.fxml");
-    }
-
-    private void navigate(String fxmlPath) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) profileButton.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
+    private void navigate(String fxmlPath) {
+        SceneNavigation.replaceScene(geoSearchField, fxmlPath);
     }
 }

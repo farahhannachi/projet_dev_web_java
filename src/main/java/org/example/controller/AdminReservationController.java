@@ -52,6 +52,7 @@ public class AdminReservationController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Initialize columns
+        reservationTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colClient.setCellValueFactory(cellData ->
             new javafx.beans.property.SimpleStringProperty(cellData.getValue().getNomClient()));

@@ -13,6 +13,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import org.example.service.UserService;
 import org.example.util.DatabaseUtil;
+import org.example.util.SceneNavigation;
 
 import java.io.IOException;
 import java.sql.*;
@@ -1010,7 +1011,28 @@ public class BackOrdonnanceController {
         return card;
     }
 
-    @FXML private void goToDashboard() { nav("/fxml/Dashboard.fxml"); }
+    @FXML private void goToDashboardHome() {
+        DashboardController.requestDashboardView("home");
+        nav("/fxml/Dashboard.fxml");
+    }
+
+    /** Retour au site client (sans déconnexion). */
+    @FXML private void goToFrontOffice() {
+        SceneNavigation.replaceScene(pageContainer, "/fxml/Accueil.fxml");
+    }
+
+    private void openDashboardSection(String section) {
+        DashboardController.requestDashboardView(section);
+        nav("/fxml/Dashboard.fxml");
+    }
+
+    @FXML private void goToDashboardProduits() { openDashboardSection("produits"); }
+    @FXML private void goToDashboardCommandes() { openDashboardSection("commandes"); }
+    @FXML private void goToDashboardPromotions() { openDashboardSection("promotions"); }
+    @FXML private void goToDashboardCoupons() { openDashboardSection("coupons"); }
+    @FXML private void goToDashboardDepots() { openDashboardSection("depots"); }
+    @FXML private void goToDashboardStocks() { openDashboardSection("stocks"); }
+    @FXML private void goToDashboardServices() { openDashboardSection("services"); }
 
     /** Retour au shell Dashboard avec la vue Support / Contact ouverte. */
     @FXML private void goToContactSupport() {
@@ -1019,7 +1041,7 @@ public class BackOrdonnanceController {
     }
 
     @FXML private void goToTraitements() { nav("/fxml/BackTraitement.fxml"); }
-    @FXML private void goToClients() { nav("/fxml/UserManagement.fxml"); }
+    @FXML private void goToClients() { openDashboardSection("clients"); }
     @FXML private void logout() {
         userService.logout();
         nav("/fxml/Login.fxml");

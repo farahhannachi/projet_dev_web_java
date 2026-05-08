@@ -4,10 +4,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -16,7 +13,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import org.example.model.Produit;
 import org.example.service.ChatbotService;
 import org.example.service.FrontPanierService;
@@ -24,9 +20,9 @@ import org.example.service.MailerService;
 import org.example.service.ProduitService;
 import org.example.service.PromotionService;
 import org.example.service.UserService;
+import org.example.util.SceneNavigation;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -48,11 +44,9 @@ public class FrontProduitsController {
     @FXML private TextField chatInputField;
     @FXML private VBox medBotPanel;
     @FXML private Button medBotLauncher;
-    @FXML private Button profileButton;
-    @FXML private VBox profileDropdown;
-    @FXML private Button dashboardMenuItem;
+    @FXML private FrontShopNavBarController shopNavController;
 
-    private final ProduitService produitService = new ProduitService();
+    private final ProduitService produitService = ProduitService.getInstance();
     private final PromotionService promotionService = new PromotionService();
     private final FrontPanierService panierService = new FrontPanierService();
     private final UserService userService = new UserService();
@@ -95,9 +89,8 @@ public class FrontProduitsController {
 
     @FXML
     public void initialize() {
-        if (dashboardMenuItem != null) {
-            dashboardMenuItem.setVisible(userService.isAdmin());
-            dashboardMenuItem.setManaged(userService.isAdmin());
+        if (shopNavController != null) {
+            shopNavController.configure(FrontShopNavBarController.ActiveShopPage.PRODUITS, searchField);
         }
 
         stockFilter.setItems(FXCollections.observableArrayList("Tous", "Disponible", "Stock faible", "Rupture"));
@@ -352,118 +345,8 @@ public class FrontProduitsController {
     }
 
     @FXML
-    private void goToCommande() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/FrontCommande.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) productsFlow.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
-    }
-
-    @FXML
-    private void goToTracking() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/FrontMesCommandes.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) productsFlow.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
-    }
-
-    @FXML
-    private void goBackHome() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) productsFlow.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
-    }
-
-    @FXML
-    private void goHome() throws IOException {
-        goBackHome();
-    }
-
-    @FXML
-    private void showFrontProduits() {
-        // already on products page
-    }
-
-    @FXML
-    private void showFrontServices() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/FrontServices.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) productsFlow.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
-    }
-
-    @FXML
-    private void showFrontPanier() throws IOException {
-        goToCommande();
-    }
-
-    @FXML
-    private void showFrontAddresses() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/FrontMesAdresses.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) productsFlow.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
-    }
-
-    @FXML
-    private void showFrontTracking() throws IOException {
-        goToTracking();
-    }
-
-    @FXML
-    private void handleSearch() {
-        searchField.requestFocus();
-    }
-
-    @FXML
-    private void toggleProfileDropdown() {
-        boolean isVisible = profileDropdown.isVisible();
-        profileDropdown.setVisible(!isVisible);
-        profileDropdown.setManaged(!isVisible);
-    }
-
-    @FXML
-    private void showProfile() {
-        profileDropdown.setVisible(false);
-        profileDropdown.setManaged(false);
-    }
-
-    @FXML
-    private void goToDashboard() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Dashboard.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) productsFlow.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
-    }
-
-    @FXML
-    private void logout() throws IOException {
-        userService.logout();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) productsFlow.getScene().getWindow();
-        stage.setScene(scene);
+    private void goToCommande() {
+        SceneNavigation.replaceScene(productsFlow, "/fxml/FrontCommande.fxml");
     }
 
     private void refreshCartSummary() {
@@ -613,4 +496,5 @@ public class FrontProduitsController {
         String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);
         return normalized.replaceAll("\\p{M}+", "").toLowerCase().trim();
     }
+
 }

@@ -54,14 +54,14 @@
 
         <center>
             <VBox styleClass="table-card" BorderPane.alignment="CENTER">
-                <TableView fx:id="commandesTable" VBox.vgrow="ALWAYS" styleClass="admin-table">
+                <TableView fx:id="commandesTable" VBox.vgrow="ALWAYS" styleClass="admin-table" minHeight="380">
                     <columns>
-                        <TableColumn fx:id="idCol" text="ID" prefWidth="60" visible="false"/>
-                        <TableColumn fx:id="clientCol" text="Client" prefWidth="180"/>
-                        <TableColumn fx:id="statutCol" text="Statut" prefWidth="130"/>
-                        <TableColumn fx:id="totalHtCol" text="Total HT" prefWidth="120"/>
-                        <TableColumn fx:id="totalTtcCol" text="Total TTC" prefWidth="120"/>
-                        <TableColumn fx:id="dateCol" text="Date" prefWidth="140"/>
+                        <TableColumn fx:id="idCol" text="ID" minWidth="60" visible="false"/>
+                        <TableColumn fx:id="clientCol" text="Client" minWidth="180"/>
+                        <TableColumn fx:id="statutCol" text="Statut" minWidth="130"/>
+                        <TableColumn fx:id="totalHtCol" text="Total HT" minWidth="120"/>
+                        <TableColumn fx:id="totalTtcCol" text="Total TTC" minWidth="120"/>
+                        <TableColumn fx:id="dateCol" text="Date" minWidth="140"/>
                     </columns>
                 </TableView>
             </VBox>

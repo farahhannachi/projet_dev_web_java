@@ -2,11 +2,7 @@ package org.example.controller;
 
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -14,13 +10,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import org.example.model.Commande;
 import org.example.model.User;
 import org.example.service.CommandeService;
 import org.example.service.UserService;
 
-import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
@@ -37,9 +31,7 @@ public class FrontMesCommandesController {
     @FXML private Label confirmeesLabel;
     @FXML private Label livreesLabel;
     @FXML private Label montantTotalLabel;
-    @FXML private Button profileButton;
-    @FXML private VBox profileDropdown;
-    @FXML private Button dashboardMenuItem;
+    @FXML private FrontShopNavBarController shopNavController;
 
     private final CommandeService commandeService = new CommandeService();
     private final UserService userService = new UserService();
@@ -47,9 +39,8 @@ public class FrontMesCommandesController {
 
     @FXML
     public void initialize() {
-        if (dashboardMenuItem != null) {
-            dashboardMenuItem.setVisible(userService.isAdmin());
-            dashboardMenuItem.setManaged(userService.isAdmin());
+        if (shopNavController != null) {
+            shopNavController.configure(FrontShopNavBarController.ActiveShopPage.COMMANDES, searchField);
         }
 
         statusFilter.setItems(FXCollections.observableArrayList("Tous statuts", "En attente", "Confirmee", "Livree", "Annulee", "Bloquee"));
@@ -222,79 +213,5 @@ public class FrontMesCommandesController {
 
     private String safe(String value) {
         return value == null ? "" : value;
-    }
-
-    @FXML
-    private void goBackHome() throws IOException {
-        navigate("/fxml/Accueil.fxml");
-    }
-
-    @FXML
-    private void goHome() throws IOException {
-        goBackHome();
-    }
-
-    @FXML
-    private void showFrontProduits() throws IOException {
-        navigate("/fxml/FrontProduits.fxml");
-    }
-
-    @FXML
-    private void showFrontServices() throws IOException {
-        navigate("/fxml/FrontServices.fxml");
-    }
-
-    @FXML
-    private void showFrontPanier() throws IOException {
-        navigate("/fxml/FrontCommande.fxml");
-    }
-
-    @FXML
-    private void showFrontAddresses() throws IOException {
-        navigate("/fxml/FrontMesAdresses.fxml");
-    }
-
-    @FXML
-    private void showFrontTracking() {
-        // already on tracking page
-    }
-
-    @FXML
-    private void handleSearch() {
-        searchField.requestFocus();
-    }
-
-    @FXML
-    private void toggleProfileDropdown() {
-        boolean isVisible = profileDropdown.isVisible();
-        profileDropdown.setVisible(!isVisible);
-        profileDropdown.setManaged(!isVisible);
-    }
-
-    @FXML
-    private void showProfile() {
-        profileDropdown.setVisible(false);
-        profileDropdown.setManaged(false);
-    }
-
-    @FXML
-    private void goToDashboard() throws IOException {
-        navigate("/fxml/Dashboard.fxml");
-    }
-
-    @FXML
-    private void logout() throws IOException {
-        userService.logout();
-        navigate("/fxml/Login.fxml");
-    }
-
-    private void navigate(String fxml) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) profileButton.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
     }
 }

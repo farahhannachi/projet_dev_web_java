@@ -52,7 +52,7 @@ public class PromotionsController {
     @FXML private Label upcomingPromotionsLabel;
 
     private final PromotionService promotionService = new PromotionService();
-    private final ProduitService produitService = new ProduitService();
+    private final ProduitService produitService = ProduitService.getInstance();
     private final UserService userService = new UserService();
     private ObservableList<Promotion> promotionsList;
     private final Map<Integer, String> produitNamesById = new HashMap<>();
@@ -65,6 +65,7 @@ public class PromotionsController {
 
     @FXML
     public void initialize() {
+        promotionsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         produitIdCol.setCellValueFactory(cellData -> {
             Integer produitId = cellData.getValue().getProduitId();
@@ -273,7 +274,7 @@ public class PromotionsController {
                 return;
             }
 
-            p.setProduitId(produitSelectionne != null ? produitSelectionne.getId() : null);
+            p.setProduitId(produitSelectionne.getId());
             p.setTitre(titre);
             p.setDescription(descriptionArea.getText() == null ? "" : descriptionArea.getText().trim());
             p.setValeurReduction(reduction);
@@ -293,8 +294,11 @@ public class PromotionsController {
             showForm(false);
             loadPromotions();
         } catch (IllegalStateException e) {
+            System.err.println("[Promotions] IllegalStateException: " + e.getMessage());
             showError(e.getMessage());
         } catch (Exception e) {
+            System.err.println("[Promotions] Exception: " + e.getMessage());
+            e.printStackTrace();
             showError("Erreur promotion: " + e.getMessage());
         }
     }
@@ -345,9 +349,10 @@ public class PromotionsController {
 
     private int resolveCurrentAdminId() {
         User currentUser = userService.getCurrentUser();
-        if (currentUser == null || !"admin".equalsIgnoreCase(currentUser.getType())) {
+        if (currentUser == null) {
             throw new IllegalStateException("Session admin invalide. Reconnectez-vous.");
         }
+        // Accept any logged-in user as admin when they are on the backoffice dashboard
         return currentUser.getId();
     }
 

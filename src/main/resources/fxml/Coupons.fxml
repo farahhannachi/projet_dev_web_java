@@ -50,17 +50,17 @@
 
         <center>
             <VBox styleClass="table-card" BorderPane.alignment="CENTER">
-                <TableView fx:id="couponsTable" styleClass="admin-table" VBox.vgrow="ALWAYS">
+                <TableView fx:id="couponsTable" styleClass="admin-table" minHeight="380" VBox.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="idCol" text="ID" prefWidth="60"/>
-                        <TableColumn fx:id="codeCol" text="Code" prefWidth="140"/>
-                        <TableColumn fx:id="typeCol" text="Type" prefWidth="110"/>
-                        <TableColumn fx:id="valeurCol" text="Valeur" prefWidth="100"/>
-                        <TableColumn fx:id="expirationCol" text="Expiration" prefWidth="120"/>
-                        <TableColumn fx:id="usageMaxCol" text="Usage Max" prefWidth="100"/>
-                        <TableColumn fx:id="usageCountCol" text="Usage" prefWidth="90"/>
-                        <TableColumn fx:id="actifCol" text="Actif" prefWidth="80"/>
-                        <TableColumn fx:id="minimumCol" text="Min Panier" prefWidth="120"/>
+                        <TableColumn fx:id="idCol" text="ID" minWidth="60"/>
+                        <TableColumn fx:id="codeCol" text="Code" minWidth="140"/>
+                        <TableColumn fx:id="typeCol" text="Type" minWidth="110"/>
+                        <TableColumn fx:id="valeurCol" text="Valeur" minWidth="100"/>
+                        <TableColumn fx:id="expirationCol" text="Expiration" minWidth="120"/>
+                        <TableColumn fx:id="usageMaxCol" text="Usage Max" minWidth="100"/>
+                        <TableColumn fx:id="usageCountCol" text="Usage" minWidth="90"/>
+                        <TableColumn fx:id="actifCol" text="Actif" minWidth="80"/>
+                        <TableColumn fx:id="minimumCol" text="Min Panier" minWidth="120"/>
                     </columns>
                 </TableView>
             </VBox>

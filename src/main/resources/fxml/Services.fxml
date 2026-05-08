@@ -2,54 +2,70 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
-<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-           fx:controller="org.example.controller.ServiceController">
 
-    <!-- Vue principale: liste des services -->
-    <VBox fx:id="listView" spacing="10" prefHeight="600" prefWidth="800">
-        <padding><Insets top="15" left="15" right="15" bottom="15"/></padding>
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.controller.ServiceController"
+            fitToWidth="true" fitToHeight="true" pannable="true"
+            hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+        <StackPane styleClass="admin-root">
+            <VBox fx:id="listView" spacing="0" maxWidth="Infinity" maxHeight="Infinity">
+                <BorderPane VBox.vgrow="ALWAYS">
+                    <top>
+                        <VBox spacing="14" styleClass="admin-header-wrap">
+                            <HBox alignment="CENTER_LEFT" spacing="20" styleClass="admin-header">
+                                <VBox spacing="2">
+                                    <Label text="Services" styleClass="admin-title"/>
+                                    <Label text="Offres santé et consommation" styleClass="admin-subtitle"/>
+                                </VBox>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button text="Ajouter un service" onAction="#openAddServiceModal" styleClass="btn-admin-primary"/>
+                            </HBox>
 
-        <HBox spacing="10" alignment="CENTER_LEFT">
-            <Label text="Gestion des Services" style="-fx-font-size: 20; -fx-font-weight: bold;"/>
-            <Region HBox.hgrow="ALWAYS"/>
-            <Button text="Ajouter un service" onAction="#openAddServiceModal" style="-fx-font-size: 12; -fx-padding: 8;"/>
-        </HBox>
+                            <HBox spacing="12" styleClass="stats-row">
+                                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                    <Label text="Nombre de services" styleClass="stat-label"/>
+                                    <Label fx:id="totalServicesLabel" text="0" styleClass="stat-value"/>
+                                </VBox>
+                                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                    <Label text="Consommation totale" styleClass="stat-label"/>
+                                    <Label fx:id="consommationTotaleLabel" text="0.0" styleClass="stat-value"/>
+                                </VBox>
+                                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                    <Label text="Service le plus actif" styleClass="stat-label"/>
+                                    <Label fx:id="servicePlusActifLabel" text="N/A" styleClass="stat-value success"/>
+                                </VBox>
+                            </HBox>
 
-        <!-- Statistiques -->
-        <VBox styleClass="card" spacing="10">
-            <Label text="Statistiques Services" styleClass="section-title"/>
-            <GridPane hgap="20" vgap="10" alignment="CENTER">
-                <VBox styleClass="stat-card" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                    <Label text="Nombre de Services" styleClass="stat-label"/>
-                    <Label fx:id="totalServicesLabel" text="0" styleClass="stat-value"/>
-                </VBox>
-                <VBox styleClass="stat-card" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                    <Label text="Consommation Totale" styleClass="stat-label"/>
-                    <Label fx:id="consommationTotaleLabel" text="0.0" styleClass="stat-value"/>
-                </VBox>
-                <VBox styleClass="stat-card" GridPane.columnIndex="2" GridPane.rowIndex="0">
-                    <Label text="Service le Plus Actif" styleClass="stat-label"/>
-                    <Label fx:id="servicePlusActifLabel" text="N/A" styleClass="stat-value"/>
-                </VBox>
-            </GridPane>
-        </VBox>
+                            <HBox spacing="10" styleClass="filters-row">
+                                <TextField fx:id="searchField" promptText="Recherche nom, email, type..." HBox.hgrow="ALWAYS" styleClass="filter-field"/>
+                                <ComboBox fx:id="typeFilter" promptText="Type" styleClass="filter-field"/>
+                            </HBox>
+                        </VBox>
+                    </top>
 
-        <HBox spacing="10">
-            <TextField fx:id="searchField" promptText="Recherche..." prefWidth="250"/>
-            <ComboBox fx:id="typeFilter" promptText="Type" prefWidth="150" />
-        </HBox>
+                    <center>
+                        <VBox styleClass="table-card" BorderPane.alignment="CENTER">
+                            <TableView fx:id="serviceTable" styleClass="admin-table" minHeight="400" VBox.vgrow="ALWAYS">
+                                <columns>
+                                    <TableColumn fx:id="colNom" text="Nom" minWidth="150"/>
+                                    <TableColumn fx:id="colType" text="Type" minWidth="100"/>
+                                    <TableColumn fx:id="colSpecialite" text="Spécialité" minWidth="150"/>
+                                    <TableColumn fx:id="colTelephone" text="Téléphone" minWidth="120"/>
+                                    <TableColumn fx:id="colEmail" text="Email" minWidth="160"/>
+                                    <TableColumn fx:id="colActions" text="Actions" minWidth="120"/>
+                                </columns>
+                            </TableView>
+                        </VBox>
+                    </center>
 
-        <TableView fx:id="serviceTable" VBox.vgrow="ALWAYS" minHeight="400">
-            <columns>
-                <TableColumn fx:id="colNom" text="Nom" prefWidth="150" />
-                <TableColumn fx:id="colType" text="Type" prefWidth="100" />
-                <TableColumn fx:id="colSpecialite" text="Spécialité" prefWidth="150" />
-                <TableColumn fx:id="colTelephone" text="Téléphone" prefWidth="120" />
-                <TableColumn fx:id="colEmail" text="Email" prefWidth="150" />
-                <TableColumn fx:id="colActions" text="Actions" prefWidth="80" />
-            </columns>
-        </TableView>
-
-        <Pagination fx:id="pagination" />
-    </VBox>
-</StackPane>
+                    <bottom>
+                        <HBox alignment="CENTER" styleClass="admin-actions-row">
+                            <Pagination fx:id="pagination"/>
+                        </HBox>
+                    </bottom>
+                </BorderPane>
+            </VBox>
+        </StackPane>
+    </content>
+</ScrollPane>

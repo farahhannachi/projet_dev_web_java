@@ -21,7 +21,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.example.model.Service;
 import org.example.service.ServiceService;
-import org.example.service.UserService;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -33,19 +32,15 @@ public class FrontServicesController {
     @FXML private TextField searchField;
     @FXML private ComboBox<String> typeFilter;
     @FXML private Label totalServicesLabel;
-    @FXML private Button profileButton;
-    @FXML private VBox profileDropdown;
-    @FXML private Button dashboardMenuItem;
+    @FXML private FrontShopNavBarController shopNavController;
 
     private final ServiceService serviceService = ServiceService.getInstance();
-    private final UserService userService = new UserService();
     private ObservableList<Service> services = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
-        if (dashboardMenuItem != null) {
-            dashboardMenuItem.setVisible(userService.isAdmin());
-            dashboardMenuItem.setManaged(userService.isAdmin());
+        if (shopNavController != null) {
+            shopNavController.configure(FrontShopNavBarController.ActiveShopPage.SERVICES, searchField);
         }
 
         searchField.textProperty().addListener((obs, oldValue, newValue) -> applyFilters());
@@ -168,75 +163,6 @@ public class FrontServicesController {
         } catch (IOException e) {
             new Alert(Alert.AlertType.ERROR, "Erreur ouverture reservation: " + e.getMessage()).showAndWait();
         }
-    }
-
-    @FXML
-    private void goHome() throws IOException {
-        navigate("/fxml/Accueil.fxml");
-    }
-
-    @FXML
-    private void showFrontProduits() throws IOException {
-        navigate("/fxml/FrontProduits.fxml");
-    }
-
-    @FXML
-    private void showFrontServices() {
-        // already on services page
-    }
-
-    @FXML
-    private void showFrontPanier() throws IOException {
-        navigate("/fxml/FrontCommande.fxml");
-    }
-
-    @FXML
-    private void showFrontAddresses() throws IOException {
-        navigate("/fxml/FrontMesAdresses.fxml");
-    }
-
-    @FXML
-    private void showFrontTracking() throws IOException {
-        navigate("/fxml/FrontMesCommandes.fxml");
-    }
-
-    @FXML
-    private void handleSearch() {
-        searchField.requestFocus();
-    }
-
-    @FXML
-    private void toggleProfileDropdown() {
-        boolean visible = profileDropdown.isVisible();
-        profileDropdown.setVisible(!visible);
-        profileDropdown.setManaged(!visible);
-    }
-
-    @FXML
-    private void showProfile() {
-        profileDropdown.setVisible(false);
-        profileDropdown.setManaged(false);
-    }
-
-    @FXML
-    private void goToDashboard() throws IOException {
-        navigate("/fxml/Dashboard.fxml");
-    }
-
-    @FXML
-    private void logout() throws IOException {
-        userService.logout();
-        navigate("/fxml/Login.fxml");
-    }
-
-    private void navigate(String fxmlPath) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) profileButton.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
     }
 
     private String safe(String value) {

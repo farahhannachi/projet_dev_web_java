@@ -10,6 +10,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.web.WebView;
 import org.example.model.User;
 import org.example.service.UserService;
+import org.example.service.ResponseQuestionService;
 import org.example.util.NavbarOrdonnanceMenu;
 import org.example.util.SceneNavigation;
 
@@ -29,8 +30,10 @@ public class GuideSanteController {
     @FXML private Circle navbarAvatarCircle;
     @FXML private Label navbarUsername;
     @FXML private Label navbarAvatarLabel;
+    @FXML private Label messagesBadge;
 
     private final UserService userService = UserService.getInstance();
+    private final ResponseQuestionService responseQuestionService = new ResponseQuestionService();
 
     @FXML
     public void initialize() {
@@ -46,7 +49,8 @@ public class GuideSanteController {
         if (navbarAvatarCircle != null) {
             navbarAvatarCircle.setStyle("-fx-fill: #1f6f54; -fx-stroke: white; -fx-stroke-width: 2;");
         }
-        NavbarOrdonnanceMenu.wirePopupStyle(profileContainer);
+        NavbarOrdonnanceMenu.wirePopupStyle(webView != null ? webView : profileContainer);
+        updateMessagesBadge();
 
         if (webView != null) {
             webView.setZoom(0.92);
@@ -92,6 +96,17 @@ public class GuideSanteController {
         }
     }
 
+
+    private void updateMessagesBadge() {
+        if (messagesBadge == null) return;
+        User u = userService.getCurrentUser();
+        if (u == null) { messagesBadge.setVisible(false); messagesBadge.setManaged(false); return; }
+        int count = responseQuestionService.countUnreadResponsesForClient(u.getId());
+        messagesBadge.setText(String.valueOf(count));
+        messagesBadge.setVisible(count > 0);
+        messagesBadge.setManaged(count > 0);
+    }
+
     private javafx.scene.Node navAnchor() {
         return webView != null ? webView : profileContainer;
     }
@@ -126,12 +141,27 @@ public class GuideSanteController {
 
     @FXML
     private void handleNavProduits() {
-        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontProduits.fxml");
     }
 
     @FXML
     private void handleNavCommandes() {
-        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontMesCommandes.fxml");
+    }
+
+    @FXML
+    private void handleNavServices() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontServices.fxml");
+    }
+
+    @FXML
+    private void handleNavPanier() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontCommande.fxml");
+    }
+
+    @FXML
+    private void handleNavAdresses() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontMesAdresses.fxml");
     }
 
     @FXML

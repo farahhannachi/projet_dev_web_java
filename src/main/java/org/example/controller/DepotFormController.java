@@ -13,7 +13,6 @@ import org.example.service.DepotService;
 import org.example.service.LocationGeocodingService;
 import org.example.util.DepotValidator;
 import org.example.util.NotificationUtil;
-import org.example.util.ValidationException;
 
 import java.time.LocalDateTime;
 import java.util.Locale;
@@ -107,9 +106,6 @@ public class DepotFormController {
             }
 
             handleCancel();
-        } catch (ValidationException e) {
-            errorLabel.setText(e.getMessage());
-            errorLabel.setStyle("-fx-text-fill: #E74C3C; -fx-wrap-text: true;");
         } catch (Exception e) {
             errorLabel.setText("Erreur: " + e.getMessage());
             errorLabel.setStyle("-fx-text-fill: #E74C3C; -fx-wrap-text: true;");

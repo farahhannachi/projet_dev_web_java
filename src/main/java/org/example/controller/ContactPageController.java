@@ -666,12 +666,27 @@ public class ContactPageController {
 
     @FXML
     private void handleNavProduits() {
-        switchScene("/fxml/Accueil.fxml");
+        switchScene("/fxml/FrontProduits.fxml");
     }
 
     @FXML
     private void handleNavCommandes() {
-        switchScene("/fxml/Accueil.fxml");
+        switchScene("/fxml/FrontMesCommandes.fxml");
+    }
+
+    @FXML
+    private void handleNavServices() {
+        switchScene("/fxml/FrontServices.fxml");
+    }
+
+    @FXML
+    private void handleNavPanier() {
+        switchScene("/fxml/FrontCommande.fxml");
+    }
+
+    @FXML
+    private void handleNavAdresses() {
+        switchScene("/fxml/FrontMesAdresses.fxml");
     }
 
     @FXML

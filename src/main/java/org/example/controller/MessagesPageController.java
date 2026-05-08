@@ -60,7 +60,7 @@ public class MessagesPageController {
         if (navbarAvatarCircle != null) {
             navbarAvatarCircle.setStyle("-fx-fill: #1f6f54; -fx-stroke: white; -fx-stroke-width: 2;");
         }
-        NavbarOrdonnanceMenu.wirePopupStyle(profileContainer);
+        NavbarOrdonnanceMenu.wirePopupStyle(messagesTable != null ? messagesTable : profileContainer);
     }
 
     private Node navAnchor() {
@@ -113,12 +113,27 @@ public class MessagesPageController {
 
     @FXML
     private void handleNavProduits() {
-        switchScene("/fxml/Accueil.fxml");
+        switchScene("/fxml/FrontProduits.fxml");
     }
 
     @FXML
     private void handleNavCommandes() {
-        switchScene("/fxml/Accueil.fxml");
+        switchScene("/fxml/FrontMesCommandes.fxml");
+    }
+
+    @FXML
+    private void handleNavServices() {
+        switchScene("/fxml/FrontServices.fxml");
+    }
+
+    @FXML
+    private void handleNavPanier() {
+        switchScene("/fxml/FrontCommande.fxml");
+    }
+
+    @FXML
+    private void handleNavAdresses() {
+        switchScene("/fxml/FrontMesAdresses.fxml");
     }
 
     @FXML

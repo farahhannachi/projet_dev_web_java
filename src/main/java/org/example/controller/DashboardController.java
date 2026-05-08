@@ -14,24 +14,33 @@ import org.example.model.Depot;
 import org.example.model.Produit;
 import org.example.model.Stock;
 import org.example.service.ClientService;
-import org.example.service.ProduitService;
 import org.example.service.CommandeService;
+import org.example.service.ProduitService;
 import org.example.service.StockService;
 import org.example.service.UserService;
 import org.example.util.SceneNavigation;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public class DashboardController {
 
-    /** Lorsque true, le premier {@link #initialize()} après chargement du Dashboard affiche la vue Contact / tickets. */
-    private static final AtomicBoolean OPEN_CONTACT_SECTION_ON_NEXT_LOAD = new AtomicBoolean(false);
+    private static final AtomicReference<String> PENDING_DASHBOARD_VIEW = new AtomicReference<>();
 
-    /** Appelé depuis les autres écrans admin avant {@code replaceScene(..., "/fxml/Dashboard.fxml")}. */
+    /**
+     * Ouvre le dashboard puis la section demandée après le premier {@code initialize()}
+     * (ex. depuis Ordonnances admin / Traitements admin).
+     */
+    public static void requestDashboardView(String viewKey) {
+        if (viewKey != null && !viewKey.isBlank()) {
+            PENDING_DASHBOARD_VIEW.set(viewKey.trim().toLowerCase());
+        }
+    }
+
     public static void requestOpenContactSection() {
-        OPEN_CONTACT_SECTION_ON_NEXT_LOAD.set(true);
+        requestDashboardView("contact");
     }
 
     @FXML private BorderPane mainPane;
@@ -46,9 +55,9 @@ public class DashboardController {
     @FXML private Button frontOfficeBtn;
 
     private ClientService clientService = new ClientService();
-    private ProduitService produitService = new ProduitService();
+    private final ProduitService produitService = ProduitService.getInstance();
     private CommandeService commandeService = new CommandeService();
-    private StockService stockService = new StockService();
+    private final StockService stockService = StockService.getInstance();
     private final UserService userService = new UserService();
     private javafx.scene.Node dashboardCenter;
 
@@ -57,31 +66,27 @@ public class DashboardController {
         dashboardCenter = mainPane.getCenter();
         addSampleData();
         loadStats();
-        if (OPEN_CONTACT_SECTION_ON_NEXT_LOAD.compareAndSet(true, false)) {
-            Platform.runLater(this::showResponseQuestions);
+        String pending = PENDING_DASHBOARD_VIEW.getAndSet(null);
+        if (pending != null) {
+            Platform.runLater(() -> navigateToEmbeddedSection(pending));
         }
     }
 
     private void addSampleData() {
-        // Sample products
         produitService.add(new Produit(0, "Paracétamol", "Antalgique et antipyrétique", 5.50, 100, "Analgésiques", true));
         produitService.add(new Produit(0, "Ibuprofène", "Anti-inflammatoire non stéroïdien", 4.20, 80, "Anti-inflammatoires", true));
         produitService.add(new Produit(0, "Aspirine", "Antalgique et antiagrégant", 3.80, 120, "Analgésiques", true));
         produitService.add(new Produit(0, "Vitamine C", "Supplément vitaminique", 8.90, 50, "Vitamines", true));
 
-        // Sample clients
         clientService.add(new Client(0, "Dupont", "Jean", "jean.dupont@email.com", "0123456789", LocalDate.of(1980, 5, 15), "123 Rue de la Paix, Paris"));
         clientService.add(new Client(0, "Martin", "Marie", "marie.martin@email.com", "0987654321", LocalDate.of(1990, 3, 22), "456 Avenue des Champs, Lyon"));
 
-        // Sample depots
         Depot depot1 = new Depot(0, "Dépôt Central", "10 Rue du Stock, Paris", "0145678901");
         Depot depot2 = new Depot(0, "Dépôt Régional", "20 Boulevard Commercial, Lyon", "0276543210");
 
-        // Sample stocks
         stockService.add(new Stock(0, produitService.getAll().get(0), 50, 10, depot1));
-        stockService.add(new Stock(0, produitService.getAll().get(1), 5, 10, depot1)); // Low stock
+        stockService.add(new Stock(0, produitService.getAll().get(1), 5, 10, depot1));
 
-        // Sample orders
         commandeService.add(new Commande(0, clientService.getAll().get(0), java.util.Arrays.asList(produitService.getAll().get(0)), LocalDate.now(), 5.50, "Confirmée"));
     }
 
@@ -94,20 +99,17 @@ public class DashboardController {
 
     @FXML
     private void handleNouveauClient() {
-        // Open new client form
-        System.out.println("Nouveau Client clicked");
+        showClients();
     }
 
     @FXML
     private void handleAjouterProduit() {
-        // Open add product form
-        System.out.println("Ajouter Produit clicked");
+        showProduits();
     }
 
     @FXML
     private void handleNouvelleCommande() {
-        // Open new order form
-        System.out.println("Nouvelle Commande clicked");
+        showCommandes();
     }
 
     @FXML
@@ -117,37 +119,68 @@ public class DashboardController {
 
     @FXML
     private void showClients() {
-        loadCenterContent("/fxml/UserManagement.fxml");
+        loadCenterContent("/fxml/UserManagement.fxml", null);
     }
 
     @FXML
     private void showProduits() {
-        setCenterPlaceholder("Produits", "Vue catalogue détaillée — bientôt disponible.");
+        loadCenterContent("/fxml/Produits.fxml", ctrl -> {
+            if (ctrl instanceof ProduitsController p) {
+                p.setDashboardController(this);
+            }
+        });
     }
 
     @FXML
     private void showCommandes() {
-        setCenterPlaceholder("Commandes", "Vue commandes — bientôt disponible.");
+        loadCenterContent("/fxml/Commandes.fxml", ctrl -> {
+            if (ctrl instanceof CommandesController c) {
+                c.setDashboardController(this);
+            }
+        });
     }
 
     @FXML
     private void showPromotions() {
-        setCenterPlaceholder("Promotions", "Gestion des promotions — bientôt disponible.");
+        loadCenterContent("/fxml/Promotions.fxml", ctrl -> {
+            if (ctrl instanceof PromotionsController p) {
+                p.setDashboardController(this);
+            }
+        });
     }
 
     @FXML
     private void showCoupons() {
-        setCenterPlaceholder("Coupons", "Gestion des coupons — bientôt disponible.");
+        loadCenterContent("/fxml/Coupons.fxml", ctrl -> {
+            if (ctrl instanceof CouponsController c) {
+                c.setDashboardController(this);
+            }
+        });
     }
 
     @FXML
     private void showDepots() {
-        setCenterPlaceholder("Dépôts", "Gestion des dépôts — bientôt disponible.");
+        loadCenterContent("/fxml/Depots.fxml", null);
     }
 
     @FXML
     private void showStocks() {
-        setCenterPlaceholder("Stocks", "Gestion des stocks — bientôt disponible.");
+        loadCenterContent("/fxml/Stocks.fxml", null);
+    }
+
+    @FXML
+    private void showServices() {
+        loadCenterContent("/fxml/Services.fxml", null);
+    }
+
+    @FXML
+    private void showReservations() {
+        loadCenterContent("/fxml/Reservations.fxml", null);
+    }
+
+    @FXML
+    private void showConsommations() {
+        loadCenterContent("/fxml/Consommations.fxml", null);
     }
 
     @FXML
@@ -160,37 +193,51 @@ public class DashboardController {
         switchRootScene("/fxml/BackTraitement.fxml");
     }
 
-    private void setCenterPlaceholder(String title, String subtitle) {
-        Label heading = new Label(title);
-        heading.setStyle("-fx-font-size: 22; -fx-font-weight: bold;");
-        Label detail = new Label(subtitle);
-        VBox box = new VBox(12, heading, detail);
-        box.setStyle("-fx-padding: 40;");
-        mainPane.setCenter(box);
-    }
-
     private void switchRootScene(String fxmlPath) {
         SceneNavigation.replaceScene(mainPane, fxmlPath);
     }
 
     @FXML
     private void showResponseQuestions() {
-        loadCenterContent("/fxml/ResponseQuestionAdmin.fxml");
+        loadCenterContent("/fxml/ResponseQuestionAdmin.fxml", null);
     }
 
     @FXML
-    private void showDashboardHome() {
+    public void showDashboardHome() {
         if (dashboardCenter != null) {
             mainPane.setCenter(dashboardCenter);
+            loadStats();
         }
     }
 
-    private void loadCenterContent(String fxmlPath) {
+    private void loadCenterContent(String fxmlPath, Consumer<Object> dashboardInjector) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            mainPane.setCenter(loader.load());
+            Parent node = loader.load();
+            if (dashboardInjector != null) {
+                dashboardInjector.accept(loader.getController());
+            }
+            mainPane.setCenter(node);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void navigateToEmbeddedSection(String key) {
+        switch (key) {
+            case "contact" -> showResponseQuestions();
+            case "clients" -> showClients();
+            case "home" -> showDashboardHome();
+            case "produits" -> showProduits();
+            case "commandes" -> showCommandes();
+            case "promotions" -> showPromotions();
+            case "coupons" -> showCoupons();
+            case "depots", "depôts", "depot" -> showDepots();
+            case "stocks", "stock" -> showStocks();
+            case "services" -> showServices();
+            case "reservations", "reservation" -> showReservations();
+            case "consommations", "consommation" -> showConsommations();
+            default -> showDashboardHome();
         }
     }
 

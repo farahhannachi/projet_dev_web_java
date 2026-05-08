@@ -1,13 +1,25 @@
 package org.example.service;
 
 import org.example.model.Produit;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ProduitService {
-    private List<Produit> produits = new ArrayList<>();
+    private static ProduitService instance;
+
+    private final List<Produit> produits = new ArrayList<>();
     private int nextId = 1;
+
+    private ProduitService() {}
+
+    public static synchronized ProduitService getInstance() {
+        if (instance == null) {
+            instance = new ProduitService();
+        }
+        return instance;
+    }
 
     public void add(Produit produit) {
         produit.setId(nextId++);
@@ -33,9 +45,9 @@ public class ProduitService {
 
     public List<Produit> search(String query) {
         return produits.stream()
-                .filter(p -> p.getNom().toLowerCase().contains(query.toLowerCase()) ||
-                             p.getDescription().toLowerCase().contains(query.toLowerCase()) ||
-                             p.getCategorie().toLowerCase().contains(query.toLowerCase()))
+                .filter(p -> p.getNom().toLowerCase().contains(query.toLowerCase())
+                        || (p.getDescription() != null && p.getDescription().toLowerCase().contains(query.toLowerCase()))
+                        || (p.getCategorie() != null && p.getCategorie().toLowerCase().contains(query.toLowerCase())))
                 .collect(Collectors.toList());
     }
 

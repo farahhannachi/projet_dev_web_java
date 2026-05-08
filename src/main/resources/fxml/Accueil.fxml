@@ -9,84 +9,13 @@
       fx:controller="org.example.controller.AccueilController" styleClass="root" fx:id="rootContainer">
 
     <VBox spacing="0" VBox.vgrow="ALWAYS" maxWidth="Infinity" maxHeight="Infinity">
-        <StackPane VBox.vgrow="ALWAYS" maxWidth="Infinity" maxHeight="Infinity">
-            <VBox spacing="0" maxWidth="Infinity" maxHeight="Infinity">
-                <Region prefHeight="96" minHeight="96" maxHeight="96"/>
-                <VBox spacing="0" VBox.vgrow="ALWAYS">
-                    <!-- ============================================
-                         HERO SECTION (GREEN)
-                    ============================================ -->
-                    <VBox styleClass="hero-section" alignment="CENTER">
-                        <Label text="Bienvenue sur CuraVita" styleClass="hero-title"/>
-                        <Label text="Votre solution moderne pour la gestion de pharmacie" styleClass="hero-subtitle"/>
-                    </VBox>
 
-                    <!-- ============================================
-                         CARDS SECTION
-                    ============================================ -->
-                    <HBox styleClass="cards-section" alignment="CENTER">
-                        <VBox.margin>
-                            <Insets top="40" left="40" right="40" bottom="40"/>
-                        </VBox.margin>
-
-                        <VBox styleClass="card">
-                            <VBox styleClass="card-icon-container" alignment="CENTER">
-                                <Label text="&#128230;" styleClass="card-icon"/>
-                            </VBox>
-                            <Label text="Nos Produits" styleClass="card-title"/>
-                            <Label text="D&#233;couvrez notre large gamme de produits pharmaceutiques de qualit&#233;" styleClass="card-description"/>
-                        </VBox>
-
-                        <Region prefWidth="30"/>
-
-                        <VBox styleClass="card">
-                            <VBox styleClass="card-icon-container" alignment="CENTER">
-                                <Label text="&#128203;" styleClass="card-icon"/>
-                            </VBox>
-                            <Label text="Commandes" styleClass="card-title"/>
-                            <Label text="G&#233;rez vos commandes facilement etSuivez votre historique" styleClass="card-description"/>
-                        </VBox>
-
-                        <Region prefWidth="30"/>
-
-                        <VBox styleClass="card">
-                            <VBox styleClass="card-icon-container" alignment="CENTER">
-                                <Label text="&#127881;" styleClass="card-icon"/>
-                            </VBox>
-                            <Label text="Promotions" styleClass="card-title"/>
-                            <Label text="B&#233;n&#233;ficiez de nos offres sp&#233;ciales et r&#233;ductions exclusives" styleClass="card-description"/>
-                        </VBox>
-
-                    </HBox>
-                </VBox>
-            </VBox>
-
-            <!-- Navbar (même logique que Traitement / autres pages : au-dessus du contenu) -->
-            <VBox alignment="TOP_CENTER" pickOnBounds="false" maxWidth="Infinity" StackPane.alignment="TOP_CENTER">
-                <padding><Insets top="15" right="30" bottom="0" left="30"/></padding>
-                <HBox styleClass="navbar-pill" alignment="CENTER">
+        <!-- ==================== NAVBAR (white, above content) ==================== -->
+        <VBox styleClass="front-navbar-strip front-navbar-shell" maxWidth="Infinity">
+            <VBox styleClass="navbar-pill navbar-pill-double front-navbar-pill-inner" maxWidth="Infinity">
+                <HBox styleClass="navbar-nav-row-top" alignment="CENTER_LEFT">
                     <Label text="CuraVita" styleClass="logo-text"/>
                     <Region HBox.hgrow="SOMETIMES"/>
-
-                    <HBox styleClass="menu-container" alignment="CENTER">
-                        <Button text="Accueil" styleClass="menu-item" onAction="#handleNavAccueil"/>
-                        <Button text="Produits" styleClass="menu-item" onAction="#handleNavProduits"/>
-                        <Button text="Commandes" styleClass="menu-item" onAction="#handleNavCommandes"/>
-                        <Button text="Traitement" styleClass="menu-item" onAction="#handleNavTraitement"/>
-                        <MenuButton mnemonicParsing="false" text="Ordonnance" popupSide="BOTTOM" styleClass="nav-ordonnance-menubutton">
-                            <items>
-                                <MenuItem text="Cr&#233;er une ordonnance" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-create" onAction="#handleNavOrdonnance"/>
-                                <SeparatorMenuItem styleClass="nav-ordonnance-sep"/>
-                                <MenuItem text="Mes ordonnances" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-list" onAction="#handleNavMesOrdonnances"/>
-                            </items>
-                        </MenuButton>
-                        <Button text="Guide Sant&#233;" styleClass="menu-item" onAction="#handleNavGuide"/>
-                        <Button text="Contact" styleClass="menu-item" onAction="#handleContact"/>
-                        <Button text="&#192; propos" styleClass="menu-item" onAction="#handleNavAbout"/>
-                    </HBox>
-
-                    <Region HBox.hgrow="SOMETIMES"/>
-
                     <HBox styleClass="navbar-right-section" alignment="CENTER" spacing="15">
                         <Button text="&#128269;" styleClass="navbar-search-btn" onAction="#handleSearch"/>
                         <StackPane styleClass="navbar-notif-wrap">
@@ -115,8 +44,85 @@
                         </StackPane>
                     </HBox>
                 </HBox>
+                <HBox styleClass="navbar-nav-row-buttons" alignment="CENTER">
+                    <HBox styleClass="menu-container menu-container-double" alignment="CENTER">
+                        <Button text="Accueil" styleClass="menu-item menu-item-active" onAction="#handleNavAccueil"/>
+                        <Button text="Produits" styleClass="menu-item" onAction="#handleNavProduits"/>
+                        <Button text="Services" styleClass="menu-item" onAction="#handleNavServices"/>
+                        <Button text="Panier" styleClass="menu-item" onAction="#handleNavPanier"/>
+                        <Button text="Adresses" styleClass="menu-item" onAction="#handleNavAdresses"/>
+                        <Button text="Commandes" styleClass="menu-item" onAction="#handleNavCommandes"/>
+                    </HBox>
+                </HBox>
+                <HBox styleClass="navbar-nav-row-buttons" alignment="CENTER">
+                    <HBox styleClass="menu-container menu-container-double" alignment="CENTER">
+                        <MenuButton mnemonicParsing="false" text="Ordonnance" popupSide="BOTTOM" styleClass="nav-ordonnance-menubutton">
+                            <items>
+                                <MenuItem text="Cr&#233;er une ordonnance" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-create" onAction="#handleNavOrdonnance"/>
+                                <SeparatorMenuItem styleClass="nav-ordonnance-sep"/>
+                                <MenuItem text="Mes ordonnances" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-list" onAction="#handleNavMesOrdonnances"/>
+                            </items>
+                        </MenuButton>
+                        <Button text="Traitement" styleClass="menu-item" onAction="#handleNavTraitement"/>
+                        <Button text="Guide Sant&#233;" styleClass="menu-item" onAction="#handleNavGuide"/>
+                        <Button text="Contact" styleClass="menu-item" onAction="#handleContact"/>
+                        <Button text="&#192; propos" styleClass="menu-item" onAction="#handleNavAbout"/>
+                    </HBox>
+                </HBox>
             </VBox>
-        </StackPane>
+        </VBox>
+
+        <!-- ==================== SCROLLABLE CONTENT ==================== -->
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="page-scroll">
+            <VBox spacing="0" maxWidth="Infinity">
+                <!-- ============================================
+                     HERO SECTION (GREEN)
+                ============================================ -->
+                <VBox styleClass="hero-section" alignment="CENTER">
+                    <Label text="Bienvenue sur CuraVita" styleClass="hero-title"/>
+                    <Label text="Votre solution moderne pour la gestion de pharmacie" styleClass="hero-subtitle"/>
+                </VBox>
+
+                <!-- ============================================
+                     CARDS SECTION
+                ============================================ -->
+                <HBox styleClass="cards-section" alignment="CENTER">
+                    <VBox.margin>
+                        <Insets top="40" left="40" right="40" bottom="40"/>
+                    </VBox.margin>
+
+                    <VBox styleClass="card">
+                        <VBox styleClass="card-icon-container" alignment="CENTER">
+                            <Label text="&#128230;" styleClass="card-icon"/>
+                        </VBox>
+                        <Label text="Nos Produits" styleClass="card-title"/>
+                        <Label text="D&#233;couvrez notre large gamme de produits pharmaceutiques de qualit&#233;" styleClass="card-description"/>
+                    </VBox>
+
+                    <Region prefWidth="30"/>
+
+                    <VBox styleClass="card">
+                        <VBox styleClass="card-icon-container" alignment="CENTER">
+                            <Label text="&#128203;" styleClass="card-icon"/>
+                        </VBox>
+                        <Label text="Commandes" styleClass="card-title"/>
+                        <Label text="G&#233;rez vos commandes facilement et suivez votre historique" styleClass="card-description"/>
+                    </VBox>
+
+                    <Region prefWidth="30"/>
+
+                    <VBox styleClass="card">
+                        <VBox styleClass="card-icon-container" alignment="CENTER">
+                            <Label text="&#127881;" styleClass="card-icon"/>
+                        </VBox>
+                        <Label text="Promotions" styleClass="card-title"/>
+                        <Label text="B&#233;n&#233;ficiez de nos offres sp&#233;ciales et r&#233;ductions exclusives" styleClass="card-description"/>
+                    </VBox>
+
+                </HBox>
+            </VBox>
+        </ScrollPane>
+
     </VBox>
 
     <StackPane fx:id="notificationsOverlay" visible="false" managed="false" styleClass="notification-overlay-dimmer">

@@ -49,6 +49,7 @@ public class ServiceConsommationController {
     @FXML
     public void initialize() {
         // Initialiser le spinner
+        historiqueTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         SpinnerValueFactory<Integer> valueFactory =
             new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 1000, 1);
         quantiteSpinner.setValueFactory(valueFactory);

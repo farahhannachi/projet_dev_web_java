@@ -13,6 +13,7 @@ import org.example.util.DatabaseUtil;
 import org.example.util.QRCodeService;
 import org.example.util.NavbarOrdonnanceMenu;
 import org.example.util.SceneNavigation;
+import org.example.service.ResponseQuestionService;
 
 import java.io.IOException;
 import java.sql.*;
@@ -31,11 +32,13 @@ public class MesOrdonnancesController {
     @FXML private VBox cardsContainer;
     @FXML private VBox profileDropdown;
     @FXML private Button dashboardMenuItem;
+    @FXML private Label messagesBadge;
     @FXML private javafx.scene.chart.PieChart statPieChart;
     @FXML private VBox statsContainer;
     @FXML private Button statsToggleBtn;
 
     private UserService userService = UserService.getInstance();
+    private final ResponseQuestionService responseQuestionService = new ResponseQuestionService();
     private boolean triRecent = true;
     private String filtreStatut = null;
     /** Incrémenté à chaque chargement pour ignorer les réponses SQL obsolètes (saisie recherche rapide). */
@@ -65,6 +68,22 @@ public class MesOrdonnancesController {
         // Vérification automatique des ordonnances qui expirent dans <= 7 jours
         javafx.application.Platform.runLater(this::verifierExpirationsProches);
         NavbarOrdonnanceMenu.wirePopupStyle(profileContainer);
+        updateMessagesBadge();
+    }
+
+    private void updateMessagesBadge() {
+        if (messagesBadge == null) return;
+        User u = userService.getCurrentUser();
+        if (u == null) { messagesBadge.setVisible(false); messagesBadge.setManaged(false); return; }
+        int count = responseQuestionService.countUnreadResponsesForClient(u.getId());
+        messagesBadge.setText(String.valueOf(count));
+        messagesBadge.setVisible(count > 0);
+        messagesBadge.setManaged(count > 0);
+    }
+
+    @FXML
+    private void handleNavbarSearch() {
+        if (searchField != null) searchField.requestFocus();
     }
 
     /**
@@ -1196,12 +1215,27 @@ public class MesOrdonnancesController {
 
     @FXML
     private void handleNavProduits() {
-        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontProduits.fxml");
     }
 
     @FXML
     private void handleNavCommandes() {
-        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontMesCommandes.fxml");
+    }
+
+    @FXML
+    private void handleNavServices() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontServices.fxml");
+    }
+
+    @FXML
+    private void handleNavPanier() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontCommande.fxml");
+    }
+
+    @FXML
+    private void handleNavAdresses() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontMesAdresses.fxml");
     }
 
     @FXML

@@ -33,6 +33,7 @@ import org.example.service.TwoFactorAuthService;
 import org.example.service.UserService;
 import org.example.util.NavbarOrdonnanceMenu;
 import org.example.util.SceneNavigation;
+import org.example.service.ResponseQuestionService;
 
 import java.io.File;
 import java.util.regex.Pattern;
@@ -80,6 +81,7 @@ public class ProfilController {
     @FXML private Button assistantSendButton;
     @FXML private Label assistantHintLabel;
     @FXML private Label assistantTitleLabel;
+    @FXML private Label messagesBadge;
 
     @FXML private TextField editNameField;
     @FXML private TextField editEmailField;
@@ -103,6 +105,7 @@ public class ProfilController {
     private final UserService userService = UserService.getInstance();
     private final TwoFactorAuthService twoFactorAuthService = new TwoFactorAuthService();
     private final OpenRouterService aiAssistantService = new OpenRouterService();
+    private final ResponseQuestionService responseQuestionService = new ResponseQuestionService();
     private User currentUser;
     private Avatar currentAvatar;
     private Avatar previewAvatar;
@@ -143,6 +146,17 @@ public class ProfilController {
         }
 
         NavbarOrdonnanceMenu.wirePopupStyle(mainStack);
+        updateMessagesBadge();
+    }
+
+    private void updateMessagesBadge() {
+        if (messagesBadge == null) return;
+        User u = userService.getCurrentUser();
+        if (u == null) { messagesBadge.setVisible(false); messagesBadge.setManaged(false); return; }
+        int count = responseQuestionService.countUnreadResponsesForClient(u.getId());
+        messagesBadge.setText(String.valueOf(count));
+        messagesBadge.setVisible(count > 0);
+        messagesBadge.setManaged(count > 0);
     }
 
     private void configureAvatarViews() {
@@ -877,12 +891,27 @@ public class ProfilController {
 
     @FXML
     private void handleNavProduits() {
-        navigateToFxml("/fxml/Accueil.fxml");
+        navigateToFxml("/fxml/FrontProduits.fxml");
     }
 
     @FXML
     private void handleNavCommandes() {
-        navigateToFxml("/fxml/Accueil.fxml");
+        navigateToFxml("/fxml/FrontMesCommandes.fxml");
+    }
+
+    @FXML
+    private void handleNavServices() {
+        navigateToFxml("/fxml/FrontServices.fxml");
+    }
+
+    @FXML
+    private void handleNavPanier() {
+        navigateToFxml("/fxml/FrontCommande.fxml");
+    }
+
+    @FXML
+    private void handleNavAdresses() {
+        navigateToFxml("/fxml/FrontMesAdresses.fxml");
     }
 
     @FXML

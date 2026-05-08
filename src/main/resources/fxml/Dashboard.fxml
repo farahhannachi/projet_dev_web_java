@@ -17,12 +17,15 @@
                 <Button text="Coupons" onAction="#showCoupons" styleClass="sidebar-item"/>
                 <Button text="Dépôts" onAction="#showDepots" styleClass="sidebar-item"/>
                 <Button text="Stocks" onAction="#showStocks" styleClass="sidebar-item"/>
+                <Button text="Services" onAction="#showServices" styleClass="sidebar-item"/>
+                <Button text="Réservations" onAction="#showReservations" styleClass="sidebar-item"/>
+                <Button text="Consommation" onAction="#showConsommations" styleClass="sidebar-item"/>
                 <Button text="Ordonnances admin" onAction="#showBackOrdonnances" styleClass="sidebar-item"/>
                 <Button text="Traitements admin" onAction="#showBackTraitements" styleClass="sidebar-item"/>
                 <Button text="Contact" onAction="#showResponseQuestions" styleClass="sidebar-item"/>
             </VBox>
             <Region VBox.vgrow="ALWAYS"/>
-            <Button fx:id="frontOfficeBtn" text="← Back" onAction="#goToFrontOffice" styleClass="sidebar-button-bottom"/>
+            <Button fx:id="frontOfficeBtn" text="Front office" onAction="#goToFrontOffice" styleClass="sidebar-button-bottom"/>
             <Button text="Logout" onAction="#logout" styleClass="sidebar-button-bottom"/>
         </VBox>
     </left>

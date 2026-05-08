@@ -3,16 +3,12 @@ package org.example.controller;
 import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import org.example.model.Commande;
 import org.example.model.Coupon;
 import org.example.model.User;
@@ -29,7 +25,6 @@ import org.example.service.PromotionService;
 import org.example.service.UserService;
 import org.example.service.ChatbotService;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -67,12 +62,10 @@ public class FrontCommandeController {
     @FXML private ComboBox<String> paiementCombo;
     @FXML private RadioButton paiementLivraisonRadio;
     @FXML private RadioButton paiementEnLigneRadio;
-    @FXML private Button profileButton;
-    @FXML private VBox profileDropdown;
-    @FXML private Button dashboardMenuItem;
+    @FXML private FrontShopNavBarController shopNavController;
 
     private final FrontPanierService panierService = new FrontPanierService();
-    private final ProduitService produitService = new ProduitService();
+    private final ProduitService produitService = ProduitService.getInstance();
     private final PromotionService promotionService = new PromotionService();
     private final CouponService couponService = new CouponService();
     private final CommandeService commandeService = new CommandeService();
@@ -95,9 +88,8 @@ public class FrontCommandeController {
 
     @FXML
     public void initialize() {
-        if (dashboardMenuItem != null) {
-            dashboardMenuItem.setVisible(userService.isAdmin());
-            dashboardMenuItem.setManaged(userService.isAdmin());
+        if (shopNavController != null) {
+            shopNavController.configure(FrontShopNavBarController.ActiveShopPage.PANIER, nomField::requestFocus);
         }
 
         produitCol.setCellValueFactory(new PropertyValueFactory<>("nom"));
@@ -219,27 +211,42 @@ public class FrontCommandeController {
                 return;
             }
 
-            currentAddressResults = mapsApiService.searchAddresses(query, 5);
-            if (currentAddressResults.isEmpty()) {
-                MapsApiService.GeocodeResult one = mapsApiService.geocodeAddress(query);
-                if (one.found()) {
-                    currentAddressResults = List.of(one);
-                }
+            if (mapStatusLabel != null) {
+                mapStatusLabel.setText("Recherche en cours...");
             }
 
-            if (currentAddressResults.isEmpty()) {
-                if (alertOnEmpty) {
-                    new Alert(Alert.AlertType.WARNING, "Adresse introuvable.").showAndWait();
+            Thread thread = new Thread(() -> {
+                List<MapsApiService.GeocodeResult> results = mapsApiService.searchAddresses(query, 5);
+                if (results.isEmpty()) {
+                    MapsApiService.GeocodeResult one = mapsApiService.geocodeAddress(query);
+                    if (one.found()) {
+                        results = List.of(one);
+                    }
                 }
-                if (mapStatusLabel != null) {
-                    mapStatusLabel.setText("Aucun resultat pour cette adresse.");
-                }
-                return;
-            }
 
-            List<String> labels = currentAddressResults.stream().map(MapsApiService.GeocodeResult::displayName).toList();
-            mapResultsList.setItems(FXCollections.observableArrayList(labels));
-            mapResultsList.getSelectionModel().select(0);
+                final List<MapsApiService.GeocodeResult> finalResults = results;
+                javafx.application.Platform.runLater(() -> {
+                    currentAddressResults = finalResults;
+                    if (currentAddressResults.isEmpty()) {
+                        if (alertOnEmpty) {
+                            new Alert(Alert.AlertType.WARNING, "Adresse introuvable.").showAndWait();
+                        }
+                        if (mapStatusLabel != null) {
+                            mapStatusLabel.setText("Aucun resultat pour cette adresse.");
+                        }
+                        return;
+                    }
+
+                    List<String> labels = currentAddressResults.stream().map(MapsApiService.GeocodeResult::displayName).toList();
+                    mapResultsList.setItems(FXCollections.observableArrayList(labels));
+                    mapResultsList.getSelectionModel().select(0);
+                    if (mapStatusLabel != null) {
+                        mapStatusLabel.setText(currentAddressResults.size() + " resultat(s) trouve(s).");
+                    }
+                });
+            }, "map-search");
+            thread.setDaemon(true);
+            thread.start();
         }
 
         @FXML
@@ -481,76 +488,6 @@ public class FrontCommandeController {
     }
 
     @FXML
-    private void goToProduits() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/FrontProduits.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) cartTable.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
-    }
-
-    @FXML
-    private void goToTracking() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/FrontMesCommandes.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) cartTable.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
-    }
-
-    @FXML
-    private void goBackHome() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Accueil.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) cartTable.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
-    }
-
-    @FXML
-    private void goHome() throws IOException {
-        goBackHome();
-    }
-
-    @FXML
-    private void showFrontProduits() throws IOException {
-        goToProduits();
-    }
-
-    @FXML
-    private void showFrontServices() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/FrontServices.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) cartTable.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
-    }
-
-    @FXML
-    private void showFrontPanier() {
-        // already on panier page
-    }
-
-    @FXML
-    private void showFrontAddresses() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/FrontMesAdresses.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) cartTable.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
-    }
-
-    @FXML
     private void handleClearCart() {
         panierService.clear();
         refreshPanier();
@@ -567,51 +504,6 @@ public class FrontCommandeController {
         refreshPanier();
     }
 
-    @FXML
-    private void showFrontTracking() throws IOException {
-        goToTracking();
-    }
-
-    @FXML
-    private void handleSearch() {
-        couponField.requestFocus();
-    }
-
-    @FXML
-    private void toggleProfileDropdown() {
-        boolean isVisible = profileDropdown.isVisible();
-        profileDropdown.setVisible(!isVisible);
-        profileDropdown.setManaged(!isVisible);
-    }
-
-    @FXML
-    private void showProfile() {
-        profileDropdown.setVisible(false);
-        profileDropdown.setManaged(false);
-    }
-
-    @FXML
-    private void goToDashboard() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Dashboard.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) cartTable.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setFullScreen(true);
-    }
-
-    @FXML
-    private void logout() throws IOException {
-        userService.logout();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-        Stage stage = (Stage) cartTable.getScene().getWindow();
-        stage.setScene(scene);
-    }
-
     private void renderTotals() {
         double totalFinal = Math.max(0, currentSubTotal - currentCouponDiscount + currentShipping);
         subTotalLabel.setText(String.format("%.2f DT", currentSubTotal));
@@ -619,4 +511,5 @@ public class FrontCommandeController {
         shippingLabel.setText(String.format("%.2f DT", currentShipping));
         totalFinalLabel.setText(String.format("%.2f DT", totalFinal));
     }
+
 }

@@ -49,15 +49,15 @@
         </top>
         <center>
             <VBox styleClass="table-card" BorderPane.alignment="CENTER">
-            <TableView fx:id="promotionsTable" styleClass="admin-table" VBox.vgrow="ALWAYS">
+            <TableView fx:id="promotionsTable" styleClass="admin-table" minHeight="380" VBox.vgrow="ALWAYS">
                 <columns>
-                    <TableColumn fx:id="idCol" text="ID" prefWidth="60"/>
-                    <TableColumn fx:id="produitIdCol" text="Produit" prefWidth="180"/>
-                    <TableColumn fx:id="titreCol" text="Titre" prefWidth="170"/>
-                    <TableColumn fx:id="reductionCol" text="Reduction %" prefWidth="110"/>
-                    <TableColumn fx:id="statutCol" text="Statut" prefWidth="100"/>
-                    <TableColumn fx:id="debutCol" text="Date debut" prefWidth="150"/>
-                    <TableColumn fx:id="finCol" text="Date fin" prefWidth="150"/>
+                    <TableColumn fx:id="idCol" text="ID" minWidth="60"/>
+                    <TableColumn fx:id="produitIdCol" text="Produit" minWidth="180"/>
+                    <TableColumn fx:id="titreCol" text="Titre" minWidth="170"/>
+                    <TableColumn fx:id="reductionCol" text="Reduction %" minWidth="110"/>
+                    <TableColumn fx:id="statutCol" text="Statut" minWidth="100"/>
+                    <TableColumn fx:id="debutCol" text="Date debut" minWidth="150"/>
+                    <TableColumn fx:id="finCol" text="Date fin" minWidth="150"/>
                 </columns>
             </TableView>
             </VBox>

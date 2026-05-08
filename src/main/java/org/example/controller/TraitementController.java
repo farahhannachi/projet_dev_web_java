@@ -11,6 +11,7 @@ import javafx.scene.layout.VBox; // Conteneur vertical
 import javafx.stage.Stage; // Fenêtre principale
 import org.example.model.User; // Modèle utilisateur
 import org.example.service.UserService; // Service de gestion des utilisateurs
+import org.example.service.ResponseQuestionService;
 import org.example.util.DatabaseUtil; // Utilitaire de connexion à la base de données
 import org.example.util.NavbarOrdonnanceMenu;
 import org.example.util.SceneNavigation;
@@ -48,6 +49,7 @@ public class TraitementController {
     @FXML private javafx.scene.shape.Circle navbarAvatarCircle;
     @FXML private Label navbarUsername;
     @FXML private Label navbarAvatarLabel;
+    @FXML private Label messagesBadge;
 
     @FXML private VBox fdaInfoBox;
     @FXML private Label fdaTitleLabel;
@@ -56,6 +58,7 @@ public class TraitementController {
     @FXML private Label fdaInterLabel;
 
     private UserService userService = UserService.getInstance(); // Service pour récupérer l'utilisateur connecté
+    private final ResponseQuestionService responseQuestionService = new ResponseQuestionService();
     private java.util.List<String> selectedProduits = new java.util.ArrayList<>(); // Liste des produits ajoutés par le client
 
     @FXML
@@ -139,6 +142,17 @@ public class TraitementController {
         }
         /* Toggle profil : voir FXML onMouseClicked="#toggleProfileDropdown" (évite double listener) */
         NavbarOrdonnanceMenu.wirePopupStyle(profileContainer);
+        updateMessagesBadge();
+    }
+
+    private void updateMessagesBadge() {
+        if (messagesBadge == null) return;
+        User u = userService.getCurrentUser();
+        if (u == null) { messagesBadge.setVisible(false); messagesBadge.setManaged(false); return; }
+        int count = responseQuestionService.countUnreadResponsesForClient(u.getId());
+        messagesBadge.setText(String.valueOf(count));
+        messagesBadge.setVisible(count > 0);
+        messagesBadge.setManaged(count > 0);
     }
 
     /** Charge les produits hors du thread JavaFX pour éviter les gelées de la navbar / fenêtre. */
@@ -1042,12 +1056,27 @@ public class TraitementController {
 
     @FXML
     private void handleNavProduits() {
-        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontProduits.fxml");
     }
 
     @FXML
     private void handleNavCommandes() {
-        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontMesCommandes.fxml");
+    }
+
+    @FXML
+    private void handleNavServices() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontServices.fxml");
+    }
+
+    @FXML
+    private void handleNavPanier() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontCommande.fxml");
+    }
+
+    @FXML
+    private void handleNavAdresses() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontMesAdresses.fxml");
     }
 
     @FXML

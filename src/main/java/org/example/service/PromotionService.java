@@ -17,12 +17,19 @@ import java.util.stream.Collectors;
 
 public class PromotionService {
     private String resolvedProduitFkColumn;
-    private final ProduitService produitService = new ProduitService();
+    private Boolean hasIdAdminColumn;
+    private final ProduitService produitService = ProduitService.getInstance();
 
     public void add(Promotion promotion) {
         ensureNoDuplicateActivePromotion(promotion.getProduitId(), promotion.getId());
         String produitFk = resolveProduitFkColumn();
-        String sql = "INSERT INTO promotion (" + produitFk + ", titre, description, valeur_reduction, date_debut, date_fin, statut, id_admin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        boolean withAdmin = hasIdAdmin();
+        String sql;
+        if (withAdmin) {
+            sql = "INSERT INTO promotion (" + produitFk + ", titre, description, valeur_reduction, date_debut, date_fin, statut, id_admin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        } else {
+            sql = "INSERT INTO promotion (" + produitFk + ", titre, description, valeur_reduction, date_debut, date_fin, statut) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        }
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             if (promotion.getProduitId() != null) {
@@ -36,17 +43,27 @@ public class PromotionService {
             statement.setTimestamp(5, Timestamp.valueOf(promotion.getDateDebut()));
             statement.setTimestamp(6, Timestamp.valueOf(promotion.getDateFin()));
             statement.setString(7, promotion.getStatut());
-            statement.setInt(8, promotion.getIdAdmin());
+            if (withAdmin) {
+                statement.setInt(8, promotion.getIdAdmin());
+            }
             statement.executeUpdate();
         } catch (SQLException e) {
+            System.err.println("[PromotionService] Add error: " + e.getMessage());
             throw new RuntimeException("Erreur lors de l'ajout de la promotion", e);
         }
     }
 
+
     public void update(Promotion promotion) {
         ensureNoDuplicateActivePromotion(promotion.getProduitId(), promotion.getId());
         String produitFk = resolveProduitFkColumn();
-        String sql = "UPDATE promotion SET " + produitFk + " = ?, titre = ?, description = ?, valeur_reduction = ?, date_debut = ?, date_fin = ?, statut = ?, id_admin = ? WHERE id_promotion = ?";
+        boolean withAdmin = hasIdAdmin();
+        String sql;
+        if (withAdmin) {
+            sql = "UPDATE promotion SET " + produitFk + " = ?, titre = ?, description = ?, valeur_reduction = ?, date_debut = ?, date_fin = ?, statut = ?, id_admin = ? WHERE id_promotion = ?";
+        } else {
+            sql = "UPDATE promotion SET " + produitFk + " = ?, titre = ?, description = ?, valeur_reduction = ?, date_debut = ?, date_fin = ?, statut = ? WHERE id_promotion = ?";
+        }
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             if (promotion.getProduitId() != null) {
@@ -60,10 +77,15 @@ public class PromotionService {
             statement.setTimestamp(5, Timestamp.valueOf(promotion.getDateDebut()));
             statement.setTimestamp(6, Timestamp.valueOf(promotion.getDateFin()));
             statement.setString(7, promotion.getStatut());
-            statement.setInt(8, promotion.getIdAdmin());
-            statement.setInt(9, promotion.getId());
+            if (withAdmin) {
+                statement.setInt(8, promotion.getIdAdmin());
+                statement.setInt(9, promotion.getId());
+            } else {
+                statement.setInt(8, promotion.getId());
+            }
             statement.executeUpdate();
         } catch (SQLException e) {
+            System.err.println("[PromotionService] Update error: " + e.getMessage());
             throw new RuntimeException("Erreur lors de la mise a jour de la promotion", e);
         }
     }
@@ -80,7 +102,8 @@ public class PromotionService {
 
     public Promotion getById(int id) {
         String produitFk = resolveProduitFkColumn();
-        String sql = "SELECT id_promotion, " + produitFk + " AS produit_fk, titre, description, valeur_reduction, date_debut, date_fin, statut, id_admin FROM promotion WHERE id_promotion = ?";
+        String adminCol = hasIdAdmin() ? ", id_admin" : "";
+        String sql = "SELECT id_promotion, " + produitFk + " AS produit_fk, titre, description, valeur_reduction, date_debut, date_fin, statut" + adminCol + " FROM promotion WHERE id_promotion = ?";
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
@@ -97,7 +120,8 @@ public class PromotionService {
 
     public Promotion getActivePromotionForProduct(int produitId) {
         String produitFk = resolveProduitFkColumn();
-        String sql = "SELECT id_promotion, " + produitFk + " AS produit_fk, titre, description, valeur_reduction, date_debut, date_fin, statut, id_admin FROM promotion WHERE " + produitFk + " = ? ORDER BY id_promotion DESC";
+        String adminCol = hasIdAdmin() ? ", id_admin" : "";
+        String sql = "SELECT id_promotion, " + produitFk + " AS produit_fk, titre, description, valeur_reduction, date_debut, date_fin, statut" + adminCol + " FROM promotion WHERE " + produitFk + " = ? ORDER BY id_promotion DESC";
 
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -127,7 +151,8 @@ public class PromotionService {
 
     public List<Promotion> getAllPromotions() {
         String produitFk = resolveProduitFkColumn();
-        String sql = "SELECT id_promotion, " + produitFk + " AS produit_fk, titre, description, valeur_reduction, date_debut, date_fin, statut, id_admin FROM promotion ORDER BY id_promotion DESC";
+        String adminCol = hasIdAdmin() ? ", id_admin" : "";
+        String sql = "SELECT id_promotion, " + produitFk + " AS produit_fk, titre, description, valeur_reduction, date_debut, date_fin, statut" + adminCol + " FROM promotion ORDER BY id_promotion DESC";
         List<Promotion> promotions = new ArrayList<>();
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql);
@@ -220,6 +245,10 @@ public class PromotionService {
     private Promotion mapRow(ResultSet rs) throws SQLException {
         Timestamp startTs = rs.getTimestamp("date_debut");
         Timestamp endTs = rs.getTimestamp("date_fin");
+        int adminId = 0;
+        if (hasIdAdmin()) {
+            try { adminId = rs.getInt("id_admin"); } catch (SQLException ignored) {}
+        }
 
         return new Promotion(
                 rs.getInt("id_promotion"),
@@ -230,8 +259,23 @@ public class PromotionService {
                 startTs != null ? startTs.toLocalDateTime() : LocalDateTime.now(),
                 endTs != null ? endTs.toLocalDateTime() : LocalDateTime.now(),
                 rs.getString("statut"),
-                rs.getInt("id_admin")
+                adminId
         );
+    }
+
+    private boolean hasIdAdmin() {
+        if (hasIdAdminColumn != null) {
+            return hasIdAdminColumn;
+        }
+        String sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'promotion' AND COLUMN_NAME = 'id_admin'";
+        try (Connection connection = DatabaseUtil.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet rs = statement.executeQuery()) {
+            hasIdAdminColumn = rs.next();
+        } catch (SQLException e) {
+            hasIdAdminColumn = false;
+        }
+        return hasIdAdminColumn;
     }
 
     private void ensureNoDuplicateActivePromotion(Integer produitId, int currentPromotionId) {

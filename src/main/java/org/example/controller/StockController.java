@@ -52,6 +52,7 @@ public class StockController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         System.out.println("[DEBUG] StockController.initialize() - START");
+        stockTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         // Initialisation des colonnes avec les propriétés des objets liés
         colProduit.setCellValueFactory(cellData ->
             new SimpleStringProperty(cellData.getValue().getProduit() != null ?

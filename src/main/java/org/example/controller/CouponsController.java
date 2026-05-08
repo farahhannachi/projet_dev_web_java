@@ -60,6 +60,7 @@ public class CouponsController {
 
     @FXML
     public void initialize() {
+        couponsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         codeCol.setCellValueFactory(new PropertyValueFactory<>("code"));
         typeCol.setCellValueFactory(new PropertyValueFactory<>("type"));

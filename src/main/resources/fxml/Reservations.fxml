@@ -1,48 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
-<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-           fx:controller="org.example.controller.AdminReservationController">
 
-    <VBox fx:id="listView" spacing="10" prefHeight="600" prefWidth="1000">
-        <padding>
-            <Insets top="15" left="15" right="15" bottom="15"/>
-        </padding>
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="org.example.controller.AdminReservationController"
+           styleClass="admin-root">
 
-        <HBox spacing="10" alignment="CENTER_LEFT">
-            <Label text="Reservation Management" style="-fx-font-size: 20; -fx-font-weight: bold;"/>
+    <VBox fx:id="listView" spacing="0" maxWidth="Infinity" maxHeight="Infinity">
+
+        <!-- ==================== HEADER ==================== -->
+        <HBox alignment="CENTER_LEFT" styleClass="admin-header">
+            <Label text="📅 Gestion des Réservations" styleClass="admin-header-title"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="&#43; Add Reservation" onAction="#openAddReservationModal" style="-fx-font-size: 12; -fx-padding: 8;"/>
+            <Button text="+ Nouvelle Réservation" onAction="#openAddReservationModal" styleClass="btn-primary"/>
         </HBox>
 
-        <!-- Statistics -->
-        <VBox styleClass="card" spacing="10">
-            <Label text="Reservation Statistics" styleClass="section-title"/>
-            <HBox spacing="20" alignment="CENTER">
-                <VBox styleClass="stat-card">
-                    <Label text="Total Reservations" styleClass="stat-label"/>
-                    <Label fx:id="totalReservationsLabel" text="0" styleClass="stat-value"/>
+        <!-- ==================== STATS CARDS ==================== -->
+        <HBox spacing="16" styleClass="stat-cards-row">
+            <padding><Insets top="10" left="20" right="20" bottom="10"/></padding>
+            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                <Label text="Total" styleClass="stat-label"/>
+                <Label fx:id="totalReservationsLabel" text="0" styleClass="stat-value"/>
+            </VBox>
+        </HBox>
+
+        <!-- ==================== FILTERS ==================== -->
+        <HBox spacing="12" styleClass="filters-row">
+            <padding><Insets top="8" left="20" right="20" bottom="8"/></padding>
+            <TextField fx:id="searchField" promptText="🔍 Rechercher client, email..."
+                       HBox.hgrow="ALWAYS" styleClass="filter-field"/>
+            <ComboBox fx:id="statusFilter" promptText="Statut" prefWidth="160" styleClass="filter-field"/>
+        </HBox>
+
+        <!-- ==================== TABLE ==================== -->
+        <BorderPane VBox.vgrow="ALWAYS">
+            <padding><Insets top="0" left="20" right="20" bottom="10"/></padding>
+
+            <center>
+                <VBox styleClass="table-card" BorderPane.alignment="CENTER">
+                    <TableView fx:id="reservationTable" styleClass="admin-table" minHeight="400" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colId" text="ID" minWidth="60"/>
+                            <TableColumn fx:id="colClient" text="Client" minWidth="160"/>
+                            <TableColumn fx:id="colService" text="Service" minWidth="160"/>
+                            <TableColumn fx:id="colDate" text="Date RDV" minWidth="160"/>
+                            <TableColumn fx:id="colStatus" text="Statut" minWidth="110"/>
+                            <TableColumn fx:id="colActions" text="Actions" minWidth="120"/>
+                        </columns>
+                    </TableView>
+                    <Pagination fx:id="pagination" styleClass="admin-pagination"/>
                 </VBox>
-            </HBox>
-        </VBox>
+            </center>
+        </BorderPane>
 
-        <HBox spacing="10">
-            <TextField fx:id="searchField" promptText="Search by client name or email..." prefWidth="300"/>
-            <ComboBox fx:id="statusFilter" promptText="Filter by status" prefWidth="150"/>
-        </HBox>
-
-        <TableView fx:id="reservationTable" VBox.vgrow="ALWAYS" minHeight="400">
-            <columns>
-                <TableColumn fx:id="colId" text="ID" prefWidth="60"/>
-                <TableColumn fx:id="colClient" text="Client" prefWidth="150"/>
-                <TableColumn fx:id="colService" text="Service" prefWidth="150"/>
-                <TableColumn fx:id="colDate" text="Date &amp; Time" prefWidth="150"/>
-                <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
-                <TableColumn fx:id="colActions" text="Actions" prefWidth="120"/>
-            </columns>
-        </TableView>
-
-        <Pagination fx:id="pagination"/>
     </VBox>
 </StackPane>

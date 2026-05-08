@@ -46,7 +46,7 @@ public class ProduitsController {
     @FXML private Label indisponiblesLabel;
     @FXML private Label ruptureLabel;
 
-    private final ProduitService produitService = new ProduitService();
+    private final ProduitService produitService = ProduitService.getInstance();
     private ObservableList<Produit> produitsList;
 
     // Champs pour le formulaire intégré
@@ -70,6 +70,7 @@ public class ProduitsController {
 
     @FXML
     public void initialize() {
+        produitsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         nomCol.setCellValueFactory(new PropertyValueFactory<>("nom"));
         descriptionCol.setCellValueFactory(new PropertyValueFactory<>("description"));

@@ -8,43 +8,10 @@
         fitToWidth="true" fitToHeight="true" pannable="true"
         hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
     <content>
-        <BorderPane styleClass="admin-root front-module-page">
+        <BorderPane styleClass="admin-root front-shop-page">
             <top>
-                <VBox styleClass="admin-header-wrap">
-                    <HBox styleClass="navbar-symfony" alignment="CENTER">
-                        <Label text="CuraVita" styleClass="logo-text"/>
-                        <Region HBox.hgrow="SOMETIMES"/>
-                        <HBox styleClass="menu-container" alignment="CENTER">
-                            <Button text="Accueil" styleClass="menu-item" onAction="#goHome"/>
-                            <Button text="Produits" styleClass="menu-item" onAction="#showFrontProduits"/>
-                            <Button text="Services" styleClass="menu-item" onAction="#showFrontServices"/>
-                            <Button text="Panier" styleClass="menu-item" onAction="#showFrontPanier"/>
-                            <Button text="Adresses" styleClass="menu-item menu-item-active" onAction="#showFrontAddresses"/>
-                            <Button text="Commandes" styleClass="menu-item" onAction="#showFrontTracking"/>
-                            <Button text="Ordonnance" styleClass="menu-item"/>
-                            <Button text="Traitement" styleClass="menu-item"/>
-                            <Button text="Guide Sant&#233;" styleClass="menu-item"/>
-                            <Button text="Contact" styleClass="menu-item"/>
-                            <Button text="&#192; propos" styleClass="menu-item"/>
-                        </HBox>
-                        <Region HBox.hgrow="SOMETIMES"/>
-
-                        <StackPane>
-                            <HBox styleClass="icon-container" alignment="CENTER">
-                                <Button text="&#128269;" styleClass="icon-button" onAction="#handleSearch"/>
-                                <Button fx:id="profileButton" text="&#128100;" styleClass="icon-button" onAction="#toggleProfileDropdown"/>
-                            </HBox>
-
-                            <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false">
-                                <VBox.margin>
-                                    <Insets top="45" right="0" bottom="0" left="0"/>
-                                </VBox.margin>
-                                <Button text="Profil" styleClass="dropdown-item" onAction="#showProfile"/>
-                                <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
-                                <Button text="Logout" styleClass="dropdown-item" onAction="#logout"/>
-                            </VBox>
-                        </StackPane>
-                    </HBox>
+                <VBox styleClass="admin-header-wrap" spacing="12">
+                    <fx:include fx:id="shopNav" source="FrontShopNavBar.fxml"/>
                 </VBox>
             </top>
 
@@ -59,7 +26,9 @@
                         <Button text="Nouvelle Adresse" styleClass="btn-admin-primary" onAction="#openNewAddressForm"/>
                     </HBox>
 
-                    <VBox fx:id="addressesContainer" spacing="10"/>
+                    <VBox styleClass="addresses-list-shell" VBox.vgrow="ALWAYS">
+                        <VBox fx:id="addressesContainer" spacing="10" VBox.vgrow="ALWAYS"/>
+                    </VBox>
                 </VBox>
             </center>
             <bottom>

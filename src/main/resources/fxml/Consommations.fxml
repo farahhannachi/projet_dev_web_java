@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="org.example.controller.ServiceConsommationController"
+           styleClass="admin-root">
+
+    <VBox spacing="0" maxWidth="Infinity" maxHeight="Infinity">
+
+        <!-- ==================== HEADER ==================== -->
+        <HBox alignment="CENTER_LEFT" styleClass="admin-header">
+            <Label text="📦 Consommation de Stock par Service" styleClass="admin-header-title"/>
+        </HBox>
+
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="main-scroll">
+            <VBox spacing="20">
+                <padding><Insets top="20" left="24" right="24" bottom="24"/></padding>
+
+                <!-- ==================== FORM ==================== -->
+                <VBox spacing="14" styleClass="table-card">
+                    <padding><Insets top="20" left="24" right="24" bottom="20"/></padding>
+                    <Label text="📝 Enregistrer une consommation" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1f6f5c;"/>
+
+                    <HBox spacing="16" alignment="CENTER_LEFT">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Service *" styleClass="field-label"/>
+                            <ComboBox fx:id="serviceCombo" maxWidth="Infinity" styleClass="filter-field"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Stock *" styleClass="field-label"/>
+                            <ComboBox fx:id="stockCombo" maxWidth="Infinity" styleClass="filter-field"/>
+                        </VBox>
+                    </HBox>
+
+                    <Label fx:id="stockDisponibleLabel" text="Sélectionnez un stock"
+                           style="-fx-text-fill: #3498DB; -fx-font-style: italic;"/>
+
+                    <HBox spacing="16" alignment="CENTER_LEFT">
+                        <VBox spacing="4">
+                            <Label text="Quantité *" styleClass="field-label"/>
+                            <Spinner fx:id="quantiteSpinner" prefWidth="120"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Motif *" styleClass="field-label"/>
+                            <TextField fx:id="motifField" promptText="Ex: Consommation pour traitement" styleClass="filter-field"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Réf. Document" styleClass="field-label"/>
+                            <TextField fx:id="referenceDocumentField" promptText="N° ordonnance (optionnel)" styleClass="filter-field"/>
+                        </VBox>
+                    </HBox>
+
+                    <Label fx:id="avertissementLabel" wrapText="true"/>
+
+                    <HBox spacing="10">
+                        <Button fx:id="consommerButton" text="✓ Consommer" onAction="#handleConsommer" styleClass="btn-primary"/>
+                        <Button fx:id="annulerButton" text="✗ Réinitialiser" onAction="#handleAnnuler" styleClass="btn-secondary"/>
+                    </HBox>
+                </VBox>
+
+                <!-- ==================== HISTORY TABLE ==================== -->
+                <VBox styleClass="table-card" VBox.vgrow="ALWAYS">
+                    <padding><Insets top="16" left="0" right="0" bottom="0"/></padding>
+                    <Label text="📊 Historique des mouvements (derniers 30 jours)"
+                           style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #1f6f5c; -fx-padding: 0 24 10 24;"/>
+                    <TableView fx:id="historiqueTable" styleClass="admin-table" minHeight="300" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colDate" text="Date" minWidth="150"/>
+                            <TableColumn fx:id="colService" text="Service" minWidth="130"/>
+                            <TableColumn fx:id="colProduit" text="Produit" minWidth="150"/>
+                            <TableColumn fx:id="colQuantite" text="Quantité" minWidth="90"/>
+                            <TableColumn fx:id="colMotif" text="Motif" minWidth="160"/>
+                            <TableColumn fx:id="colDepot" text="Dépôt" minWidth="130"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+
+    </VBox>
+</StackPane>

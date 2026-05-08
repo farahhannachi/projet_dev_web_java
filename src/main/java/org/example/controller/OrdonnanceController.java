@@ -5,6 +5,7 @@ import javafx.scene.control.*; // Composants UI (Label, TextField, DatePicker, e
 import javafx.scene.layout.VBox; // Conteneur vertical
 import org.example.model.User; // Modèle utilisateur
 import org.example.service.UserService; // Service de gestion des utilisateurs
+import org.example.service.ResponseQuestionService;
 import org.example.util.DatabaseUtil;
 import org.example.util.NavbarOrdonnanceMenu; // Utilitaire de connexion à la base de données
 import org.example.util.SceneNavigation;
@@ -32,12 +33,14 @@ public class OrdonnanceController {
     @FXML private javafx.scene.shape.Circle navbarAvatarCircle;
     @FXML private Label navbarUsername;
     @FXML private Label navbarAvatarLabel;
+    @FXML private Label messagesBadge;
 
     @FXML private VBox traitementInfoBox; // Conteneur des infos du traitement associé
     @FXML private Label traitProduitLabel; // Label affichant le nom du produit du traitement
     @FXML private Label traitStatusLabel; // Label affichant le statut du traitement
 
     private UserService userService = UserService.getInstance(); // Service pour récupérer l'utilisateur connecté
+    private final ResponseQuestionService responseQuestionService = new ResponseQuestionService();
     private int traitementId = -1; // ID du traitement associé (-1 = aucun)
     private int ordonnanceId = -1; // ID de l'ordonnance en cours de modification (-1 = nouvelle)
     private String numeroOrdonnance; // Numéro d'ordonnance généré automatiquement
@@ -81,6 +84,17 @@ public class OrdonnanceController {
         }
         /* Profil : FXML onMouseClicked="#toggleProfileDropdown" */
         NavbarOrdonnanceMenu.wirePopupStyle(profileContainer);
+        updateMessagesBadge();
+    }
+
+    private void updateMessagesBadge() {
+        if (messagesBadge == null) return;
+        User u = userService.getCurrentUser();
+        if (u == null) { messagesBadge.setVisible(false); messagesBadge.setManaged(false); return; }
+        int count = responseQuestionService.countUnreadResponsesForClient(u.getId());
+        messagesBadge.setText(String.valueOf(count));
+        messagesBadge.setVisible(count > 0);
+        messagesBadge.setManaged(count > 0);
     }
 
     private void closeProfileDropdown() {
@@ -414,12 +428,27 @@ public class OrdonnanceController {
 
     @FXML
     private void handleNavProduits() {
-        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontProduits.fxml");
     }
 
     @FXML
     private void handleNavCommandes() {
-        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontMesCommandes.fxml");
+    }
+
+    @FXML
+    private void handleNavServices() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontServices.fxml");
+    }
+
+    @FXML
+    private void handleNavPanier() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontCommande.fxml");
+    }
+
+    @FXML
+    private void handleNavAdresses() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontMesAdresses.fxml");
     }
 
     @FXML

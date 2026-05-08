@@ -7,19 +7,21 @@
         <VBox styleClass="sidebar" spacing="15">
             <Label text="CuraVita" styleClass="sidebar-logo"/>
             <VBox spacing="10">
+                <Button text="Dashboard" onAction="#goToDashboardHome" styleClass="sidebar-item"/>
                 <Button text="Clients" onAction="#goToClients" styleClass="sidebar-item"/>
-                <Button text="Produits" onAction="#goToDashboard" styleClass="sidebar-item"/>
-                <Button text="Commandes" onAction="#goToDashboard" styleClass="sidebar-item"/>
-                <Button text="Promotions" onAction="#goToDashboard" styleClass="sidebar-item"/>
-                <Button text="Coupons" onAction="#goToDashboard" styleClass="sidebar-item"/>
-                <Button text="D&#233;p&#244;ts" onAction="#goToDashboard" styleClass="sidebar-item"/>
-                <Button text="Stocks" onAction="#goToDashboard" styleClass="sidebar-item"/>
-                <Button text="Ordonnances" styleClass="sidebar-item-active"/>
-                <Button text="Traitements" onAction="#goToTraitements" styleClass="sidebar-item"/>
+                <Button text="Produits" onAction="#goToDashboardProduits" styleClass="sidebar-item"/>
+                <Button text="Commandes" onAction="#goToDashboardCommandes" styleClass="sidebar-item"/>
+                <Button text="Promotions" onAction="#goToDashboardPromotions" styleClass="sidebar-item"/>
+                <Button text="Coupons" onAction="#goToDashboardCoupons" styleClass="sidebar-item"/>
+                <Button text="D&#233;p&#244;ts" onAction="#goToDashboardDepots" styleClass="sidebar-item"/>
+                <Button text="Stocks" onAction="#goToDashboardStocks" styleClass="sidebar-item"/>
+                <Button text="Services" onAction="#goToDashboardServices" styleClass="sidebar-item"/>
+                <Button text="Ordonnances admin" styleClass="sidebar-item-active"/>
+                <Button text="Traitements admin" onAction="#goToTraitements" styleClass="sidebar-item"/>
                 <Button text="Contact" onAction="#goToContactSupport" styleClass="sidebar-item"/>
             </VBox>
             <Region VBox.vgrow="ALWAYS"/>
-            <Button text="&#8592; Back" onAction="#goToDashboard" styleClass="sidebar-button-bottom"/>
+            <Button text="Front office" onAction="#goToFrontOffice" styleClass="sidebar-button-bottom"/>
             <Button text="Logout" onAction="#logout" styleClass="sidebar-button-bottom"/>
         </VBox>
     </left>
