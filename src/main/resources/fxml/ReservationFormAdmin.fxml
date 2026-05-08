@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.controller.ReservationFormAdminController"
+      spacing="15" prefWidth="400" prefHeight="500">
+    <padding><Insets top="20" left="20" right="20" bottom="20"/></padding>
+
+    <Label text="Reservation Form" style="-fx-font-size: 18; -fx-font-weight: bold;"/>
+
+    <VBox spacing="10">
+        <Label text="Service:"/>
+        <ComboBox fx:id="serviceCombo" promptText="Select a service"/>
+    </VBox>
+
+    <VBox spacing="10">
+        <Label text="Client Name:"/>
+        <TextField fx:id="nomClientField" promptText="Enter client name"/>
+    </VBox>
+
+    <VBox spacing="10">
+        <Label text="Email:"/>
+        <TextField fx:id="emailField" promptText="Enter email address"/>
+    </VBox>
+
+    <VBox spacing="10">
+        <Label text="Phone:"/>
+        <TextField fx:id="telephoneField" promptText="Enter phone number"/>
+    </VBox>
+
+    <VBox spacing="10">
+        <Label text="Date:"/>
+        <DatePicker fx:id="datePicker"/>
+    </VBox>
+
+    <VBox spacing="10">
+        <Label text="Time:"/>
+        <ComboBox fx:id="heureCombo" promptText="Select time"/>
+    </VBox>
+
+    <VBox spacing="10">
+        <Label text="Motif:"/>
+        <TextArea fx:id="motifArea" promptText="Enter consultation reason" prefRowCount="3"/>
+    </VBox>
+
+    <Label fx:id="errorLabel" textFill="RED" wrapText="true"/>
+
+    <HBox spacing="10" alignment="CENTER">
+        <Button fx:id="saveButton" text="Save" onAction="#handleSave" style="-fx-pref-width: 80;"/>
+        <Button fx:id="cancelButton" text="Cancel" onAction="#handleCancel" style="-fx-pref-width: 80;"/>
+    </HBox>
+</VBox>

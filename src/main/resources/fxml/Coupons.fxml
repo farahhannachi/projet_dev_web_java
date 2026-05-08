@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.controller.CouponsController"
+            fitToWidth="true" fitToHeight="true" pannable="true"
+            hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+        <StackPane styleClass="admin-root">
+    <BorderPane>
+        <top>
+            <VBox spacing="14" styleClass="admin-header-wrap">
+                <HBox alignment="CENTER_LEFT" spacing="20" styleClass="admin-header">
+                    <VBox spacing="2">
+                        <Label text="Coupons" styleClass="admin-title"/>
+                        <Label text="Codes promotionnels" styleClass="admin-subtitle"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Retour" onAction="#goBack" styleClass="btn-admin-primary"/>
+                </HBox>
+
+                <HBox spacing="12" styleClass="stats-row">
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Total" styleClass="stat-label"/>
+                        <Label fx:id="totalCouponsLabel" text="0" styleClass="stat-value"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Actifs" styleClass="stat-label"/>
+                        <Label fx:id="activeCouponsLabel" text="0" styleClass="stat-value success"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Expires" styleClass="stat-label"/>
+                        <Label fx:id="expiredCouponsLabel" text="0" styleClass="stat-value warning"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <Label text="Epuises" styleClass="stat-label"/>
+                        <Label fx:id="exhaustedCouponsLabel" text="0" styleClass="stat-value danger"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="10" styleClass="filters-row">
+                    <TextField fx:id="searchField" promptText="Recherche code coupon..." HBox.hgrow="ALWAYS" styleClass="filter-field"/>
+                    <ComboBox fx:id="typeFilterCombo" promptText="Type" styleClass="filter-field"/>
+                    <ComboBox fx:id="stateFilterCombo" promptText="Etat" styleClass="filter-field"/>
+                    <ComboBox fx:id="sortCombo" promptText="Tri" styleClass="filter-field"/>
+                </HBox>
+            </VBox>
+        </top>
+
+        <center>
+            <VBox styleClass="table-card" BorderPane.alignment="CENTER">
+                <TableView fx:id="couponsTable" styleClass="admin-table" minHeight="380" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="idCol" text="ID" minWidth="60"/>
+                        <TableColumn fx:id="codeCol" text="Code" minWidth="140"/>
+                        <TableColumn fx:id="typeCol" text="Type" minWidth="110"/>
+                        <TableColumn fx:id="valeurCol" text="Valeur" minWidth="100"/>
+                        <TableColumn fx:id="expirationCol" text="Expiration" minWidth="120"/>
+                        <TableColumn fx:id="usageMaxCol" text="Usage Max" minWidth="100"/>
+                        <TableColumn fx:id="usageCountCol" text="Usage" minWidth="90"/>
+                        <TableColumn fx:id="actifCol" text="Actif" minWidth="80"/>
+                        <TableColumn fx:id="minimumCol" text="Min Panier" minWidth="120"/>
+                    </columns>
+                </TableView>
+            </VBox>
+        </center>
+
+        <bottom>
+            <HBox spacing="10" alignment="CENTER_LEFT" styleClass="admin-actions-row">
+                <Button text="Ajouter" onAction="#handleAjouterCoupon" styleClass="btn-admin-primary"/>
+                <Button text="Modifier" onAction="#handleModifierCoupon" styleClass="btn-admin-outline"/>
+                <Button text="Supprimer" onAction="#handleSupprimerCoupon" styleClass="btn-admin-danger"/>
+            </HBox>
+        </bottom>
+    </BorderPane>
+
+    <VBox fx:id="modalOverlay" visible="false" managed="false" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.4);">
+        <VBox spacing="10" styleClass="admin-modal" maxWidth="500">
+            <Label text="Code promo" styleClass="field-label"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <TextField fx:id="codeField" promptText="Code auto" HBox.hgrow="ALWAYS" styleClass="form-field"/>
+                <Button text="Generer" onAction="#handleGenerateCode" styleClass="btn-admin-outline"/>
+            </HBox>
+
+            <HBox spacing="12">
+                <VBox HBox.hgrow="ALWAYS" spacing="6">
+                    <Label text="Type" styleClass="field-label"/>
+                    <ComboBox fx:id="typeCombo" styleClass="form-field"/>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS" spacing="6">
+                    <Label text="Valeur" styleClass="field-label"/>
+                    <TextField fx:id="valeurField" promptText="Ex: 10" styleClass="form-field"/>
+                </VBox>
+            </HBox>
+
+            <Label text="Date expiration" styleClass="field-label"/>
+            <DatePicker fx:id="expirationPicker" styleClass="form-field"/>
+
+            <HBox spacing="12">
+                <VBox HBox.hgrow="ALWAYS" spacing="6">
+                    <Label text="Usage max" styleClass="field-label"/>
+                    <TextField fx:id="usageMaxField" promptText="1" styleClass="form-field"/>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS" spacing="6">
+                    <Label text="Usage count" styleClass="field-label"/>
+                    <TextField fx:id="usageCountField" promptText="0" styleClass="form-field"/>
+                </VBox>
+            </HBox>
+
+            <CheckBox fx:id="actifCheck" text="Coupon actif"/>
+
+            <Label text="Montant minimum panier (DT)" styleClass="field-label"/>
+            <TextField fx:id="minimumField" promptText="0.00" styleClass="form-field"/>
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button text="Annuler" onAction="#handleCloseModal" styleClass="btn-admin-outline"/>
+                <Button text="Enregistrer" onAction="#handleSaveCoupon" styleClass="btn-admin-primary"/>
+            </HBox>
+        </VBox>
+    </VBox>
+        </StackPane>
+    </content>
+</ScrollPane>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" spacing="20" style="-fx-background-color: #f5f7fb; -fx-padding: 30;">
+
+    <!-- Header Section -->
+    <HBox alignment="CENTER_LEFT" spacing="20">
+        <VBox>
+            <Label text="Mes Tickets de Support" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #333;" />
+            <Label text="Consultez et gérez vos demandes d'assistance." style="-fx-font-size: 14; -fx-text-fill: #666;" />
+        </VBox>
+        <Region HBox.hgrow="ALWAYS" />
+        <Button text="+ Nouveau Ticket" styleClass="btn-modern" />
+    </HBox>
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <TextField promptText="Rechercher un ticket..." styleClass="input-modern" prefWidth="250" />
+        <Region HBox.hgrow="ALWAYS" />
+        <ComboBox promptText="Statut: Tous" styleClass="input-modern" />
+    </HBox>
+
+    <!-- Ticket List -->
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: #f5f7fb;" VBox.vgrow="ALWAYS">
+        <VBox fx:id="ticketsContainer" spacing="15">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <!-- Example Ticket Card: Unread -->
+            <HBox styleClass="ticket-card, ticket-card-unread" alignment="CENTER_LEFT">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Problème de paiement" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #333;" />
+                        <Label text="En Cours" styleClass="badge-en-cours" />
+                    </HBox>
+                    <Label text="#TCK-001 • Créé le 12 Mars 2026" style="-fx-font-size: 12; -fx-text-fill: #999;" />
+                    <Label text="Dernier message de l'agent: Bonjour, nous avons bien reçu..." style="-fx-text-fill: #666;" />
+                </VBox>
+                <Button text="Voir Détails" style="-fx-background-color: transparent; -fx-text-fill: #667eea; -fx-font-weight: bold; -fx-cursor: hand;" />
+            </HBox>
+
+            <!-- Example Ticket Card: Read -->
+            <HBox styleClass="ticket-card" alignment="CENTER_LEFT">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Question sur la livraison" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #333;" />
+                        <Label text="Fermé" styleClass="badge-ferme" />
+                    </HBox>
+                    <Label text="#TCK-002 • Créé le 10 Mars 2026" style="-fx-font-size: 12; -fx-text-fill: #999;" />
+                    <Label text="Ticket résolu." style="-fx-text-fill: #666;" />
+                </VBox>
+                <Button text="Voir Détails" style="-fx-background-color: transparent; -fx-text-fill: #667eea; -fx-font-weight: bold; -fx-cursor: hand;" />
+            </HBox>
+
+        </VBox>
+    </ScrollPane>
+</VBox>

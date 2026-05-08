@@ -1,0 +1,542 @@
+package org.example.controller; // Déclaration du package
+
+import javafx.fxml.FXML; // Annotation pour lier les éléments FXML
+import javafx.scene.control.*; // Composants UI (Label, TextField, DatePicker, etc.)
+import javafx.scene.layout.VBox; // Conteneur vertical
+import org.example.model.User; // Modèle utilisateur
+import org.example.service.UserService; // Service de gestion des utilisateurs
+import org.example.service.ResponseQuestionService;
+import org.example.util.DatabaseUtil;
+import org.example.util.NavbarOrdonnanceMenu; // Utilitaire de connexion à la base de données
+import org.example.util.SceneNavigation;
+
+import java.sql.*; // Classes JDBC (Connection, PreparedStatement, ResultSet, etc.)
+import java.time.LocalDate; // Date sans heure
+import java.time.LocalDateTime; // Date avec heure
+import java.time.format.DateTimeFormatter; // Formateur de date
+
+// Contrôleur front-office pour la création/soumission d'une ordonnance par le client
+public class OrdonnanceController {
+
+    @FXML private Label numeroBannerLabel; // Label affichant le numéro d'ordonnance dans le bandeau
+    @FXML private TextField numeroField; // Champ texte du numéro d'ordonnance (non éditable)
+    @FXML private DatePicker dateOrdonnanceField; // Sélecteur de date de l'ordonnance
+    @FXML private DatePicker dateExpirationField; // Sélecteur de date d'expiration
+    @FXML private TextArea noteMedicalField; // Zone de texte pour la note médicale (optionnelle)
+    @FXML private Label errorLabel; // Label pour afficher les messages d'erreur
+    @FXML private Button profileButton; // Bouton profil dans la navbar (ancien, gardé pour compatibilité)
+    @FXML private Button submitButton; // Bouton de soumission (désactivé après clic pour anti double-clic)
+    // Nouveaux éléments navbar avatar
+    @FXML private javafx.scene.layout.HBox profileContainer;
+    @FXML private VBox profileDropdown;
+    @FXML private Button dashboardMenuItem;
+    @FXML private javafx.scene.shape.Circle navbarAvatarCircle;
+    @FXML private Label navbarUsername;
+    @FXML private Label navbarAvatarLabel;
+    @FXML private Label messagesBadge;
+
+    @FXML private VBox traitementInfoBox; // Conteneur des infos du traitement associé
+    @FXML private Label traitProduitLabel; // Label affichant le nom du produit du traitement
+    @FXML private Label traitStatusLabel; // Label affichant le statut du traitement
+
+    private UserService userService = UserService.getInstance(); // Service pour récupérer l'utilisateur connecté
+    private final ResponseQuestionService responseQuestionService = new ResponseQuestionService();
+    private int traitementId = -1; // ID du traitement associé (-1 = aucun)
+    private int ordonnanceId = -1; // ID de l'ordonnance en cours de modification (-1 = nouvelle)
+    private String numeroOrdonnance; // Numéro d'ordonnance généré automatiquement
+
+    // Setter appelé depuis TraitementController pour passer l'ID du traitement créé
+    public void setTraitementId(int traitementId) {
+        this.traitementId = traitementId; // Stocker l'ID du traitement
+        loadTraitementInfo(); // Charger les infos du traitement depuis la base
+    }
+
+    // Setter appelé depuis TraitementController pour passer l'ID et le numéro de l'ordonnance
+    public void setOrdonnanceId(int ordonnanceId, String numero) {
+        this.ordonnanceId = ordonnanceId; // Stocker l'ID de l'ordonnance
+        this.numeroOrdonnance = numero; // Stocker le numéro
+        numeroBannerLabel.setText(numero); // Afficher le numéro dans le bandeau
+        numeroField.setText(numero); // Afficher le numéro dans le champ texte
+    }
+
+    @FXML
+    public void initialize() {
+        org.example.util.ElectronicSignatureService.getInstance().initColonnes();
+        // Générer un numéro d'ordonnance unique au format ORD-ANNEE-4CHIFFRES
+        numeroOrdonnance = "ORD-" + LocalDateTime.now().getYear() + "-" + String.format("%04d", (int)(Math.random() * 10000));
+        numeroBannerLabel.setText(numeroOrdonnance); // Afficher dans le bandeau
+        numeroField.setText(numeroOrdonnance); // Afficher dans le champ
+
+        dateOrdonnanceField.setValue(LocalDate.now()); // Date ordonnance = aujourd'hui par défaut
+        dateExpirationField.setValue(LocalDate.now().plusYears(1)); // Date expiration = dans 1 an par défaut
+
+        User currentUser = userService.getCurrentUser();
+        if (navbarUsername != null && currentUser != null) {
+            String nom = currentUser.getNom() != null ? currentUser.getNom() : currentUser.getEmail();
+            navbarUsername.setText(nom.split(" ")[0]);
+        }
+        if (dashboardMenuItem != null) {
+            dashboardMenuItem.setVisible(userService.isAdmin());
+            dashboardMenuItem.setManaged(userService.isAdmin());
+        }
+        if (navbarAvatarCircle != null) {
+            navbarAvatarCircle.setStyle("-fx-fill: #1f6f54; -fx-stroke: white; -fx-stroke-width: 2;");
+        }
+        /* Profil : FXML onMouseClicked="#toggleProfileDropdown" */
+        NavbarOrdonnanceMenu.wirePopupStyle(profileContainer);
+        updateMessagesBadge();
+    }
+
+    private void updateMessagesBadge() {
+        if (messagesBadge == null) return;
+        User u = userService.getCurrentUser();
+        if (u == null) { messagesBadge.setVisible(false); messagesBadge.setManaged(false); return; }
+        int count = responseQuestionService.countUnreadResponsesForClient(u.getId());
+        messagesBadge.setText(String.valueOf(count));
+        messagesBadge.setVisible(count > 0);
+        messagesBadge.setManaged(count > 0);
+    }
+
+    private void closeProfileDropdown() {
+        if (profileDropdown != null) {
+            profileDropdown.setVisible(false);
+            profileDropdown.setManaged(false);
+        }
+    }
+
+    // Charger les informations du traitement associé depuis la base de données
+    private void loadTraitementInfo() {
+        if (traitementId <= 0) return; // Pas de traitement associé, on sort
+        try {
+            Connection conn = DatabaseUtil.getInstance().getConnection(); // Obtenir la connexion à la base
+            // Requête pour récupérer les infos du traitement avec jointure sur le produit
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT t.dosage, t.frequence, t.duree_jours, t.status, t.repas, t.notes, " +
+                    "p.nom AS produit_nom " +
+                    "FROM traitement t " +
+                    "LEFT JOIN produit p ON t.id_produit_id = p.id_produit " +
+                    "WHERE t.id_traitement = ?");
+            ps.setInt(1, traitementId); // Paramètre : ID du traitement
+            ResultSet rs = ps.executeQuery(); // Exécuter la requête
+            if (rs.next()) { // Si un résultat existe
+                traitProduitLabel.setText("Produit : " + (rs.getString("produit_nom") != null ? rs.getString("produit_nom") : "N/A")); // Afficher le nom du produit
+                traitStatusLabel.setText("Statut : " + rs.getString("status")); // Afficher le statut
+            }
+            rs.close(); // Fermer le ResultSet
+            ps.close(); // Fermer le PreparedStatement
+        } catch (SQLException e) {
+            System.out.println("Erreur chargement traitement: " + e.getMessage()); // Log de l'erreur
+        }
+    }
+
+    // Méthode appelée lors du clic sur "Envoyer mon ordonnance"
+    @FXML
+    private void handleSubmitOrdonnance() {
+        errorLabel.setText(""); // Réinitialiser le message d'erreur
+
+        submitButton.setDisable(true); // Désactiver le bouton pour éviter le double-clic
+
+        // Vérifier que le patient est connecté
+        User currentUser = userService.getCurrentUser(); // Récupérer l'utilisateur connecté
+        if (currentUser == null) { // Si pas connecté
+            errorLabel.setText("Veuillez vous connecter avant de soumettre une ordonnance."); // Message d'erreur
+            submitButton.setDisable(false); // Réactiver le bouton
+            return; // Arrêter le traitement
+        }
+
+        // Contrôle : date ordonnance obligatoire
+        if (dateOrdonnanceField.getValue() == null) { // Si aucune date sélectionnée
+            errorLabel.setText("Date invalide"); // Message d'erreur
+            submitButton.setDisable(false); // Réactiver le bouton
+            return;
+        }
+        // Contrôle : date ordonnance ne doit pas être dans le futur
+        if (dateOrdonnanceField.getValue().isAfter(LocalDate.now())) { // Si date future
+            errorLabel.setText("La date de l'ordonnance ne peut pas être dans le futur."); // Message d'erreur
+            submitButton.setDisable(false); // Réactiver le bouton
+            return;
+        }
+        // Contrôle : date expiration obligatoire
+        if (dateExpirationField.getValue() == null) { // Si aucune date d'expiration
+            errorLabel.setText("Date invalide"); // Message d'erreur
+            submitButton.setDisable(false); // Réactiver le bouton
+            return;
+        }
+        // Contrôle : date expiration doit être postérieure à la date ordonnance
+        if (!dateExpirationField.getValue().isAfter(dateOrdonnanceField.getValue())) { // Si expiration <= ordonnance
+            errorLabel.setText("La date d'expiration doit être postérieure à la date de l'ordonnance."); // Message d'erreur
+            submitButton.setDisable(false); // Réactiver le bouton
+            return;
+        }
+
+        // Contrôle : au moins un traitement doit être associé
+        if (traitementId <= 0) { // Si aucun traitement lié
+            errorLabel.setText("Veuillez d'abord créer un traitement avant de soumettre l'ordonnance."); // Message d'erreur
+            submitButton.setDisable(false); // Réactiver le bouton
+            return;
+        }
+
+        // Contrôle : note médicale optionnelle mais limitée à 1000 caractères
+        String note = noteMedicalField.getText() != null ? noteMedicalField.getText().trim() : ""; // Récupérer et nettoyer la note
+        if (note.length() > 1000) { // Si trop longue
+            errorLabel.setText("La note médicale ne doit pas dépasser 1000 caractères."); // Message d'erreur
+            submitButton.setDisable(false); // Réactiver le bouton
+            return;
+        }
+
+        try {
+            Connection conn = DatabaseUtil.getInstance().getConnection(); // Obtenir la connexion
+
+            // Vérification d'unicité : même patient + même date = doublon interdit
+            if (ordonnanceId <= 0) { // Seulement pour les nouvelles ordonnances
+                PreparedStatement psDup = conn.prepareStatement(
+                        "SELECT COUNT(*) AS nb FROM ordonnance WHERE id_utilisateur_id = ? AND DATE(date_ordonnance) = ?"); // Requête de vérification doublon
+                psDup.setInt(1, currentUser.getId()); // Paramètre : ID du patient
+                psDup.setDate(2, java.sql.Date.valueOf(dateOrdonnanceField.getValue())); // Paramètre : date ordonnance
+                ResultSet rsDup = psDup.executeQuery(); // Exécuter
+                if (rsDup.next() && rsDup.getInt("nb") > 0) { // Si doublon trouvé
+                    errorLabel.setText("Une ordonnance existe déjà pour cette date."); // Message d'erreur
+                    submitButton.setDisable(false); // Réactiver le bouton
+                    rsDup.close(); psDup.close(); // Fermer les ressources
+                    return;
+                }
+                rsDup.close(); psDup.close(); // Fermer les ressources
+            }
+
+            if (ordonnanceId > 0) { // Si c'est une mise à jour d'ordonnance existante
+                // Mise à jour de l'ordonnance créée depuis la page traitement
+                PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE ordonnance SET date_ordonnance = ?, date_expiration = ?, statut = ?, note_medical = ? WHERE id_ordonnance = ?");
+                ps.setTimestamp(1, Timestamp.valueOf(dateOrdonnanceField.getValue().atStartOfDay())); // Date ordonnance
+                ps.setTimestamp(2, Timestamp.valueOf(dateExpirationField.getValue().atStartOfDay())); // Date expiration
+                ps.setString(3, "en_attente"); // Statut = en attente
+                ps.setString(4, noteMedicalField.getText() != null ? noteMedicalField.getText().trim() : ""); // Note médicale nettoyée
+                ps.setInt(5, ordonnanceId); // ID de l'ordonnance à mettre à jour
+                ps.executeUpdate(); // Exécuter la mise à jour
+                ps.close(); // Fermer
+            } else { // Sinon, créer une nouvelle ordonnance
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO ordonnance (numero_ordonnance, date_ordonnance, date_expiration, statut, note_medical, id_utilisateur_id) " +
+                        "VALUES (?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS); // Insertion avec récupération de l'ID généré
+                ps.setString(1, numeroOrdonnance); // Numéro d'ordonnance généré
+                ps.setTimestamp(2, Timestamp.valueOf(dateOrdonnanceField.getValue().atStartOfDay())); // Date ordonnance
+                ps.setTimestamp(3, Timestamp.valueOf(dateExpirationField.getValue().atStartOfDay())); // Date expiration
+                ps.setString(4, "en_attente"); // Statut initial
+                ps.setString(5, noteMedicalField.getText() != null ? noteMedicalField.getText().trim() : ""); // Note médicale
+                ps.setInt(6, currentUser != null ? currentUser.getId() : 0); // ID du patient connecté
+                ps.executeUpdate(); // Exécuter l'insertion
+                ps.close(); // Fermer
+            }
+
+            // Afficher un message de succès
+            org.example.util.DialogService.showSuccess(
+                "Ordonnance envoyée",
+                "Votre ordonnance " + numeroOrdonnance + " a été envoyée avec succès.\nElle sera traitée par notre équipe sous 24h."
+            );
+
+            goToMesOrdonnances();
+        } catch (SQLException e) {
+            errorLabel.setText("Erreur: " + e.getMessage());
+            submitButton.setDisable(false);
+        }
+    }
+
+    // Ouvre la fenêtre de signature électronique patient
+    @FXML
+    private void handleSignerPatient() {
+        User currentUser = userService.getCurrentUser();
+        if (currentUser == null) {
+            errorLabel.setText("Veuillez vous connecter pour signer.");
+            return;
+        }
+        if (ordonnanceId <= 0) {
+            errorLabel.setText("Soumettez d'abord votre ordonnance avant de la signer.");
+            return;
+        }
+        showSignaturePatientDialog();
+    }
+
+    private void showSignaturePatientDialog() {
+        User currentUser = userService.getCurrentUser();
+        String nomPatient = currentUser != null && currentUser.getNom() != null
+                ? currentUser.getNom() : "Patient";
+
+        // Vérifier si déjà signé
+        boolean[] sigs = org.example.util.ElectronicSignatureService.getInstance()
+                .verifierSignatures(ordonnanceId);
+
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.setTitle("Signature Électronique Patient");
+        dialog.setResizable(false);
+
+        javafx.scene.layout.VBox root = new javafx.scene.layout.VBox(0);
+        root.setStyle("-fx-background-color: #f8f9fa;");
+        root.setMinWidth(480);
+
+        // En-tête
+        javafx.scene.layout.VBox header = new javafx.scene.layout.VBox(6);
+        header.setAlignment(javafx.geometry.Pos.CENTER);
+        header.setPadding(new javafx.geometry.Insets(22, 20, 16, 20));
+        header.setStyle("-fx-background-color: #2980b9;");
+        Label titleLbl = new Label("✍  Signature Électronique Patient");
+        titleLbl.setStyle("-fx-font-size: 17; -fx-font-weight: bold; -fx-text-fill: white;");
+        Label subLbl = new Label("Ordonnance : " + numeroOrdonnance);
+        subLbl.setStyle("-fx-font-size: 12; -fx-text-fill: rgba(255,255,255,0.8);");
+        header.getChildren().addAll(titleLbl, subLbl);
+
+        javafx.scene.layout.VBox body = new javafx.scene.layout.VBox(14);
+        body.setPadding(new javafx.geometry.Insets(20, 24, 10, 24));
+
+        // Déjà signé ?
+        if (sigs[1]) {
+            javafx.scene.layout.HBox alreadySigned = new javafx.scene.layout.HBox(8);
+            alreadySigned.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            alreadySigned.setPadding(new javafx.geometry.Insets(10, 14, 10, 14));
+            alreadySigned.setStyle("-fx-background-color: #d4edda; -fx-background-radius: 8;");
+            Label ok = new Label("✅  Vous avez déjà signé cette ordonnance.");
+            ok.setStyle("-fx-font-size: 13; -fx-text-fill: #155724; -fx-font-weight: bold;");
+            alreadySigned.getChildren().add(ok);
+            body.getChildren().add(alreadySigned);
+        }
+
+        // Info patient
+        javafx.scene.layout.HBox patientInfo = new javafx.scene.layout.HBox(8);
+        patientInfo.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        patientInfo.setPadding(new javafx.geometry.Insets(10, 14, 10, 14));
+        patientInfo.setStyle("-fx-background-color: #eaf4fb; -fx-background-radius: 8;");
+        Label patLbl = new Label("👤  Patient : " + nomPatient);
+        patLbl.setStyle("-fx-font-size: 13; -fx-text-fill: #2980b9; -fx-font-weight: bold;");
+        patientInfo.getChildren().add(patLbl);
+
+        // Consentement
+        CheckBox consentCheck = new CheckBox(
+            "Je certifie avoir lu et compris les instructions de traitement\n" +
+            "et consens à l'utilisation de cette signature électronique.");
+        consentCheck.setStyle("-fx-font-size: 12; -fx-text-fill: #333; -fx-wrap-text: true;");
+        consentCheck.setWrapText(true);
+        consentCheck.setMaxWidth(420);
+
+        // Canvas signature manuscrite
+        Label canvasLbl = new Label("Tracez votre signature :");
+        canvasLbl.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #333;");
+
+        javafx.scene.canvas.Canvas canvas = new javafx.scene.canvas.Canvas(430, 130);
+        javafx.scene.canvas.GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.setFill(javafx.scene.paint.Color.WHITE);
+        gc.fillRect(0, 0, 430, 130);
+        // Ligne de base
+        gc.setStroke(javafx.scene.paint.Color.LIGHTGRAY);
+        gc.setLineWidth(1);
+        gc.strokeLine(20, 100, 410, 100);
+        gc.setStroke(javafx.scene.paint.Color.web("#2980b9"));
+        gc.setLineWidth(2.5);
+
+        final double[] lastPos = {-1, -1};
+        canvas.setOnMousePressed(e -> { lastPos[0] = e.getX(); lastPos[1] = e.getY(); });
+        canvas.setOnMouseDragged(e -> {
+            gc.strokeLine(lastPos[0], lastPos[1], e.getX(), e.getY());
+            lastPos[0] = e.getX(); lastPos[1] = e.getY();
+        });
+        canvas.setStyle("-fx-border-color: #ccc; -fx-border-width: 1;");
+
+        Button clearBtn = new Button("🗑 Effacer");
+        clearBtn.setStyle("-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 11; " +
+                "-fx-background-radius: 6; -fx-padding: 5 14; -fx-cursor: hand;");
+        clearBtn.setOnAction(e -> {
+            gc.setFill(javafx.scene.paint.Color.WHITE);
+            gc.fillRect(0, 0, 430, 130);
+            gc.setStroke(javafx.scene.paint.Color.LIGHTGRAY);
+            gc.setLineWidth(1);
+            gc.strokeLine(20, 100, 410, 100);
+            gc.setStroke(javafx.scene.paint.Color.web("#2980b9"));
+            gc.setLineWidth(2.5);
+        });
+
+        Label errLbl = new Label();
+        errLbl.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 12;");
+
+        body.getChildren().addAll(patientInfo, consentCheck, canvasLbl, canvas, clearBtn, errLbl);
+
+        // Footer
+        javafx.scene.layout.HBox footer = new javafx.scene.layout.HBox(12);
+        footer.setAlignment(javafx.geometry.Pos.CENTER);
+        footer.setPadding(new javafx.geometry.Insets(14, 24, 20, 24));
+
+        Button cancelBtn = new Button("Annuler");
+        cancelBtn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; " +
+                "-fx-background-radius: 20; -fx-padding: 10 30; -fx-cursor: hand;");
+        cancelBtn.setOnAction(e -> dialog.close());
+
+        Button signBtn = new Button("✍  Signer mon ordonnance");
+        signBtn.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; " +
+                "-fx-background-radius: 20; -fx-padding: 10 30; -fx-cursor: hand; -fx-font-size: 13;");
+        signBtn.setOnAction(e -> {
+            if (!consentCheck.isSelected()) {
+                errLbl.setText("Veuillez cocher la case de consentement.");
+                return;
+            }
+            String signatureData = nomPatient + "|" + System.currentTimeMillis();
+            org.example.util.ElectronicSignatureService.SignatureResult result =
+                    org.example.util.ElectronicSignatureService.getInstance()
+                            .signer(numeroOrdonnance, nomPatient, "patient", signatureData);
+
+            if (!result.success) { errLbl.setText(result.message); return; }
+
+            boolean saved = org.example.util.ElectronicSignatureService.getInstance()
+                    .sauvegarderSignaturePatient(ordonnanceId, result);
+
+            if (saved) {
+                dialog.close();
+                // Fenêtre de confirmation
+                javafx.stage.Stage ok = new javafx.stage.Stage();
+                ok.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+                ok.setTitle("Signature enregistrée");
+                javafx.scene.layout.VBox okRoot = new javafx.scene.layout.VBox(16);
+                okRoot.setAlignment(javafx.geometry.Pos.CENTER);
+                okRoot.setPadding(new javafx.geometry.Insets(30, 40, 30, 40));
+                okRoot.setStyle("-fx-background-color: white;");
+                okRoot.setMinWidth(380);
+                Label okIcon = new Label("✅"); okIcon.setStyle("-fx-font-size: 48;");
+                Label okTitle = new Label("Signature enregistrée !");
+                okTitle.setStyle("-fx-font-size: 17; -fx-font-weight: bold; -fx-text-fill: #2980b9;");
+                Label okSub = new Label("Votre ordonnance " + numeroOrdonnance + "\na été signée électroniquement le " + result.signedAt + ".");
+                okSub.setStyle("-fx-font-size: 12; -fx-text-fill: #555; -fx-text-alignment: center; -fx-wrap-text: true;");
+                okSub.setWrapText(true);
+                okSub.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+                Button okBtn = new Button("Fermer");
+                okBtn.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; " +
+                        "-fx-background-radius: 20; -fx-padding: 10 40; -fx-cursor: hand;");
+                okBtn.setOnAction(ev -> ok.close());
+                okRoot.getChildren().addAll(okIcon, okTitle, okSub, okBtn);
+                ok.setScene(new javafx.scene.Scene(okRoot));
+                ok.showAndWait();
+            } else {
+                errLbl.setText("Erreur lors de la sauvegarde de la signature.");
+            }
+        });
+
+        footer.getChildren().addAll(cancelBtn, signBtn);
+        root.getChildren().addAll(header, body, footer);
+        dialog.setScene(new javafx.scene.Scene(root));
+        dialog.showAndWait();
+    }
+
+    private javafx.scene.Node navAnchor() {
+        return numeroField != null ? numeroField : profileContainer;
+    }
+
+    @FXML
+    private void handleNavProduits() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontProduits.fxml");
+    }
+
+    @FXML
+    private void handleNavCommandes() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontMesCommandes.fxml");
+    }
+
+    @FXML
+    private void handleNavServices() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontServices.fxml");
+    }
+
+    @FXML
+    private void handleNavPanier() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontCommande.fxml");
+    }
+
+    @FXML
+    private void handleNavAdresses() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/FrontMesAdresses.fxml");
+    }
+
+    @FXML
+    private void handleNavGuide() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/GuideSante.fxml");
+    }
+
+    @FXML
+    private void handleNavContact() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/ContactPage.fxml");
+    }
+
+    @FXML
+    private void handleNavAbout() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/APropos.fxml");
+    }
+
+    @FXML
+    private void handleNavbarSearch() {
+        if (noteMedicalField != null) {
+            noteMedicalField.requestFocus();
+        } else if (numeroField != null) {
+            numeroField.requestFocus();
+        }
+    }
+
+    @FXML
+    private void goToMessagesPage() {
+        closeProfileDropdown();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/MessagesPage.fxml");
+    }
+
+    // Navigation vers la page d'accueil
+    @FXML
+    private void goToAccueil() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Accueil.fxml");
+    }
+
+    // Navigation vers la page de demande de traitement
+    @FXML
+    private void goToTraitement() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Traitement.fxml");
+    }
+
+    // Navigation vers la page "Mes Ordonnances"
+    @FXML
+    private void goToMesOrdonnances() {
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/MesOrdonnances.fxml");
+    }
+
+    // Action "Créer une ordonnance" dans le menu - déjà sur cette page
+    @FXML
+    private void goToCreerOrdonnance() {
+        // Déjà sur cette page, rien à faire
+    }
+
+    @FXML
+    private void goToProfil() {
+        closeProfileDropdown();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Profil.fxml");
+    }
+
+    @FXML
+    private void toggleProfileDropdown() {
+        if (profileDropdown != null) {
+            boolean next = !profileDropdown.isVisible();
+            profileDropdown.setVisible(next);
+            profileDropdown.setManaged(next);
+            if (next) {
+                profileDropdown.toFront();
+                javafx.scene.Node parent = profileDropdown.getParent();
+                if (parent != null) {
+                    parent.toFront();
+                }
+            }
+        }
+    }
+
+    @FXML
+    private void goToDashboard() {
+        closeProfileDropdown();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Dashboard.fxml");
+    }
+
+    @FXML
+    private void logout() {
+        closeProfileDropdown();
+        userService.logout();
+        SceneNavigation.replaceScene(navAnchor(), "/fxml/Login.fxml");
+    }
+}

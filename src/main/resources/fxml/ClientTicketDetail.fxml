@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" spacing="20" style="-fx-background-color: #f5f7fb; -fx-padding: 30;">
+
+    <!-- Top Bar -->
+    <HBox alignment="CENTER_LEFT" spacing="15">
+        <Button text="&#8592; Retour" style="-fx-background-color: transparent; -fx-text-fill: #667eea; -fx-font-weight: bold; -fx-cursor: hand;" />
+        <VBox>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Ticket #TCK-001 - Problème de paiement" style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: #333;" />
+                <Label text="En Cours" styleClass="badge-en-cours" />
+            </HBox>
+            <Label text="Créé le 12 Mars 2026 par vous" style="-fx-text-fill: #888;" />
+        </VBox>
+        <Region HBox.hgrow="ALWAYS" />
+        <Button text="Fermer le ticket" style="-fx-background-color: #FFEBEE; -fx-text-fill: #D32F2F; -fx-background-radius: 8; -fx-font-weight: bold; -fx-cursor: hand;" />
+    </HBox>
+
+    <!-- Chat Area -->
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: #f5f7fb;" VBox.vgrow="ALWAYS">
+        <VBox fx:id="chatContainer" styleClass="chat-container" spacing="15" VBox.vgrow="ALWAYS">
+            <!-- Client Message -->
+            <VBox alignment="CENTER_RIGHT" fillWidth="false">
+                <VBox styleClass="chat-message-client" spacing="5">
+                    <Label text="Bonjour, ma carte a été débitée deux fois pour la commande. Pouvez-vous vérifier ?" styleClass="chat-bubble-text" wrapText="true" maxWidth="400" />
+                    <Label text="Aujourd'hui à 10:00" styleClass="chat-bubble-time" alignment="CENTER_RIGHT" />
+                </VBox>
+            </VBox>
+
+            <!-- Agent Message -->
+            <VBox alignment="CENTER_LEFT" fillWidth="false">
+                <VBox styleClass="chat-message-agent" spacing="5">
+                    <Label text="Bonjour, je regarde cela tout de suite. Pouvez-vous m'envoyer le numéro de la transaction svp ?" styleClass="chat-bubble-text" wrapText="true" maxWidth="400" />
+                    <Label text="Aujourd'hui à 10:15 - Agent Support" styleClass="chat-bubble-time" />
+                </VBox>
+            </VBox>
+        </VBox>
+    </ScrollPane>
+
+    <!-- Message Input -->
+    <HBox spacing="10" alignment="CENTER">
+        <Button text="+" style="-fx-font-size: 20; -fx-background-color: #e0e0e0; -fx-background-radius: 20; -fx-text-fill: #333; -fx-min-width: 40; -fx-min-height: 40;" />
+        <TextField fx:id="messageInput" promptText="Écrivez votre message..." styleClass="input-modern" HBox.hgrow="ALWAYS" />
+        <Button text="Envoyer" styleClass="btn-modern" />
+    </HBox>
+
+</VBox>

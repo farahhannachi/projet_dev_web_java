@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.controller.LoginController"
+            styleClass="lol-root">
+
+    <StackPane AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+               AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+               alignment="CENTER">
+
+        <!-- SIGN UP card — hidden off-screen at startup, slides in on "Sign Up" click -->
+        <VBox fx:id="signUpPanel" spacing="22" alignment="CENTER"
+              style="-fx-background-color: white; -fx-background-radius: 14;
+                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 22, 0.25, 0, 5);
+                     -fx-min-width: 400; -fx-max-width: 400;
+                     -fx-min-height: 560; -fx-max-height: 640;
+                     -fx-padding: 45 40;"
+              translateX="1200" opacity="0" managed="false" visible="false">
+
+            <Text text="Create Account" styleClass="lol-title"/>
+            <Text text="Join us today — vérification SMS (Twilio Verify)" styleClass="lol-subtitle"/>
+
+            <VBox spacing="12" prefWidth="310">
+                <TextField fx:id="signupName" promptText="Full Name" styleClass="lol-input"/>
+                <TextField fx:id="signupEmail" promptText="Email" styleClass="lol-input"/>
+                <TextField fx:id="signupPhone" promptText="Téléphone (ex: +216 XX XXX XXX)" styleClass="lol-input"/>
+                <PasswordField fx:id="signupPassword" promptText="Password" styleClass="lol-input"/>
+            </VBox>
+
+            <Label fx:id="signupError" text="" styleClass="lol-error"/>
+
+            <Button fx:id="signupSendSmsButton" text="Envoyer le code SMS" onAction="#handleSignupSendCode" styleClass="lol-button-primary"
+                    prefWidth="310" prefHeight="46"/>
+
+            <VBox fx:id="signupOtpBox" spacing="10" alignment="CENTER" prefWidth="310" visible="false" managed="false">
+                <Label text="Saisissez le code à 6 chiffres reçu par SMS." wrapText="true" styleClass="lol-text-small"/>
+                <TextField fx:id="signupOtpCode" promptText="Code SMS" styleClass="lol-input"/>
+                <Button text="Créer mon compte" onAction="#handleSignupConfirm" styleClass="lol-button-primary"
+                        prefWidth="310" prefHeight="46"/>
+            </VBox>
+
+            <HBox spacing="5" alignment="CENTER">
+                <Text text="Already have an account?" styleClass="lol-text-small"/>
+                <Button text="Sign In" onAction="#showSignIn" styleClass="lol-link-button"/>
+            </HBox>
+        </VBox>
+
+        <!-- SIGN IN card — centered, fully visible at startup -->
+        <VBox fx:id="signInPanel" spacing="22" alignment="CENTER"
+              style="-fx-background-color: white; -fx-background-radius: 14;
+                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.22), 24, 0.3, 0, 6);
+                     -fx-min-width: 400; -fx-max-width: 400;
+                     -fx-min-height: 460; -fx-max-height: 520;
+                     -fx-padding: 45 40;">
+
+            <Text text="Welcome Back" styleClass="lol-title"/>
+            <Text text="Sign in to continue" styleClass="lol-subtitle"/>
+
+            <VBox fx:id="loginStepCredentials" spacing="12" prefWidth="310" alignment="CENTER">
+                <TextField fx:id="loginEmail" promptText="Email" styleClass="lol-input"/>
+                <PasswordField fx:id="loginPassword" promptText="Password" styleClass="lol-input"/>
+                <Button text="SIGN IN" onAction="#handleLogin" styleClass="lol-button-primary"
+                        prefWidth="310" prefHeight="46"/>
+            </VBox>
+
+            <VBox fx:id="loginStepTotp" spacing="14" prefWidth="310" alignment="CENTER"
+                  visible="false" managed="false">
+                <Label text="Authentification à deux facteurs"
+                       styleClass="lol-subtitle"/>
+                <Label text="Entrez le code à 6 chiffres affiché dans votre application d'authentification (Google Authenticator, Microsoft Authenticator, etc.)."
+                       wrapText="true" styleClass="lol-text-small"/>
+                <TextField fx:id="loginTotpCode" promptText="000000" styleClass="lol-input" prefWidth="310"/>
+                <Button text="VÉRIFIER LE CODE" onAction="#handleTotpVerify" styleClass="lol-button-primary"
+                        prefWidth="310" prefHeight="46"/>
+                <Button text="Retour" onAction="#handleTotpCancel" styleClass="lol-link-button"/>
+            </VBox>
+
+            <Label fx:id="loginError" text="" styleClass="lol-error"/>
+
+            <HBox spacing="5" alignment="CENTER">
+                <Text text="Don't have an account?" styleClass="lol-text-small"/>
+                <Button text="Sign Up" onAction="#showSignUp" styleClass="lol-link-button"/>
+            </HBox>
+
+            <Button text="Mot de passe oublié ?" onAction="#handleForgotPassword" styleClass="lol-link-button"/>
+        </VBox>
+
+    </StackPane>
+
+</AnchorPane>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.controller.DepotController"
+            fitToWidth="true" fitToHeight="true" pannable="true"
+            hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+        <StackPane styleClass="admin-root">
+            <VBox fx:id="listView" spacing="0" maxWidth="Infinity" maxHeight="Infinity">
+                <BorderPane VBox.vgrow="ALWAYS">
+                    <top>
+                        <VBox spacing="14" styleClass="admin-header-wrap">
+                            <HBox alignment="CENTER_LEFT" spacing="20" styleClass="admin-header">
+                                <VBox spacing="2">
+                                    <Label text="Dépôts" styleClass="admin-title"/>
+                                    <Label text="Entrepôts, capacités et localisation" styleClass="admin-subtitle"/>
+                                </VBox>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button text="Ajouter un dépôt" onAction="#openAddDepotModal" styleClass="btn-admin-primary"/>
+                            </HBox>
+
+                            <HBox spacing="12" styleClass="stats-row">
+                                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                    <Label text="Nombre de dépôts" styleClass="stat-label"/>
+                                    <Label fx:id="totalDepotsLabel" text="0" styleClass="stat-value"/>
+                                </VBox>
+                                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                    <Label text="Capacité totale" styleClass="stat-label"/>
+                                    <Label fx:id="capaciteTotaleLabel" text="0" styleClass="stat-value"/>
+                                </VBox>
+                                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                    <Label text="Dépôt le plus chargé" styleClass="stat-label"/>
+                                    <Label fx:id="depotPlusChargeLabel" text="N/A" styleClass="stat-value warning"/>
+                                </VBox>
+                            </HBox>
+
+                            <HBox spacing="10" styleClass="filters-row">
+                                <TextField fx:id="searchField" promptText="Recherche nom, ville, responsable..." HBox.hgrow="ALWAYS" styleClass="filter-field"/>
+                                <ComboBox fx:id="villeFilter" promptText="Ville" styleClass="filter-field"/>
+                            </HBox>
+                        </VBox>
+                    </top>
+
+                    <center>
+                        <VBox styleClass="table-card" BorderPane.alignment="CENTER">
+                            <TableView fx:id="depotTable" styleClass="admin-table" minHeight="400" VBox.vgrow="ALWAYS">
+                                <columns>
+                                    <TableColumn fx:id="colNom" text="Nom" minWidth="120"/>
+                                    <TableColumn fx:id="colAdresse" text="Adresse" minWidth="180"/>
+                                    <TableColumn fx:id="colVille" text="Ville" minWidth="100"/>
+                                    <TableColumn fx:id="colLocation" text="Localisation" minWidth="150"/>
+                                    <TableColumn fx:id="colCapacite" text="Capacité" minWidth="90"/>
+                                    <TableColumn fx:id="colResponsable" text="Responsable" minWidth="120"/>
+                                    <TableColumn fx:id="colTelephone" text="Téléphone" minWidth="120"/>
+                                    <TableColumn fx:id="colActions" text="Actions" minWidth="110"/>
+                                </columns>
+                            </TableView>
+                        </VBox>
+                    </center>
+
+                    <bottom>
+                        <HBox alignment="CENTER" styleClass="admin-actions-row">
+                            <Pagination fx:id="pagination"/>
+                        </HBox>
+                    </bottom>
+                </BorderPane>
+            </VBox>
+        </StackPane>
+    </content>
+</ScrollPane>

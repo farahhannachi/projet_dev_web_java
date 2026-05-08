@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.controller.StockController"
+            fitToWidth="true" fitToHeight="true" pannable="true"
+            hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+        <StackPane styleClass="admin-root">
+            <VBox fx:id="listView" spacing="0" maxWidth="Infinity" maxHeight="Infinity">
+                <BorderPane VBox.vgrow="ALWAYS">
+                    <top>
+                        <VBox spacing="14" styleClass="admin-header-wrap">
+                            <HBox alignment="CENTER_LEFT" spacing="20" styleClass="admin-header">
+                                <VBox spacing="2">
+                                    <Label text="Stocks" styleClass="admin-title"/>
+                                    <Label text="Niveaux par dépôt et seuils d'alerte" styleClass="admin-subtitle"/>
+                                </VBox>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button text="Ajouter un stock" onAction="#openAddStockModal" styleClass="btn-admin-primary"/>
+                            </HBox>
+
+                            <HBox spacing="12" styleClass="stats-row">
+                                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                    <Label text="Quantité totale" styleClass="stat-label"/>
+                                    <Label fx:id="totalQuantiteLabel" text="0" styleClass="stat-value"/>
+                                </VBox>
+                                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                    <Label text="Stock faible" styleClass="stat-label"/>
+                                    <Label fx:id="stockFaibleLabel" text="0" styleClass="stat-value warning"/>
+                                </VBox>
+                                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                    <Label text="Stock critique" styleClass="stat-label"/>
+                                    <Label fx:id="stockCritiqueLabel" text="0" styleClass="stat-value danger"/>
+                                </VBox>
+                            </HBox>
+
+                            <HBox spacing="10" styleClass="filters-row">
+                                <TextField fx:id="searchField" promptText="Recherche produit, dépôt..." HBox.hgrow="ALWAYS" styleClass="filter-field"/>
+                                <ComboBox fx:id="depotFilter" promptText="Dépôt" styleClass="filter-field"/>
+                            </HBox>
+                        </VBox>
+                    </top>
+
+                    <center>
+                        <VBox styleClass="table-card" BorderPane.alignment="CENTER">
+                            <TableView fx:id="stockTable" styleClass="admin-table" minHeight="400" VBox.vgrow="ALWAYS">
+                                <columns>
+                                    <TableColumn fx:id="colProduit" text="Produit" minWidth="150"/>
+                                    <TableColumn fx:id="colQuantite" text="Quantité" minWidth="100"/>
+                                    <TableColumn fx:id="colSeuilMinimum" text="Seuil min" minWidth="100"/>
+                                    <TableColumn fx:id="colDepot" text="Dépôt" minWidth="130"/>
+                                    <TableColumn fx:id="colActions" text="Actions" minWidth="120"/>
+                                </columns>
+                            </TableView>
+                        </VBox>
+                    </center>
+
+                    <bottom>
+                        <HBox alignment="CENTER" styleClass="admin-actions-row">
+                            <Pagination fx:id="pagination"/>
+                        </HBox>
+                    </bottom>
+                </BorderPane>
+            </VBox>
+        </StackPane>
+    </content>
+</ScrollPane>

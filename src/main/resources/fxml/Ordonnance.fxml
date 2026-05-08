@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.example.controller.OrdonnanceController"
+      style="-fx-background-color: #f1f5f9;">
+
+    <VBox spacing="0" maxWidth="Infinity" maxHeight="Infinity">
+        <Region prefHeight="96" minHeight="96" maxHeight="96"/>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="page-body-scroll" VBox.vgrow="ALWAYS">
+            <VBox spacing="0">
+
+        <!-- HERO SECTION -->
+        <VBox styleClass="mesord-hero" alignment="CENTER" spacing="15">
+            <Label text="&#128274; 100% S&#233;curis&#233; &amp; Confidentiel" styleClass="mesord-badge"/>
+            <HBox alignment="CENTER" spacing="8">
+                <Label text="Cr&#233;er une" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                <Label text="Ordonnance" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: white;"/>
+            </HBox>
+            <Label text="Compl&#233;tez votre ordonnance pour finaliser votre demande de traitement. Un pharmacien validera votre demande rapidement."
+                   style="-fx-font-size: 14; -fx-text-fill: rgba(255,255,255,0.85); -fx-wrap-text: true; -fx-text-alignment: center;" maxWidth="550"/>
+        </VBox>
+
+        <!-- PAGE CONTENT (white background) -->
+        <VBox style="-fx-background-color: white;" VBox.vgrow="ALWAYS">
+        <HBox spacing="30" alignment="TOP_CENTER">
+            <VBox.margin>
+                <Insets top="30" left="60" right="60" bottom="40"/>
+            </VBox.margin>
+
+            <!-- LEFT: Ordonnance Form -->
+            <VBox spacing="0" HBox.hgrow="ALWAYS" maxWidth="680">
+
+                <!-- Header banner -->
+                <VBox styleClass="ord-header-banner" alignment="CENTER" spacing="5">
+                    <padding>
+                        <Insets top="25" left="30" right="30" bottom="25"/>
+                    </padding>
+                    <Label text="NUM&#201;RO D'ORDONNANCE" style="-fx-font-size: 12; -fx-text-fill: rgba(255,255,255,0.8); -fx-font-weight: bold;"/>
+                    <Label fx:id="numeroBannerLabel" text="" style="-fx-font-size: 22; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-family: 'Courier New';"/>
+                </VBox>
+
+                <!-- Form card -->
+                <VBox styleClass="card" spacing="18">
+                    <padding>
+                        <Insets top="30" left="30" right="30" bottom="30"/>
+                    </padding>
+
+                    <!-- Numero ordonnance -->
+                    <Label text="Num&#233;ro d'ordonnance" styleClass="traitement-field-label"/>
+                    <TextField fx:id="numeroField" editable="false" styleClass="traitement-input"/>
+
+                    <!-- Date ordonnance -->
+                    <Label text="Date de l'ordonnance" styleClass="traitement-field-label"/>
+                    <DatePicker fx:id="dateOrdonnanceField" maxWidth="Infinity" styleClass="traitement-input"/>
+
+                    <!-- Date expiration -->
+                    <Label text="Date d'expiration" styleClass="traitement-field-label"/>
+                    <DatePicker fx:id="dateExpirationField" maxWidth="Infinity" styleClass="traitement-input"/>
+
+                    <!-- Message pharmacien -->
+                    <Label text="Message pour le pharmacien (Optionnel)" styleClass="traitement-field-label"/>
+                    <TextArea fx:id="noteMedicalField" promptText="Pr&#233;cisez un dosage, une allergie..." prefRowCount="4" wrapText="true" styleClass="traitement-input"/>
+
+                    <!-- Traitement associe section -->
+                    <Separator/>
+                    <Label text="Traitement associ&#233;" styleClass="ord-section-title"/>
+
+                    <VBox fx:id="traitementInfoBox" styleClass="ord-traitement-card" spacing="6">
+                        <padding>
+                            <Insets top="15" left="20" right="20" bottom="15"/>
+                        </padding>
+                        <Label fx:id="traitProduitLabel" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #333;"/>
+                        <Label fx:id="traitStatusLabel" style="-fx-font-size: 13; -fx-text-fill: #E74C3C; -fx-font-weight: bold;"/>
+                    </VBox>
+
+                    <!-- Submit -->
+                    <Button fx:id="submitButton" text="Envoyer mon ordonnance" styleClass="ord-btn-submit" onAction="#handleSubmitOrdonnance" maxWidth="Infinity"/>
+
+                    <!-- Signature électronique patient -->
+                    <Separator/>
+                    <Label text="Signature &#201;lectronique" styleClass="ord-section-title"/>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="&#9989;" style="-fx-font-size: 14;"/>
+                        <Label text="Signez &#233;lectroniquement votre ordonnance pour la valider officiellement."
+                               style="-fx-font-size: 12; -fx-text-fill: #555; -fx-wrap-text: true;" maxWidth="380" wrapText="true"/>
+                    </HBox>
+                    <Button text="&#9997;  Signer mon ordonnance" onAction="#handleSignerPatient"
+                            styleClass="ord-btn-sign" maxWidth="Infinity"/>
+
+                    <Label text="En envoyant ce formulaire, j'accepte que mes donn&#233;es soient trait&#233;es par CuraVita dans le cadre strict de la d&#233;livrance de m&#233;dicaments."
+                           style="-fx-font-size: 10; -fx-text-fill: #999; -fx-wrap-text: true; -fx-text-alignment: center;"/>
+
+                    <Label fx:id="errorLabel" styleClass="lol-error"/>
+                </VBox>
+            </VBox>
+
+            <!-- RIGHT: Info Panel -->
+            <VBox spacing="20" minWidth="280" maxWidth="320">
+
+                <!-- Verifie par un Pharmacien -->
+                <VBox styleClass="ord-info-card-yellow" spacing="8" alignment="CENTER">
+                    <padding>
+                        <Insets top="20" left="20" right="20" bottom="20"/>
+                    </padding>
+                    <Label text="&#128104;&#8205;&#9877;&#65039;" style="-fx-font-size: 36;"/>
+                    <Label text="V&#233;rifi&#233; par un Pharmacien" style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #856404;"/>
+                    <Label text="Chaque ordonnance est contr&#244;l&#233;e par notre &#233;quipe dipl&#244;m&#233;e avant d&#233;livrance." style="-fx-font-size: 11; -fx-text-fill: #856404; -fx-wrap-text: true; -fx-text-alignment: center;"/>
+                </VBox>
+
+                <!-- Reponse Rapide -->
+                <VBox styleClass="card" spacing="8" alignment="CENTER">
+                    <padding>
+                        <Insets top="20" left="20" right="20" bottom="20"/>
+                    </padding>
+                    <Label text="&#9889;" style="-fx-font-size: 36;"/>
+                    <Label text="R&#233;ponse Rapide" style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #333;"/>
+                    <Label text="Validation sous 24h ouvr&#233;es maximum." style="-fx-font-size: 12; -fx-text-fill: #888;"/>
+                </VBox>
+
+                <!-- Besoin d'aide -->
+                <VBox styleClass="ord-info-card-green" spacing="8" alignment="CENTER">
+                    <padding>
+                        <Insets top="20" left="20" right="20" bottom="20"/>
+                    </padding>
+                    <Label text="Besoin d'aide ?" style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #E74C3C;"/>
+                    <Label text="Notre &#233;quipe r&#233;pond." style="-fx-font-size: 12; -fx-text-fill: #555;"/>
+                    <Button text="&#128222; 01 23 45 67 89" styleClass="ord-btn-phone"/>
+                </VBox>
+            </VBox>
+
+        </HBox>
+        </VBox>
+            </VBox>
+        </ScrollPane>
+    </VBox>
+
+    <VBox alignment="TOP_CENTER" pickOnBounds="false" maxWidth="Infinity" StackPane.alignment="TOP_CENTER" styleClass="front-navbar-strip front-navbar-shell">
+        <VBox styleClass="navbar-pill navbar-pill-double front-navbar-pill-inner" maxWidth="Infinity">
+            <HBox styleClass="navbar-nav-row-top" alignment="CENTER_LEFT">
+                <Label text="CuraVita" styleClass="logo-text"/>
+                <Region HBox.hgrow="SOMETIMES"/>
+                <HBox styleClass="navbar-right-section" alignment="CENTER" spacing="15">
+                    <Button text="&#128269;" styleClass="navbar-search-btn" onAction="#handleNavbarSearch"/>
+                    <StackPane styleClass="navbar-notif-wrap">
+                        <Button text="&#128276;" styleClass="navbar-notif-btn" onAction="#goToMessagesPage"/>
+                        <Label fx:id="messagesBadge" text="0" styleClass="message-badge-navbar" StackPane.alignment="TOP_RIGHT"/>
+                    </StackPane>
+                    <StackPane>
+                        <HBox fx:id="profileContainer" styleClass="navbar-profile-container"
+                              alignment="CENTER" spacing="10" onMouseClicked="#toggleProfileDropdown">
+                            <StackPane styleClass="navbar-avatar-container">
+                                <Circle fx:id="navbarAvatarCircle" radius="18" styleClass="navbar-avatar-circle"/>
+                                <Label fx:id="navbarAvatarLabel" text="&#128100;" styleClass="navbar-avatar-emoji" alignment="CENTER"/>
+                                <Circle radius="4" styleClass="online-dot" StackPane.alignment="BOTTOM_RIGHT"/>
+                            </StackPane>
+                            <Label fx:id="navbarUsername" text="Utilisateur" styleClass="navbar-username"/>
+                            <Label text="&#9660;" styleClass="navbar-dropdown-arrow"/>
+                        </HBox>
+                        <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false" StackPane.alignment="TOP_RIGHT">
+                            <VBox.margin><Insets top="52"/></VBox.margin>
+                            <Button text="Mon Profil" styleClass="dropdown-item" onAction="#goToProfil"/>
+                            <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                            <Button text="D&#233;connexion" styleClass="dropdown-item" onAction="#logout"/>
+                        </VBox>
+                    </StackPane>
+                </HBox>
+            </HBox>
+            <HBox styleClass="navbar-nav-row-buttons" alignment="CENTER">
+                <HBox styleClass="menu-container menu-container-double" alignment="CENTER">
+                    <Button text="Accueil" styleClass="menu-item" onAction="#goToAccueil"/>
+                    <Button text="Produits" styleClass="menu-item" onAction="#handleNavProduits"/>
+                    <Button text="Services" styleClass="menu-item" onAction="#handleNavServices"/>
+                    <Button text="Panier" styleClass="menu-item" onAction="#handleNavPanier"/>
+                    <Button text="Adresses" styleClass="menu-item" onAction="#handleNavAdresses"/>
+                    <Button text="Commandes" styleClass="menu-item" onAction="#handleNavCommandes"/>
+                </HBox>
+            </HBox>
+            <HBox styleClass="navbar-nav-row-buttons" alignment="CENTER">
+                <HBox styleClass="menu-container menu-container-double" alignment="CENTER">
+                    <MenuButton mnemonicParsing="false" text="Ordonnance" popupSide="BOTTOM"
+                                styleClass="nav-ordonnance-menubutton nav-ordonnance-active">
+                        <items>
+                            <MenuItem text="Cr&#233;er une ordonnance" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-create" onAction="#goToCreerOrdonnance"/>
+                            <SeparatorMenuItem styleClass="nav-ordonnance-sep"/>
+                            <MenuItem text="Mes ordonnances" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-list" onAction="#goToMesOrdonnances"/>
+                        </items>
+                    </MenuButton>
+                    <Button text="Traitement" styleClass="menu-item" onAction="#goToTraitement"/>
+                    <Button text="Guide Sant&#233;" styleClass="menu-item" onAction="#handleNavGuide"/>
+                    <Button text="Contact" styleClass="menu-item" onAction="#handleNavContact"/>
+                    <Button text="&#192; propos" styleClass="menu-item" onAction="#handleNavAbout"/>
+                </HBox>
+            </HBox>
+        </VBox>
+    </VBox>
+</StackPane>

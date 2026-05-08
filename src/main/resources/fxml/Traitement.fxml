@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.example.controller.TraitementController"
+      style="-fx-background-color: #f1f5f9;">
+
+    <!-- Corps sous la navbar (réserve l'espace du bandeau pour éviter que le ScrollPane masque le menu profil) -->
+    <VBox spacing="0" maxWidth="Infinity" maxHeight="Infinity">
+        <Region prefHeight="96" minHeight="96" maxHeight="96"/>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="page-body-scroll" VBox.vgrow="ALWAYS">
+            <VBox spacing="0">
+
+        <!-- HERO SECTION -->
+        <VBox styleClass="mesord-hero" alignment="CENTER" spacing="15">
+            <Label text="&#128138; Demande de Traitement" styleClass="mesord-badge"/>
+            <HBox alignment="CENTER" spacing="8">
+                <Label text="Demande de" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                <Label text="Traitement" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: white;"/>
+            </HBox>
+            <Label text="Remplissez le formulaire ci-dessous pour demander un traitement personnalis&#233;"
+                   style="-fx-font-size: 14; -fx-text-fill: rgba(255,255,255,0.85); -fx-wrap-text: true; -fx-text-alignment: center;" maxWidth="500"/>
+        </VBox>
+
+        <!-- PAGE CONTENT (white background) -->
+        <VBox style="-fx-background-color: white;" VBox.vgrow="ALWAYS">
+        <HBox spacing="30" alignment="TOP_CENTER">
+            <VBox.margin>
+                <Insets top="30" left="60" right="60" bottom="40"/>
+            </VBox.margin>
+
+            <!-- LEFT: Form -->
+            <VBox styleClass="card" spacing="18" HBox.hgrow="ALWAYS" maxWidth="650">
+                <padding>
+                    <Insets top="30" left="30" right="30" bottom="30"/>
+                </padding>
+
+                <Label text="Demande de traitement" style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: #1f6f5c;"/>
+
+                <!-- Nom &amp; Prenom -->
+                <Label text="Nom &amp; Pr&#233;nom" styleClass="traitement-field-label"/>
+                <TextField fx:id="nomPrenomField" promptText="Nom et pr&#233;nom" styleClass="traitement-input" editable="false"/>
+
+                <!-- Email -->
+                <Label text="Email" styleClass="traitement-field-label"/>
+                <TextField fx:id="emailField" promptText="Email" styleClass="traitement-input" editable="false"/>
+
+                <!-- Date de naissance -->
+                <Label text="Date de naissance" styleClass="traitement-field-label"/>
+                <DatePicker fx:id="dateNaissanceField" promptText="jj/mm/aaaa" maxWidth="Infinity" styleClass="traitement-input"/>
+                <Label text="Cette information est n&#233;cessaire pour votre dossier m&#233;dical" style="-fx-font-size: 11; -fx-text-fill: #888;"/>
+
+                <!-- Antecedents medicaux -->
+                <Label text="Ant&#233;c&#233;dents m&#233;dicaux" styleClass="traitement-field-label"/>
+                <TextArea fx:id="antecedentsField" promptText="D&#233;crivez vos ant&#233;c&#233;dents m&#233;dicaux (allergies, maladies chroniques, traitements en cours...)" prefRowCount="3" wrapText="true" styleClass="traitement-input"/>
+                <Label text="Minimum 5 caract&#232;res, maximum 1000 caract&#232;res." style="-fx-font-size: 11; -fx-text-fill: #888;"/>
+
+                <!-- Symptomes -->
+                <Label text="Vos sympt&#244;mes" styleClass="traitement-field-label"/>
+                <TextArea fx:id="symptomesField" promptText="Exemple: J'ai mal &#224; la t&#234;te depuis ce matin, avec de la fi&#232;vre..." prefRowCount="4" wrapText="true" styleClass="traitement-input"/>
+                <Label text="D&#233;crivez vos sympt&#244;mes en d&#233;tail." style="-fx-font-size: 11; -fx-text-fill: #888;"/>
+
+                <!-- Choisir un ou plusieurs produits -->
+                <Label text="Choisir un ou plusieurs traitements" styleClass="traitement-field-label"/>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <ComboBox fx:id="produitCombo" promptText="-- S&#233;lectionnez un produit --" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="traitement-input"/>
+                    <Button fx:id="addProduitBtn" text="+" styleClass="traitement-btn-add" onAction="#addProduit"/>
+                </HBox>
+                <Button text="&#129302; Recommandation IA" styleClass="traitement-btn-ia" onAction="#handleRecommandationIA" maxWidth="Infinity"/>
+                <!-- Panneau OpenFDA : affiché automatiquement lors du choix d'un produit -->
+                <VBox fx:id="fdaInfoBox" spacing="8" visible="false" managed="false"
+                      style="-fx-background-color: #f0f8ff; -fx-background-radius: 10; -fx-border-color: #3498db; -fx-border-radius: 10; -fx-border-width: 1; -fx-padding: 12;">
+                    <Label fx:id="fdaTitleLabel" style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #2980b9;"/>
+                    <Label text="&#9888; Effets secondaires :" style="-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #e67e22;"/>
+                    <Label fx:id="fdaEffetsLabel" wrapText="true" style="-fx-font-size: 11; -fx-text-fill: #555;" maxWidth="550"/>
+                    <Label text="&#128683; Contre-indications :" style="-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #e74c3c;"/>
+                    <Label fx:id="fdaContraLabel" wrapText="true" style="-fx-font-size: 11; -fx-text-fill: #555;" maxWidth="550"/>
+                    <Label text="&#128257; Interactions :" style="-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #8e44ad;"/>
+                    <Label fx:id="fdaInterLabel" wrapText="true" style="-fx-font-size: 11; -fx-text-fill: #555;" maxWidth="550"/>
+                </VBox>
+                <VBox fx:id="selectedProduitsBox" spacing="5">
+                    <VBox.margin><Insets top="5"/></VBox.margin>
+                </VBox>
+
+                <!-- Conditions -->
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <CheckBox fx:id="conditionsCheck"/>
+                    <Label text="J'accepte les conditions g&#233;n&#233;rales et la politique de confidentialit&#233;" style="-fx-font-size: 12; -fx-text-fill: #E74C3C;"/>
+                </HBox>
+
+                <!-- Buttons -->
+                <HBox spacing="15" alignment="CENTER">
+                    <padding>
+                        <Insets top="10"/>
+                    </padding>
+                    <Button fx:id="submitButton" text="Envoyer la demande" styleClass="traitement-btn-submit" onAction="#handleSubmit"/>
+                    <Button text="Annuler" styleClass="traitement-btn-cancel" onAction="#handleCancel"/>
+                </HBox>
+
+                <!-- Error label -->
+                <Label fx:id="errorLabel" styleClass="lol-error"/>
+            </VBox>
+
+            <!-- RIGHT: Info Panel -->
+            <VBox spacing="20" minWidth="280" maxWidth="320">
+
+                <!-- Validation Pharmaceutique Card -->
+                <VBox styleClass="card" spacing="12" alignment="CENTER">
+                    <padding>
+                        <Insets top="25" left="20" right="20" bottom="25"/>
+                    </padding>
+                    <Label text="&#128154;" style="-fx-font-size: 40;"/>
+                    <Label text="Validation Pharmaceutique" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1f6f5c;"/>
+                    <Label text="Votre demande sera examin&#233;e par un pharmacien qualifi&#233;" style="-fx-font-size: 12; -fx-text-fill: #666; -fx-wrap-text: true; -fx-text-alignment: center;"/>
+
+                    <VBox spacing="15">
+                        <padding>
+                            <Insets top="10"/>
+                        </padding>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="&#9201;" style="-fx-font-size: 18;"/>
+                            <VBox>
+                                <Label text="R&#233;ponse rapide" style="-fx-font-size: 13; -fx-font-weight: bold;"/>
+                                <Label text="Traitement de votre demande sous 24h ouvr&#233;es" style="-fx-font-size: 11; -fx-text-fill: #888; -fx-wrap-text: true;"/>
+                            </VBox>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="&#128274;" style="-fx-font-size: 18;"/>
+                            <VBox>
+                                <Label text="Confidentialit&#233;" style="-fx-font-size: 13; -fx-font-weight: bold;"/>
+                                <Label text="Vos donn&#233;es sont prot&#233;g&#233;es et s&#233;curis&#233;es" style="-fx-font-size: 11; -fx-text-fill: #888; -fx-wrap-text: true;"/>
+                            </VBox>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="&#128187;" style="-fx-font-size: 18;"/>
+                            <VBox>
+                                <Label text="Suivi en ligne" style="-fx-font-size: 13; -fx-font-weight: bold;"/>
+                                <Label text="Consultez l'&#233;tat de votre demande &#224; tout moment" style="-fx-font-size: 11; -fx-text-fill: #888; -fx-wrap-text: true;"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </VBox>
+
+                <!-- Informations importantes Card -->
+                <VBox styleClass="card" spacing="8">
+                    <padding>
+                        <Insets top="20" left="20" right="20" bottom="20"/>
+                    </padding>
+                    <Label text="Informations importantes" style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #E74C3C;"/>
+                    <Label text="&#8226; Remplissez tous les champs avec pr&#233;cision" style="-fx-font-size: 12; -fx-text-fill: #555;"/>
+                    <Label text="&#8226; D&#233;crivez vos sympt&#244;mes en d&#233;tail" style="-fx-font-size: 12; -fx-text-fill: #555;"/>
+                    <Label text="&#8226; Mentionnez toutes vos allergies" style="-fx-font-size: 12; -fx-text-fill: #555;"/>
+                    <Label text="&#8226; En cas d'urgence, contactez le 190" style="-fx-font-size: 12; -fx-text-fill: #555;"/>
+                </VBox>
+            </VBox>
+
+        </HBox>
+        </VBox>
+            </VBox>
+        </ScrollPane>
+    </VBox>
+
+    <!-- Navbar + menu profil au-dessus du contenu (z-order) -->
+    <VBox alignment="TOP_CENTER" pickOnBounds="false" maxWidth="Infinity" StackPane.alignment="TOP_CENTER" styleClass="front-navbar-strip front-navbar-shell">
+        <VBox styleClass="navbar-pill navbar-pill-double front-navbar-pill-inner" maxWidth="Infinity">
+            <HBox styleClass="navbar-nav-row-top" alignment="CENTER_LEFT">
+                <Label text="CuraVita" styleClass="logo-text"/>
+                <Region HBox.hgrow="SOMETIMES"/>
+                <HBox styleClass="navbar-right-section" alignment="CENTER" spacing="15">
+                    <Button text="&#128269;" styleClass="navbar-search-btn" onAction="#handleNavbarSearch"/>
+                    <StackPane styleClass="navbar-notif-wrap">
+                        <Button text="&#128276;" styleClass="navbar-notif-btn" onAction="#goToMessagesPage"/>
+                        <Label fx:id="messagesBadge" text="0" styleClass="message-badge-navbar" StackPane.alignment="TOP_RIGHT"/>
+                    </StackPane>
+                    <StackPane>
+                        <HBox fx:id="profileContainer" styleClass="navbar-profile-container"
+                              alignment="CENTER" spacing="10" onMouseClicked="#toggleProfileDropdown">
+                            <StackPane styleClass="navbar-avatar-container">
+                                <Circle fx:id="navbarAvatarCircle" radius="18" styleClass="navbar-avatar-circle"/>
+                                <Label fx:id="navbarAvatarLabel" text="&#128100;" styleClass="navbar-avatar-emoji" alignment="CENTER"/>
+                                <Circle radius="4" styleClass="online-dot" StackPane.alignment="BOTTOM_RIGHT"/>
+                            </StackPane>
+                            <Label fx:id="navbarUsername" text="Utilisateur" styleClass="navbar-username"/>
+                            <Label text="&#9660;" styleClass="navbar-dropdown-arrow"/>
+                        </HBox>
+                        <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false" StackPane.alignment="TOP_RIGHT">
+                            <VBox.margin><Insets top="52"/></VBox.margin>
+                            <Button text="Mon Profil" styleClass="dropdown-item" onAction="#goToProfil"/>
+                            <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                            <Button text="D&#233;connexion" styleClass="dropdown-item" onAction="#logout"/>
+                        </VBox>
+                    </StackPane>
+                </HBox>
+            </HBox>
+            <HBox styleClass="navbar-nav-row-buttons" alignment="CENTER">
+                <HBox styleClass="menu-container menu-container-double" alignment="CENTER">
+                    <Button text="Accueil" styleClass="menu-item" onAction="#goToAccueil"/>
+                    <Button text="Produits" styleClass="menu-item" onAction="#handleNavProduits"/>
+                    <Button text="Services" styleClass="menu-item" onAction="#handleNavServices"/>
+                    <Button text="Panier" styleClass="menu-item" onAction="#handleNavPanier"/>
+                    <Button text="Adresses" styleClass="menu-item" onAction="#handleNavAdresses"/>
+                    <Button text="Commandes" styleClass="menu-item" onAction="#handleNavCommandes"/>
+                </HBox>
+            </HBox>
+            <HBox styleClass="navbar-nav-row-buttons" alignment="CENTER">
+                <HBox styleClass="menu-container menu-container-double" alignment="CENTER">
+                    <MenuButton mnemonicParsing="false" text="Ordonnance" popupSide="BOTTOM" styleClass="nav-ordonnance-menubutton">
+                        <items>
+                            <MenuItem text="Cr&#233;er une ordonnance" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-create" onAction="#goToCreerOrdonnance"/>
+                            <SeparatorMenuItem styleClass="nav-ordonnance-sep"/>
+                            <MenuItem text="Mes ordonnances" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-list" onAction="#goToMesOrdonnances"/>
+                        </items>
+                    </MenuButton>
+                    <Button text="Traitement" styleClass="menu-item menu-item-active" onAction="#goToTraitement"/>
+                    <Button text="Guide Sant&#233;" styleClass="menu-item" onAction="#handleNavGuide"/>
+                    <Button text="Contact" styleClass="menu-item" onAction="#handleNavContact"/>
+                    <Button text="&#192; propos" styleClass="menu-item" onAction="#handleNavAbout"/>
+                </HBox>
+            </HBox>
+        </VBox>
+    </VBox>
+</StackPane>

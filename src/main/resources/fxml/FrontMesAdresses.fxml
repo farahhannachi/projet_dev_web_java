@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="org.example.controller.FrontMesAdressesController"
+        fitToWidth="true" fitToHeight="true" pannable="true"
+        hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" styleClass="page-scroll">
+    <content>
+        <BorderPane styleClass="admin-root front-shop-page">
+            <top>
+                <VBox styleClass="admin-header-wrap" spacing="12">
+                    <fx:include fx:id="shopNav" source="FrontShopNavBar.fxml"/>
+                </VBox>
+            </top>
+
+            <center>
+                <VBox spacing="12" styleClass="addresses-wrap">
+                    <HBox styleClass="addresses-head" alignment="CENTER_LEFT">
+                        <VBox spacing="4">
+                            <Label text="Mes adresses de livraison" styleClass="addresses-title"/>
+                            <Label text="Gere tes adresses pour accelerer le passage de commande." styleClass="addresses-subtitle"/>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="Nouvelle Adresse" styleClass="btn-admin-primary" onAction="#openNewAddressForm"/>
+                    </HBox>
+
+                    <VBox styleClass="addresses-list-shell" VBox.vgrow="ALWAYS">
+                        <VBox fx:id="addressesContainer" spacing="10" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </VBox>
+            </center>
+            <bottom>
+                <VBox styleClass="front-footer">
+                    <HBox spacing="30" styleClass="front-footer-top">
+                        <VBox spacing="10" HBox.hgrow="ALWAYS">
+                            <Label text="Votre sante, notre priorite. Pharmacie en ligne agreee et securisee." styleClass="front-footer-text" wrapText="true"/>
+                            <Label text="123 Avenue de la Sante, 75001 Paris" styleClass="front-footer-text"/>
+                            <Label text="01 23 45 67 89" styleClass="front-footer-text"/>
+                        </VBox>
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Navigation" styleClass="front-footer-title"/>
+                            <Label text="Accueil" styleClass="front-footer-link"/>
+                            <Label text="Nos Produits" styleClass="front-footer-link"/>
+                            <Label text="Conseils Sante" styleClass="front-footer-link"/>
+                            <Label text="Contact" styleClass="front-footer-link"/>
+                        </VBox>
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Services" styleClass="front-footer-title"/>
+                            <Label text="Envoi d'ordonnance" styleClass="front-footer-link"/>
+                            <Label text="Click &amp; Collect" styleClass="front-footer-link"/>
+                            <Label text="Livraison Express" styleClass="front-footer-link"/>
+                        </VBox>
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Aide" styleClass="front-footer-title"/>
+                            <Label text="FAQ" styleClass="front-footer-link"/>
+                            <Label text="Mon Compte" styleClass="front-footer-link"/>
+                            <Label text="Suivi de commande" styleClass="front-footer-link"/>
+                        </VBox>
+                    </HBox>
+                    <HBox styleClass="front-footer-bottom" alignment="CENTER_LEFT">
+                        <Label text="2026 CuraVita. Tous droits reserves." styleClass="front-footer-copy"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label text="Espace Admin" styleClass="front-footer-link"/>
+                        <Label text="Mentions Legales" styleClass="front-footer-link"/>
+                        <Label text="CGV" styleClass="front-footer-link"/>
+                        <Label text="Confidentialite" styleClass="front-footer-link"/>
+                    </HBox>
+                </VBox>
+            </bottom>
+        </BorderPane>
+    </content>
+</ScrollPane>

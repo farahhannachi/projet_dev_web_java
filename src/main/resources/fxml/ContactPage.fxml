@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.example.controller.ContactPageController" fx:id="rootContainer">
+
+    <VBox styleClass="support-page-root">
+
+        <StackPane VBox.vgrow="ALWAYS" maxWidth="Infinity" maxHeight="Infinity">
+            <VBox spacing="0" maxWidth="Infinity" maxHeight="Infinity">
+                <Region prefHeight="96" minHeight="96" maxHeight="96"/>
+        <!-- Page content (scrollable like the screenshots) -->
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="support-scroll" VBox.vgrow="ALWAYS">
+            <content>
+                <VBox styleClass="support-content" spacing="30">
+                    <VBox.margin>
+                        <Insets top="25" left="70" right="70" bottom="60"/>
+                    </VBox.margin>
+
+                    <!-- Two-column support layout: New ticket + My tickets -->
+                    <HBox spacing="30" alignment="TOP_CENTER" styleClass="support-grid">
+                        <fx:include source="ContactQuestion.fxml" />
+
+                        <VBox styleClass="support-card" prefWidth="520" maxWidth="520">
+                            <HBox alignment="CENTER_LEFT" spacing="12">
+                                <StackPane styleClass="support-icon-bubble">
+                                    <Label text="&#x1F4C4;" styleClass="support-icon" />
+                                </StackPane>
+                                <Label text="Mes Tickets" styleClass="support-card-title" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Label fx:id="myTicketsCountLabel" text="0" styleClass="support-count-badge" />
+                            </HBox>
+
+                            <Separator styleClass="support-divider" />
+
+                            <VBox fx:id="myTicketsList" spacing="12" />
+
+                            <VBox fx:id="myTicketsEmptyState" alignment="CENTER" spacing="10" styleClass="support-empty-state">
+                                <StackPane styleClass="support-empty-icon">
+                                    <Label text="&#x2709;" styleClass="support-empty-icon-text" />
+                                </StackPane>
+                                <Label text="Aucun ticket" styleClass="support-empty-title" />
+                                <Label text="Créez votre premier ticket de support." styleClass="support-empty-subtitle" wrapText="true" />
+                            </VBox>
+                        </VBox>
+                    </HBox>
+
+                    <!-- FAQ / Health question examples section -->
+                    <VBox alignment="CENTER" spacing="12" styleClass="faq-section">
+                        <StackPane styleClass="faq-hero-icon">
+                            <Label text="?" styleClass="faq-hero-icon-text" />
+                        </StackPane>
+
+                        <Label text="FAQ" styleClass="faq-pill" />
+                        <Label text="Questions Fréquentes" styleClass="faq-title" />
+                        <Label text="Trouvez rapidement des réponses à vos questions santé" styleClass="faq-subtitle" />
+
+                        <VBox spacing="12" maxWidth="920.0" fillWidth="true">
+                            <HBox styleClass="faq-card" spacing="14" alignment="CENTER_LEFT">
+                                <StackPane styleClass="faq-icon-bubble"><Label text="&#x1F48A;" style="-fx-font-size: 20;"/></StackPane>
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="Quels sont les effets secondaires possibles ?" styleClass="faq-question" wrapText="true" />
+                                    <Label text="Cela dépend du médicament. Consultez la notice et, en cas de symptôme inhabituel, contactez votre pharmacien." styleClass="faq-answer" wrapText="true" />
+                                </VBox>
+                            </HBox>
+                            <HBox styleClass="faq-card" spacing="14" alignment="CENTER_LEFT">
+                                <StackPane styleClass="faq-icon-bubble"><Label text="&#x23F0;" style="-fx-font-size: 20;"/></StackPane>
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="Quand et comment prendre mon traitement ?" styleClass="faq-question" wrapText="true" />
+                                    <Label text="Respectez la posologie (dose + horaires). Si vous avez oublié une prise, évitez le double dosage et demandez conseil." styleClass="faq-answer" wrapText="true" />
+                                </VBox>
+                            </HBox>
+                            <HBox styleClass="faq-card" spacing="14" alignment="CENTER_LEFT">
+                                <StackPane styleClass="faq-icon-bubble"><Label text="&#x1F500;" style="-fx-font-size: 20;"/></StackPane>
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="Puis-je associer deux médicaments ?" styleClass="faq-question" wrapText="true" />
+                                    <Label text="Certaines associations peuvent être déconseillées. Indiquez-nous les médicaments via un ticket pour vérification." styleClass="faq-answer" wrapText="true" />
+                                </VBox>
+                            </HBox>
+                            <HBox styleClass="faq-card" spacing="14" alignment="CENTER_LEFT">
+                                <StackPane styleClass="faq-icon-bubble"><Label text="&#x1F930;" style="-fx-font-size: 20;"/></StackPane>
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="Grossesse / allaitement : puis-je le prendre ?" styleClass="faq-question" wrapText="true" />
+                                    <Label text="Avant toute prise pendant la grossesse/allaitement, demandez un avis médical. Envoyez la photo de l'ordonnance si besoin." styleClass="faq-answer" wrapText="true" />
+                                </VBox>
+                            </HBox>
+                            <HBox styleClass="faq-card" spacing="14" alignment="CENTER_LEFT">
+                                <StackPane styleClass="faq-icon-bubble"><Label text="&#x1F4CE;" style="-fx-font-size: 20;"/></StackPane>
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="Comment envoyer mon ordonnance ou un document ?" styleClass="faq-question" wrapText="true" />
+                                    <Label text="Utilisez la zone 'Pièce jointe' du ticket. Formats conseillés : PDF, JPG, PNG." styleClass="faq-answer" wrapText="true" />
+                                </VBox>
+                            </HBox>
+                            <HBox styleClass="faq-card" spacing="14" alignment="CENTER_LEFT">
+                                <StackPane styleClass="faq-icon-bubble"><Label text="&#x1F552;" style="-fx-font-size: 20;"/></StackPane>
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="Quel est le délai de réponse du support ?" styleClass="faq-question" wrapText="true" />
+                                    <Label text="La plupart des demandes reçoivent une réponse sous 24-48h ouvrées." styleClass="faq-answer" wrapText="true" />
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+
+                </VBox>
+            </content>
+        </ScrollPane>
+            </VBox>
+
+            <VBox alignment="TOP_CENTER" pickOnBounds="false" maxWidth="Infinity" StackPane.alignment="TOP_CENTER" styleClass="front-navbar-strip front-navbar-shell">
+                <VBox styleClass="navbar-pill navbar-pill-double front-navbar-pill-inner" maxWidth="Infinity">
+                    <HBox styleClass="navbar-nav-row-top" alignment="CENTER_LEFT">
+                        <Label text="CuraVita" styleClass="logo-text"/>
+                        <Region HBox.hgrow="SOMETIMES"/>
+                        <HBox styleClass="navbar-right-section" alignment="CENTER" spacing="15">
+                            <Button text="&#128269;" styleClass="navbar-search-btn" onAction="#handleSearch"/>
+                            <StackPane styleClass="navbar-notif-wrap">
+                                <Button fx:id="messagesButton" text="&#128276;" styleClass="navbar-notif-btn" onAction="#handleMessages"/>
+                                <Label fx:id="messagesBadge" text="0" styleClass="message-badge-navbar" StackPane.alignment="TOP_RIGHT"/>
+                            </StackPane>
+                            <StackPane>
+                                <HBox fx:id="profileContainer" styleClass="navbar-profile-container"
+                                      alignment="CENTER" spacing="10" onMouseClicked="#toggleProfileDropdown">
+                                    <StackPane styleClass="navbar-avatar-container">
+                                        <Circle fx:id="navbarAvatarCircle" radius="18" styleClass="navbar-avatar-circle"/>
+                                        <Label fx:id="navbarAvatarLabel" text="&#128100;" styleClass="navbar-avatar-emoji" alignment="CENTER"/>
+                                        <Circle radius="4" styleClass="online-dot" StackPane.alignment="BOTTOM_RIGHT"/>
+                                    </StackPane>
+                                    <Label fx:id="navbarUsername" text="Utilisateur" styleClass="navbar-username"/>
+                                    <Label text="&#9660;" styleClass="navbar-dropdown-arrow"/>
+                                </HBox>
+                                <VBox fx:id="profileDropdown" styleClass="profile-dropdown" visible="false" managed="false" StackPane.alignment="TOP_RIGHT">
+                                    <VBox.margin><Insets top="52"/></VBox.margin>
+                                    <Button text="Mon Profil" styleClass="dropdown-item" onAction="#goToProfil"/>
+                                    <Button fx:id="dashboardMenuItem" text="Dashboard" styleClass="dropdown-item" onAction="#goToDashboard"/>
+                                    <Button text="D&#233;connexion" styleClass="dropdown-item" onAction="#logout"/>
+                                </VBox>
+                            </StackPane>
+                        </HBox>
+                    </HBox>
+                    <HBox styleClass="navbar-nav-row-buttons" alignment="CENTER">
+                        <HBox styleClass="menu-container menu-container-double" alignment="CENTER">
+                            <Button text="Accueil" styleClass="menu-item" onAction="#goHome"/>
+                            <Button text="Produits" styleClass="menu-item" onAction="#handleNavProduits"/>
+                            <Button text="Services" styleClass="menu-item" onAction="#handleNavServices"/>
+                            <Button text="Panier" styleClass="menu-item" onAction="#handleNavPanier"/>
+                            <Button text="Adresses" styleClass="menu-item" onAction="#handleNavAdresses"/>
+                            <Button text="Commandes" styleClass="menu-item" onAction="#handleNavCommandes"/>
+                        </HBox>
+                    </HBox>
+                    <HBox styleClass="navbar-nav-row-buttons" alignment="CENTER">
+                        <HBox styleClass="menu-container menu-container-double" alignment="CENTER">
+                            <MenuButton mnemonicParsing="false" text="Ordonnance" popupSide="BOTTOM" styleClass="nav-ordonnance-menubutton">
+                                <items>
+                                    <MenuItem text="Cr&#233;er une ordonnance" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-create" onAction="#goToCreerOrdonnance"/>
+                                    <SeparatorMenuItem styleClass="nav-ordonnance-sep"/>
+                                    <MenuItem text="Mes ordonnances" styleClass="nav-ordonnance-menu-item nav-ordonnance-menu-item-list" onAction="#goToMesOrdonnances"/>
+                                </items>
+                            </MenuButton>
+                            <Button text="Traitement" styleClass="menu-item" onAction="#handleNavTraitement"/>
+                            <Button text="Guide Sant&#233;" styleClass="menu-item" onAction="#handleNavGuide"/>
+                            <Button text="Contact" styleClass="menu-item menu-item-active" onAction="#handleNavContact"/>
+                            <Button text="&#192; propos" styleClass="menu-item" onAction="#handleNavAbout"/>
+                        </HBox>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </StackPane>
+
+    </VBox>
+
+    <StackPane fx:id="notificationsOverlay" visible="false" managed="false" styleClass="notification-overlay-dimmer">
+        <VBox fx:id="notificationsPopup" styleClass="notification-popup" StackPane.alignment="CENTER"
+              maxWidth="520" maxHeight="560">
+
+            <HBox alignment="CENTER_LEFT" styleClass="notification-popup-header">
+                <Label text="Notifications" styleClass="notification-popup-title" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="popupUnreadBadge" text="0" styleClass="notification-popup-count" />
+                <Button text="Voir tout" styleClass="notification-close-btn" onAction="#goToMessagesPage" />
+                <Button fx:id="closeNotificationsButton" text="✕" styleClass="notification-close-btn" onAction="#closeNotificationsPopup" />
+            </HBox>
+
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="notification-popup-scroll" prefHeight="450" minHeight="300">
+                <VBox fx:id="notificationsList" spacing="8" styleClass="notification-list" />
+            </ScrollPane>
+
+            <Label fx:id="notificationsEmptyLabel" text="Aucune notification" styleClass="notification-empty" visible="false" managed="false" />
+
+        </VBox>
+    </StackPane>
+
+    <StackPane fx:id="detailOverlayContainer" visible="false" managed="false" styleClass="notification-overlay-dimmer">
+        <VBox fx:id="detailOverlayModal" styleClass="notification-overlay-modal" StackPane.alignment="CENTER">
+            <!-- Contenu dynamique généré en Java -->
+        </VBox>
+    </StackPane>
+
+    <!-- ═══════════════════════════════════════════
+         CHATBOT: Floating Button + Chat Panel
+    ═══════════════════════════════════════════ -->
+
+    <!-- Floating chat button (bottom-right) -->
+    <Button fx:id="chatToggleButton" text="💬" styleClass="chat-fab"
+            onAction="#toggleChatbot"
+            StackPane.alignment="BOTTOM_RIGHT">
+        <StackPane.margin><Insets bottom="30" right="30"/></StackPane.margin>
+    </Button>
+
+    <!-- Chat panel (bottom-right, hidden by default) -->
+    <VBox fx:id="chatPanel" visible="false" managed="false" styleClass="chat-panel"
+          StackPane.alignment="BOTTOM_RIGHT" maxWidth="400" maxHeight="550" prefWidth="380" prefHeight="520">
+        <StackPane.margin><Insets bottom="100" right="30"/></StackPane.margin>
+
+        <!-- Chat header -->
+        <HBox alignment="CENTER_LEFT" spacing="10" styleClass="chat-panel-header">
+            <StackPane styleClass="chat-header-icon">
+                <Label text="🤖" style="-fx-font-size: 18;"/>
+            </StackPane>
+            <VBox spacing="1">
+                <Label text="CuraVita Assistant" styleClass="chat-header-title"/>
+                <Label text="En ligne — IA" styleClass="chat-header-status"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="✕" styleClass="chat-close-btn" onAction="#toggleChatbot"/>
+        </HBox>
+
+        <!-- Messages area -->
+        <ScrollPane fx:id="chatScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                    styleClass="chat-messages-scroll" VBox.vgrow="ALWAYS">
+            <VBox fx:id="chatMessagesContainer" spacing="10" styleClass="chat-messages-container">
+                <padding><Insets top="14" left="14" right="14" bottom="14"/></padding>
+            </VBox>
+        </ScrollPane>
+
+        <!-- Input area -->
+        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="chat-input-bar">
+            <TextField fx:id="chatInputField" promptText="Posez votre question..."
+                       styleClass="chat-input-field" HBox.hgrow="ALWAYS"
+                       onAction="#handleChatSend"/>
+            <Button text="➤" styleClass="chat-send-btn" onAction="#handleChatSend"/>
+        </HBox>
+    </VBox>
+
+</StackPane>
