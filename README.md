@@ -1,25 +1,32 @@
 # Curavita – Online Pharmacy Platform
 
-## Academic Context
-This project was developed as part of the PIDEV – 3rd Year Engineering Program at Esprit School of Engineering (Academic Year 2025–2026).
+---
 
-Developed at Esprit School of Engineering – Tunisia.
+## Academic Context
+
+This project was developed as part of the **PIDEV – 3rd Year Engineering Program** at **Esprit School of Engineering** (Academic Year 2025–2026).
+
+Developed at **Esprit School of Engineering – Tunisia**.
 
 ---
 
 ## Overview
-Curavita is a full-stack web application developed by Team One Health as an online pharmacy platform. It allows users to browse medications, place orders, and manage prescriptions in a secure and user-friendly environment.
 
-The project aims to simplify access to healthcare products and digitalize pharmacy services while ensuring reliability and efficiency.
+Curavita is a desktop application developed by **Team One Health** as an online pharmacy management platform.
+
+The application allows users to manage medications, prescriptions, orders, and customer interactions in a secure and user-friendly environment.
+
+The project aims to simplify healthcare service management and digitalize pharmacy operations while ensuring reliability and efficiency.
 
 ---
 
 ## Features
-- 🛒 Online purchase of medications  
+
+- 🛒 Medication management  
 - 🔍 Search and filter pharmaceutical products  
-- 👤 User account management (signup/login)  
+- 👤 User account management  
 - 📦 Order management and tracking  
-- 💊 Prescription submission and validation  
+- 💊 Prescription management  
 - 🧾 Complaint and feedback system  
 - 🔐 Secure data handling  
 
@@ -28,31 +35,41 @@ The project aims to simplify access to healthcare products and digitalize pharma
 ## Tech Stack
 
 ### Frontend
-- HTML5  
-- CSS3  
-- JavaScript  
-- Bootstrap  
+- JavaFX
+- CSS
 
 ### Backend
-- PHP  
-- Symfony Framework  
-- MySQL  
+- Java
+- JDBC
+- MySQL
+
+### Tools & Build Management
+- Maven
 
 ---
 
-## Architecture (MVC)
+## Architecture & Design Patterns
 
-Curavita follows the MVC (Model-View-Controller) architecture:
+Curavita follows a structured architecture using multiple layers and design patterns.
 
-- **Model**: Manages data and business logic (Symfony Entities & MySQL database)  
-- **View**: Handles the user interface (Twig, HTML, CSS, Bootstrap)  
-- **Controller**: Handles requests and connects Models with Views (Symfony Controllers)  
+### Project Structure
 
-This architecture ensures scalability, maintainability, and a clear separation of concerns.
+- **Model** → Handles entities and business data  
+- **Service** → Contains business logic and database operations  
+- **Utils** → Utility classes and shared functionalities  
+- **Controller** → Handles application logic and user interactions  
+
+### Design Patterns
+
+- **Singleton Pattern** → Used for database connection management and shared services  
+- **MVC Architecture** → Ensures separation between logic, interface, and data handling  
+
+This architecture ensures scalability, maintainability, and clean code organization.
 
 ---
 
 ## Contributors
+
 Project developed by **Team One Health – Class 3A53**
 
 - Emna Ben Aissa  
@@ -66,14 +83,17 @@ Project developed by **Team One Health – Class 3A53**
 ## Getting Started
 
 ### Prerequisites
-- PHP (>= 8.x)  
-- Composer  
-- Symfony CLI  
-- MySQL  
-- Web browser  
+
+- Java JDK 17+
+- JavaFX SDK
+- Maven
+- MySQL
+- IDE (IntelliJ IDEA / NetBeans)
 
 ---
 
 ## Acknowledgments
-- Thanks to our professors at Esprit School of Engineering for their guidance  
-- Inspired by modern e-health and online pharmacy platforms  
+
+Thanks to our professors at **Esprit School of Engineering** for their guidance and support.
+
+Inspired by modern e-health and pharmacy management platforms.
