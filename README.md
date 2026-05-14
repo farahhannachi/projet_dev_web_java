@@ -1,69 +1,99 @@
-# CuraVita - Pharmacy Management System
+# Curavita – Online Pharmacy Platform
 
-JavaFX desktop application for pharmacy management.
+---
 
-- **Java**: 17
-- **JavaFX**: 21.0.1
-- **Architecture**: MVC
+## Academic Context
+
+This project was developed as part of the **PIDEV – 3rd Year Engineering Program** at **Esprit School of Engineering** (Academic Year 2025–2026).
+
+Developed at **Esprit School of Engineering – Tunisia**.
+
+---
+
+## Overview
+
+Curavita is a desktop application developed by **Team One Health** as an online pharmacy management platform.
+
+The application allows users to manage medications, prescriptions, orders, and customer interactions in a secure and user-friendly environment.
+
+The project aims to simplify healthcare service management and digitalize pharmacy operations while ensuring reliability and efficiency.
+
+---
 
 ## Features
 
-- Front Office: Homepage with product search and display
-- Back Office: Dashboard with stats, clients, products, orders management
-- Modern UI with CSS styling
+- 🛒 Medication management  
+- 🔍 Search and filter pharmaceutical products  
+- 👤 User account management  
+- 📦 Order management and tracking  
+- 💊 Prescription management  
+- 🧾 Complaint and feedback system  
+- 🔐 Secure data handling  
 
-## Running the Application
+---
 
-Ensure Java 17+ is installed and JAVA_HOME is set.
+## Tech Stack
 
-```bash
-mvn clean compile
-mvn javafx:run
-```
+### Frontend
+- JavaFX
+- CSS
 
-## Speech-to-Text (Contact Form)
+### Backend
+- Java
+- JDBC
+- MySQL
 
-This project uses Vosk for offline speech-to-text in the Contact form fields.
+### Tools & Build Management
+- Maven
 
-1) Download a French Vosk model, for example:
-- https://alphacephei.com/vosk/models
+---
 
-2) Extract the model to:
-- `models/vosk-model-small-fr-0.22`
+## Architecture & Design Patterns
 
-3) Or set a custom path:
-- `VOSK_MODEL_PATH` environment variable
-- or `-Dvosk.model.path=...` JVM property
+Curavita follows a structured architecture using multiple layers and design patterns.
 
-The mic button appears next to "Objet de la demande" and "Description détaillée".
+### Project Structure
 
-## Groq AI (Auto Priority + Admin Tools)
+- **Model** → Handles entities and business data  
+- **Service** → Contains business logic and database operations  
+- **Utils** → Utility classes and shared functionalities  
+- **Controller** → Handles application logic and user interactions  
 
-Set your Groq API key as an environment variable (do not commit it):
-- `GROQ_API_KEY`
+### Design Patterns
 
-Optional overrides:
-- `GROQ_MODEL` (default: `llama-3.1-8b-instant`)
-- `GROQ_BASE_URL` (default: `https://api.groq.com/openai/v1/chat/completions`)
+- **Singleton Pattern** → Used for database connection management and shared services  
+- **MVC Architecture** → Ensures separation between logic, interface, and data handling  
 
-Features:
-- Auto-detect priority when submitting a ticket
-- Admin button "Résumé IA" (summary by priority)
-- Admin button "Suggestion IA" (AI response as placeholder until confirmation)
+This architecture ensures scalability, maintainability, and clean code organization.
 
-## Project Structure
+---
 
-- `src/main/java/org/example/model/` - Data models
-- `src/main/java/org/example/service/` - Business logic services
-- `src/main/java/org/example/controller/` - UI controllers
-- `src/main/resources/fxml/` - FXML views
-- `src/main/resources/css/` - Stylesheets
+## Contributors
 
-## ResponseQuestion Admin Module
+Project developed by **Team One Health – Class 3A53**
 
-Access the admin module from the dashboard sidebar using "Reponses".
+- Emna Ben Aissa  
+- Iheb Ben Jbir  
+- Farah Hannachi  
+- Emna Ben Bader  
+- Mohamed Yassin Essaleh  
 
-A standalone launcher is also available for quick testing:
-- `org.example.ResponseQuestionAdminLauncher`
+---
 
-The module supports CRUD, filters, pagination, file upload, and PDF export.
+## Getting Started
+
+### Prerequisites
+
+- Java JDK 17+
+- JavaFX SDK
+- Maven
+- MySQL
+- IDE (IntelliJ IDEA / NetBeans)
+
+---
+
+## Acknowledgments
+
+Thanks to our professors at **Esprit School of Engineering** for their guidance and support.
+
+Inspired by modern e-health and pharmacy management platforms.
