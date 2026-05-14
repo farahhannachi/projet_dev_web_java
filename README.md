@@ -113,8 +113,6 @@ Project developed by **Team One Health – Class 3A53**
 
 ## Acknowledgments
 
-Thanks to our professors at Esprit School of Engineering for their guidance and support.
-Inspired by modern e-health and pharmacy management platforms.
 
 Thanks to our professors at **Esprit School of Engineering** for their guidance and support.
 Inspired by modern e-health and pharmacy management platforms.
