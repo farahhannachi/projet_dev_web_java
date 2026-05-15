@@ -34,13 +34,12 @@ The project aims to simplify access to healthcare products and digitalize pharma
 
 ## Tech Stack
 
-### Frontend
 - HTML5
 - CSS3
 - JavaScript
 - Bootstrap
 
-### Backend
+
 - PHP
 - Symfony Framework
 - MySQL
