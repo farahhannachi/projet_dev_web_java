@@ -34,11 +34,12 @@ The project aims to simplify healthcare service management and digitalize pharma
 
 ## Tech Stack
 
-### Frontend
+
 - JavaFX
 - CSS
 
-### Backend
+
+
 - Java
 - JDBC
 - MySQL
