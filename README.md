@@ -35,11 +35,11 @@ The project aims to simplify healthcare service management and digitalize pharma
 
 ### Desktop App (JavaFX)
 
-#### Frontend
+
 - JavaFX
 - CSS
 
-#### Backend
+
 - Java
 - JDBC
 - MySQL
@@ -49,11 +49,10 @@ The project aims to simplify healthcare service management and digitalize pharma
 
 ### Website (Symfony)
 
-#### Frontend
+
 - Twig
 - CSS
 
-#### Backend
 - PHP
 - Symfony
 - MySQL
